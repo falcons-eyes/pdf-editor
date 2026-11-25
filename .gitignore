@@ -1,0 +1,10 @@
+build/
+dist/
+*.dmg
+.venv*/
+__pycache__/
+*.pyc
+app_icon.iconset/
+.DS_Store
+.claude/settings.local.json
+*.spec
