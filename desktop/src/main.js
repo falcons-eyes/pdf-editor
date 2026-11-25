@@ -7,6 +7,7 @@ const os = require("node:os");
 const { createPathMapper, fsError, WIN_ROOT } = require("./paths");
 const { createSeal } = require("./seal");
 const { createBookmarks } = require("./bookmarks");
+const { packageOfExe, packageDataDir } = require("./msstore");
 
 const IS_MAC = process.platform === "darwin";
 function realpath(p) { try { return fs.realpathSync.native(p); } catch { return p; } }
@@ -48,12 +49,24 @@ function realHome() {
   return m ? m[1] : h;
 }
 const HOME = HOME_OVERRIDE || (IS_MAS ? realHome() : os.homedir());
+// Microsoft Store build (MSIX): process.windowsStore is set when the app runs with package identity;
+// the install folder (…\WindowsApps\<package>\app) also counts, so a launch by path behaves the same.
+const MSSTORE_PKG = IS_WIN ? packageOfExe(process.execPath) : null;
+const IS_MSSTORE = IS_WIN && (!!process.windowsStore || !!MSSTORE_PKG);
+// ...and keeps its data in the package's own LocalState folder instead of %APPDATA% (src/msstore.js)
+const MSSTORE_DATA = IS_MSSTORE && !HOME_OVERRIDE
+  ? packageDataDir({ exe: process.execPath, localAppData: process.env.LOCALAPPDATA || path.join(os.homedir(), "AppData", "Local"), exists: fs.existsSync })
+  : null;
+const APP_DATA = MSSTORE_DATA || app.getPath("appData");
+// "Import data from the previous version…": Mac App Store build, Microsoft Store build (a test home
+// can switch it on with PDFE_TEST_MSSTORE=1)
+const IMPORT_MENU = SANDBOXED || IS_MSSTORE || (!!HOME_OVERRIDE && process.env.PDFE_TEST_MSSTORE === "1");
 // The page keeps its data in <appData>/PDF Editor (on macOS ~/Library/Application Support/PDF Editor;
-// in the store build that is the container's appData), so Electron's own caches and settings must
-// live elsewhere: a hidden subfolder.
-app.setPath("userData", HOME_OVERRIDE ? path.join(HOME_OVERRIDE, ".pdfe-electron") : path.join(app.getPath("appData"), "PDF Editor", ".electron"));
+// in the store builds that is the container's appData or the package's LocalState), so Electron's own
+// caches and settings must live elsewhere: a hidden subfolder.
+app.setPath("userData", HOME_OVERRIDE ? path.join(HOME_OVERRIDE, ".pdfe-electron") : path.join(APP_DATA, "PDF Editor", ".electron"));
 const paths = createPathMapper({
-  platform: process.platform, home: HOME, appData: app.getPath("appData"), override: !!HOME_OVERRIDE,
+  platform: process.platform, home: HOME, appData: APP_DATA, override: !!HOME_OVERRIDE,
   // store build: "~" is the real home but "~/Library/Application Support" is the container's
   ...(IS_MAS && !HOME_OVERRIDE ? { mapAppSupport: true } : {}),
 });
@@ -468,9 +481,10 @@ async function importPreviousData() {
   let src = null;
   if (NO_DIALOGS) src = process.env.PDFE_TEST_IMPORT_FROM ? path.resolve(process.env.PDFE_TEST_IMPORT_FROM) : null;
   else {
+    // the previous version's store: ~/Library/Application Support/PDF Editor (DMG), %APPDATA%\PDF Editor (NSIS)
     const r = await showOpen({
-      title: l.importTitle, message: l.importMsg, buttonLabel: l.importOk,
-      defaultPath: path.join(HOME_OVERRIDE ? HOME : realHome(), "Library", "Application Support", "PDF Editor"),
+      title: l.importTitle, message: IS_WIN ? l.importMsgWin : l.importMsg, buttonLabel: l.importOk,
+      defaultPath: IS_WIN ? path.join(app.getPath("appData"), "PDF Editor") : path.join(HOME_OVERRIDE ? HOME : realHome(), "Library", "Application Support", "PDF Editor"),
       properties: ["openDirectory"],
     });
     if (!r.canceled && r.filePaths?.length) src = r.filePaths[0];
@@ -571,6 +585,7 @@ const LABELS = {
     grantOk: "허용",
     importPrev: "이전 버전 데이터 가져오기…", importTitle: "이전 버전 데이터 가져오기", importOk: "가져오기",
     importMsg: "이전 버전의 데이터 폴더를 고르세요: 홈 › 라이브러리 › Application Support › PDF Editor",
+    importMsgWin: "이전 버전의 데이터 폴더를 고르세요: %APPDATA%\\PDF Editor",
     importQ: "이 앱의 데이터를 이전 버전 데이터로 바꿀까요?",
     importD: "지금 데이터는 지우지 않고 '.before-import-…' 이름으로 남겨 둡니다. 원래 폴더는 그대로 둡니다. 봉인 키는 옮겨지지 않으니, 이전 버전에서 백업(.p12)으로 내보낸 뒤 가져오세요.",
     importNone: "이 폴더에는 이전 버전 데이터가 없습니다.", importSame: "이 앱의 데이터 폴더는 가져올 수 없습니다. 이전 버전의 폴더를 고르세요.",
@@ -589,6 +604,7 @@ const LABELS = {
     grantOk: "Allow",
     importPrev: "Import data from the previous version…", importTitle: "Import data from the previous version", importOk: "Import",
     importMsg: "Choose the previous version's data folder: Home › Library › Application Support › PDF Editor",
+    importMsgWin: "Choose the previous version's data folder: %APPDATA%\\PDF Editor",
     importQ: "Replace this app's data with the data from the previous version?",
     importD: "Your current data is kept as '.before-import-…' copies, and the original folder is left as it is. Seal keys are not copied: export a backup (.p12) in the previous version and import it here.",
     importNone: "This folder doesn't contain data from the previous version.", importSame: "This is this app's own data folder. Choose the previous version's folder.",
@@ -630,7 +646,7 @@ function appMenu() {
   const l = L(), n = app.name;
   return { label: n, submenu: [
     { role: "about", label: l.about(n) }, { type: "separator" },
-    ...(SANDBOXED ? [{ label: l.importPrev, click: () => runImport() }, { type: "separator" }] : []),
+    ...(IMPORT_MENU ? [{ label: l.importPrev, click: () => runImport() }, { type: "separator" }] : []),
     { role: "services", label: l.services }, { type: "separator" },
     { role: "hide", label: l.hide(n) }, { role: "hideOthers", label: l.hideOthers }, { role: "unhide", label: l.unhide },
     { type: "separator" }, { role: "quit", label: l.quit(n) },
@@ -640,7 +656,7 @@ const helpMenu = () => { const l = L(); return { label: l.help, role: "help", su
   { label: l.privacy, click: () => shell.openExternal(LINKS.privacy) },
   { label: l.support, click: () => shell.openExternal(LINKS.support) },
   { label: l.repo, click: () => shell.openExternal(LINKS.repo) },
-  ...(SANDBOXED && !IS_MAC ? [{ type: "separator" }, { label: l.importPrev, click: () => runImport() }] : []),
+  ...(IMPORT_MENU && !IS_MAC ? [{ type: "separator" }, { label: l.importPrev, click: () => runImport() }] : []),
 ] }; };
 let lastImport = null; // for tests: the result (or error) of the last import
 function runImport() {

@@ -1,5 +1,6 @@
 // Unit tests (plain Node, no Electron): page path mapping incl. the Mac App Store (sandboxed)
-// mapping, and the security-scoped bookmark store (src/bookmarks.js).
+// mapping, the Microsoft Store package folder (src/msstore.js) and the security-scoped bookmark
+// store (src/bookmarks.js).
 //
 //   node test/unit.mjs
 import fs from "node:fs";
@@ -12,6 +13,7 @@ const require = createRequire(import.meta.url);
 const DESKTOP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const { createPathMapper, WIN_ROOT } = require(path.join(DESKTOP, "src", "paths.js"));
 const { createBookmarks } = require(path.join(DESKTOP, "src", "bookmarks.js"));
+const { packageOfExe, packageDataDir } = require(path.join(DESKTOP, "src", "msstore.js"));
 
 const results = [];
 const check = (name, ok, detail = "") => {
@@ -50,6 +52,29 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   // default (no mapAppSupport given) keeps the old behaviour
   const dflt = createPathMapper({ platform: "darwin", home: "/Users/u", appData: `${C}/Library/Application Support` });
   check("darwin default: no app-support mapping", dflt.toOs("~/Library/Application Support/PDF Editor") === "/Users/u/Library/Application Support/PDF Editor");
+}
+
+// ---- Microsoft Store package (MSIX): family name from the install folder, data in LocalState ----
+{
+  const exe = "C:\\Program Files\\WindowsApps\\FalconEyesInc.Sealworks_1.1.0.0_x64__8wekyb3d8bbwe\\app\\Sealworks.exe";
+  const pkg = packageOfExe(exe);
+  check("msstore: package full name parsed from the exe path", pkg?.name === "FalconEyesInc.Sealworks" && pkg.version === "1.1.0.0" && pkg.arch === "x64" && pkg.resourceId === "" && pkg.familyName === "FalconEyesInc.Sealworks_8wekyb3d8bbwe", JSON.stringify(pkg));
+  check("msstore: other drives, arm64, forward slashes", packageOfExe("D:/WindowsApps/A.B-c_2.0.1.0_arm64_~_abcdefghijklm/app/Sealworks.exe")?.familyName === "A.B-c_abcdefghijklm");
+  check("msstore: not a package install -> null", [
+    "C:\\Users\\u\\AppData\\Local\\Programs\\Sealworks\\Sealworks.exe",
+    "C:\\Program Files\\WindowsApps\\Sealworks.exe",
+    "C:\\Program Files\\WindowsApps\\NotAPackage\\app\\Sealworks.exe",
+    "C:\\Program Files\\WindowsApps\\A_1.0.0.0_x64__short\\app\\Sealworks.exe",
+    "", undefined,
+  ].every((e) => packageOfExe(e) === null));
+  const local = "C:\\Users\\u\\AppData\\Local";
+  const family = `${local}\\Packages\\FalconEyesInc.Sealworks_8wekyb3d8bbwe`;
+  const dir = packageDataDir({ exe, localAppData: local, exists: (p) => p === family });
+  check("msstore: data in the package's LocalState", dir === `${family}\\LocalState`, dir);
+  check("msstore: package folder missing (not registered for this user) -> null", packageDataDir({ exe, localAppData: local, exists: () => false }) === null);
+  const m = createPathMapper({ platform: "win32", home: "C:\\Users\\u", appData: dir });
+  check("msstore: page store -> LocalState\\PDF Editor", m.toOs("~/Library/Application Support/PDF Editor/seal") === `${dir}\\PDF Editor\\seal`);
+  check("msstore: LocalState -> page path, the real %APPDATA% stays a home path", m.toPage(`${dir}\\PDF Editor\\docs\\a.pdf`) === "~/Library/Application Support/PDF Editor/docs/a.pdf" && m.toPage("C:\\Users\\u\\AppData\\Roaming\\PDF Editor") === "~/AppData/Roaming/PDF Editor");
 }
 
 // ---- bookmarks ----

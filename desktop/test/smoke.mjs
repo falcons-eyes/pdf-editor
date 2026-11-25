@@ -15,7 +15,11 @@
 //   --expect-sandboxed   desktop.sandboxed must be true; checks the bookmark store, the import menu
 //   --expect-mas         main must be Electron's MAS variant (process.mas)
 //   --outside <dir>      a folder the sandbox may not read: fs errors must be EPERM/EACCES, not ENOENT
-//   --safestorage        PDFE_SEAL_SAFESTORAGE=1: the sealer key must be protected by the OS (Keychain)
+//   --safestorage        PDFE_SEAL_SAFESTORAGE=1: the sealer key must be protected by the OS (Keychain, DPAPI)
+//
+// Microsoft Store options (.github/workflows/msstore.yml runs the installed MSIX package):
+//   --expect-msstore     the app runs from an installed package (…\WindowsApps\…): import menu, not sandboxed
+//   --simulate-msstore   PDFE_TEST_MSSTORE=1: a regular build shows the store build's import menu
 import { execFile } from "node:child_process";
 import { _electron as electron } from "playwright";
 import { PDFDocument } from "pdf-lib";
@@ -35,6 +39,10 @@ const EXPECT_SANDBOX = SIMULATE || argv.includes("--expect-sandboxed");
 const EXPECT_MAS = argv.includes("--expect-mas");
 const SAFESTORAGE = argv.includes("--safestorage");
 const OUTSIDE = flag("--outside") ? path.resolve(flag("--outside")) : null;
+const SIMULATE_MSSTORE = argv.includes("--simulate-msstore");
+const EXPECT_MSSTORE = SIMULATE_MSSTORE || argv.includes("--expect-msstore");
+// both store builds have "Import data from the previous version…"
+const EXPECT_IMPORT = EXPECT_SANDBOX || EXPECT_MSSTORE;
 
 function resolveTarget() {
   if (argv.includes("--dev")) return { executablePath: require("electron"), args: [DESKTOP], label: "electron ." };
@@ -86,6 +94,7 @@ async function main() {
   const env = { ...process.env, PDFE_HOME_OVERRIDE: home, PDFE_TEST_NO_DIALOGS: "1", PDFE_TEST_IMPORT_FROM: legacyStore };
   if (SIMULATE) env.PDFE_TEST_SANDBOXED = "1";
   if (SAFESTORAGE) env.PDFE_SEAL_SAFESTORAGE = "1";
+  if (SIMULATE_MSSTORE) env.PDFE_TEST_MSSTORE = "1";
   delete env.ELECTRON_RUN_AS_NODE;
 
   const app = await electron.launch({ executablePath: target.executablePath, args: target.args, env, timeout: 90_000 });
@@ -114,6 +123,12 @@ async function main() {
     if (EXPECT_MAS) {
       const m = await app.evaluate(() => ({ mas: process.mas === true, sandboxed: process.sandboxed === true }));
       check("main is Electron's Mac App Store variant (process.mas)", m.mas, JSON.stringify(m));
+    }
+    if (EXPECT_MSSTORE && !SIMULATE_MSSTORE) {
+      // process.windowsStore is true only with package identity (launched from Start, "Open with" or
+      // the AUMID); a launch by path (as here) runs the same files without it
+      const m = await app.evaluate(({ app: a }) => ({ exe: process.execPath, windowsStore: process.windowsStore === true, packaged: a.isPackaged }));
+      check("msstore: runs from the installed package (WindowsApps)", /\\WindowsApps\\[^\\]+_\d+\.\d+\.\d+\.\d+_[^\\]+\\app\\Sealworks\.exe$/i.test(m.exe) && m.packaged, JSON.stringify(m));
     }
 
     // ---- desktop API contract ----
@@ -463,8 +478,8 @@ async function main() {
     // ---- store build: import of the previous version's data (main's own menu) ----
     const importLabels = ["Import data from the previous version…", "이전 버전 데이터 가져오기…"];
     const importItem = (await menuLabels(app)).some((m) => m.items.some((x) => importLabels.includes(x)));
-    check(EXPECT_SANDBOX ? "store build: Import data from the previous version… in the menu" : "no import menu outside the store build", importItem === EXPECT_SANDBOX);
-    if (EXPECT_SANDBOX && importItem) {
+    check(EXPECT_IMPORT ? "store build: Import data from the previous version… in the menu" : "no import menu outside the store builds", importItem === EXPECT_IMPORT);
+    if (EXPECT_IMPORT && importItem) {
       // the "previous version": a copy of this store as it is now, plus a seal/ and .electron/ that must not come along
       await page.evaluate(() => { dispatchEvent(new Event("pagehide")); });
       await page.waitForTimeout(800);
