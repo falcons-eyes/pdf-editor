@@ -183,67 +183,58 @@ Set-Content -Path (Join-Path $real "nsis-marker.txt") -Value "left by the NSIS b
 Set-Content -Path (Join-Path $real "documents.json") -Value "[]" -NoNewline
 $realBefore = Hash-Tree $real
 
-# ---- 1. Open with: identity, the file reaches the page; second Open with -> same window ----
+# ---- 1. Open with (app not running): identity, the file reaches the page ----
 $work = Join-Path $env:RUNNER_TEMP "msstore-open"
 if (-not $env:RUNNER_TEMP) { $work = Join-Path ([IO.Path]::GetTempPath()) "msstore-open" }
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $src = Get-ChildItem (Join-Path $PSScriptRoot "out") -Filter "sealed-win32.pdf" -ErrorAction SilentlyContinue | Select-Object -First 1
 if (-not $src) { $src = Get-ChildItem (Join-Path $PSScriptRoot "fixtures") -Filter *.pdf | Select-Object -First 1 }
-$first = Join-Path $work "opened-with-first.pdf"; Copy-Item $src.FullName $first -Force
-$second = Join-Path $work "opened-with-second.pdf"; Copy-Item $src.FullName $second -Force
+$pdfs = @{}
+foreach ($n in "first", "second", "third") { $pdfs[$n] = Join-Path $work "opened-with-$n.pdf"; Copy-Item $src.FullName $pdfs[$n] -Force }
+$docsFile = Join-Path $store "documents.json"
+# the page writes its records ~0.5 s after a change; it keeps one record for a PDF that was only opened
+function Docs { if (Test-Path $docsFile) { Get-Content -Raw $docsFile } else { "" } }
+$trace = Join-Path $store ".electron\lifecycle-trace"
+function Show-Trace([string] $what) { Write-Host "---- lifecycle trace ($what) ----"; Get-Content $trace -ErrorAction SilentlyContinue; Write-Host "----"; Set-Content $trace "" -NoNewline -ErrorAction SilentlyContinue }
 
-$how = Open-With $first
+$how = Open-With $pdfs.first
 $w = Main-Window 90
 Check "Open with: Sealworks started (window shown)" ($null -ne $w) "$how, pid $($w.Id)"
 $identity = Identity-Of $w
 Check "Open with: the process runs with package identity" ($identity -eq $pkg.PackageFullName) "$identity"
-$docsFile = Join-Path $store "documents.json"
-# the page writes its records ~0.5 s after a change; it keeps one record for a PDF that was only opened
-function Docs { if (Test-Path $docsFile) { Get-Content -Raw $docsFile } else { "" } }
 Start-Sleep -Seconds 8
 Check "Open with: the page opened the PDF (its record is written)" ((Docs).Contains("opened-with-first.pdf")) "$((Docs).Length) bytes"
 Shot "msstore-open-with-first"
-$before = @(Sealworks-Processes | ForEach-Object Id)
-[void] $w.Handle # keep a handle so the exit code can be read if it ends
-$trace = Join-Path $store ".electron\lifecycle-trace"
-New-Item -ItemType File -Force $trace | Out-Null
-$how = Open-With $second
-Start-Sleep -Seconds 8
-$mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
-$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
-Check "second Open with: the running window opened it (single instance)" ($mains.Count -eq 1 -and $alive -and ((Docs).Contains("opened-with-second.pdf"))) "$how, windows: $($mains.Count) (pid $($mains.Id -join ',')), first main pid $($w.Id) alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" }), processes before: $($before -join ','), now: $((Sealworks-Processes | ForEach-Object Id) -join ',')"
-Shot "msstore-open-with-second"
 $clean = Close-App
-Write-Host "---- lifecycle trace (second Open with) ----"; Get-Content $trace -ErrorAction SilentlyContinue; Write-Host "----"
 Check "closes cleanly (window close -> quit)" $clean
-
 Check "data store in the package's LocalState" ((Test-Path $docsFile) -and (Test-Path (Join-Path $store ".electron"))) ((Get-ChildItem $store -Force -ErrorAction SilentlyContinue | ForEach-Object Name) -join " ")
 Check "nothing redirected to LocalCache\Roaming" (-not (Test-Path $redirected)) $redirected
 Check "the real %APPDATA%\PDF Editor (NSIS store) is untouched" ((Hash-Tree $real) -eq $realBefore)
 
-# ---- 3. relaunch: the same data ----
+# ---- 2. Start, then Start / Open with / a PDF argument while it runs: one window gets them ----
 $how = Launch-App
 $w = Main-Window 90
 $identity = Identity-Of $w
-Check "launch from Start (AUMID): window shown, package identity" (($null -ne $w) -and ($identity -eq $pkg.PackageFullName)) "$how, $identity"
+Check "launch from Start (AUMID): window shown, package identity, data kept" (($null -ne $w) -and ($identity -eq $pkg.PackageFullName) -and (Docs).Contains("opened-with-first.pdf")) "$how, $identity"
 Start-Sleep -Seconds 6
 Shot "msstore-relaunch"
-# Start again while it runs: the running window comes forward, no second window, nothing ends
-[void] $w.Handle
-$how = Launch-App
-Start-Sleep -Seconds 6
-$mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
-$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
-Check "Start while running: same window (single instance)" ($mains.Count -eq 1 -and $alive) "$how, windows: $($mains.Count), first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" })"
-$third = Join-Path $work "opened-with-third.pdf"; Copy-Item $src.FullName $third -Force
-Set-Content $trace "" -NoNewline
-try { [void] [PkgLaunch]::Launch($aumid, "`"$third`"") } catch { Write-Host "note: ActivateApplication with a file: $($_.Exception.InnerException.Message)" }
-Start-Sleep -Seconds 8
-$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
-Check "activation with a PDF argument while running: same window gets it" ($alive -and ((Docs).Contains("opened-with-third.pdf"))) "first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" })"
-Write-Host "---- lifecycle trace (ActivateApplication with a file) ----"; Get-Content $trace -ErrorAction SilentlyContinue; Write-Host "----"
+[void] $w.Handle # keep a handle so the exit code can be read if it ends
+New-Item -ItemType File -Force $trace | Out-Null
+function While-Running([string] $name, [scriptblock] $act, [string] $expect) {
+  $how = & $act
+  Start-Sleep -Seconds 8
+  $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
+  $alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
+  $got = if ($expect) { (Docs).Contains($expect) } else { $true }
+  Check $name ($mains.Count -eq 1 -and $alive -and $got) "$how, windows: $($mains.Count), first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" }), page got it: $got"
+  Show-Trace $name
+}
+While-Running "Start while running: same window (single instance)" { Launch-App } $null
+While-Running "Open with while running: the running window opens it" { Open-With $pdfs.second } "opened-with-second.pdf"
+While-Running "activation with a PDF argument while running: the running window opens it" { try { [void] [PkgLaunch]::Launch($aumid, "`"$($pdfs.third)`""); "ActivateApplication(file)" } catch { "ActivateApplication(file) failed: $($_.Exception.InnerException.Message)" } } "opened-with-third.pdf"
+Shot "msstore-while-running"
 [void] (Close-App)
-Check "relaunch: documents.json kept" ((Docs).Contains("opened-with-second.pdf"))
+Check "after a relaunch: documents.json kept" ((Docs).Contains("opened-with-third.pdf"))
 
 # ---- update: data kept ----
 if ($UpdateAppx) {
@@ -259,7 +250,7 @@ if ($UpdateAppx) {
   Start-Sleep -Seconds 6
   Shot "msstore-after-update"
   [void] (Close-App)
-  Check "update: documents.json still has the records after a run" ((Get-Content -Raw $docsFile).Contains("opened-with-second.pdf"))
+  Check "update: documents.json still has the records after a run" ((Docs).Contains("opened-with-third.pdf"))
   $pkg = $upd
 }
 
