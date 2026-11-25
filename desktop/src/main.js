@@ -257,7 +257,15 @@ const FS = {
   },
   async mkdir(p, o) { await fsp.mkdir(osPath(p), { recursive: !!o?.recursive }); },
   async rename(from, to) { await fsp.rename(osPath(from), osPath(to)); },
-  async rm(p, o) { await fsp.rm(osPath(p), { recursive: true, force: !!o?.force }); },
+  // the page only deletes its own single files (保管함 copies, thumbnails): folders are refused,
+  // so a bug or injected script can never wipe a whole tree
+  async rm(p, o) {
+    const target = osPath(p);
+    const st = await fsp.lstat(target).catch((e) => { if (e.code === "ENOENT" && o?.force) return null; throw e; });
+    if (!st) return;
+    if (st.isDirectory()) throw fsError("EPERM", `refusing to delete a folder: ${p}`);
+    await fsp.rm(target, { force: !!o?.force });
+  },
   async copyFile(from, to) { await fsp.copyFile(osPath(from), osPath(to)); },
 };
 
@@ -378,10 +386,21 @@ function registerIpc() {
     catch (err) { return { ok: false, error: errText(err) }; }
     finally { fsInFlight--; fsLastActivity = Date.now(); }
   });
+  const OPENABLE = /\.(pdf|png|jpe?g|webp|gif|bmp|heic|tiff?)$/i;
   handle("pdfe:shell", async (op, p) => {
-    if (op === "openPath") { const r = await shell.openPath(osPath(p)); if (r) throw fsError("EIO", r); return; }
+    // open only folders and documents/images, never programs or scripts
+    if (op === "openPath") {
+      const target = osPath(p);
+      const st = await fsp.stat(target);
+      if (!st.isDirectory() && !OPENABLE.test(target)) throw fsError("EPERM", `not a document: ${p}`);
+      const r = await shell.openPath(target); if (r) throw fsError("EIO", r); return;
+    }
     if (op === "showItemInFolder") return shell.showItemInFolder(osPath(p));
-    if (op === "trashItem") return shell.trashItem(osPath(p));
+    if (op === "trashItem") {
+      const target = osPath(p);
+      if ((await fsp.stat(target)).isDirectory()) throw fsError("EPERM", `refusing to trash a folder: ${p}`);
+      return shell.trashItem(target);
+    }
     throw fsError("EINVAL", `unknown operation ${op}`);
   });
   handle("pdfe:window", async (op, o) => {

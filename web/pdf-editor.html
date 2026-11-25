@@ -641,19 +641,22 @@ const OS_ATTRS = ["data-tip", "data-key", "title", "aria-label", "placeholder"];
 function localizeStatic(root = document.body) {
   if (!OS.win) return;
   const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
-  for (let t = w.nextNode(); t; t = w.nextNode()) { const v = osText(t.nodeValue); if (v !== t.nodeValue) t.nodeValue = v; }
-  for (const n of root.querySelectorAll(OS_ATTRS.map((a) => `[${a}]`).join(","))) for (const a of OS_ATTRS) if (n.hasAttribute(a)) n.setAttribute(a, osText(n.getAttribute(a)));
+  for (let t = w.nextNode(); t; t = w.nextNode()) { if (t.parentElement?.closest("[data-raw]")) continue; const v = osText(t.nodeValue); if (v !== t.nodeValue) t.nodeValue = v; }
+  for (const n of root.querySelectorAll(OS_ATTRS.map((a) => `[${a}]`).join(","))) if (!n.closest("[data-raw]")) for (const a of OS_ATTRS) if (n.hasAttribute(a)) n.setAttribute(a, osText(n.getAttribute(a)));
 }
+// { raw: true } marks user data (document and signature names): shown exactly as typed
 const el = (tag, attrs = {}, ...kids) => {
   const n = document.createElement(tag);
+  const tx = attrs.raw ? (s) => s : osText;
+  if (attrs.raw) n.dataset.raw = "";
   for (const [k, v] of Object.entries(attrs)) {
-    if (v == null || v === false) continue;
+    if (v == null || v === false || k === "raw") continue;
     if (k === "class") n.className = v;
-    else if (k === "text") n.textContent = osText(v);
+    else if (k === "text") n.textContent = tx(v);
     else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
-    else n.setAttribute(k, v === true ? "" : OS_ATTRS.includes(k) ? osText(v) : v);
+    else n.setAttribute(k, v === true ? "" : OS_ATTRS.includes(k) ? tx(v) : v);
   }
-  for (const c of kids) if (c != null && c !== false) n.append(osText(c));
+  for (const c of kids) if (c != null && c !== false) n.append(tx(c));
   return n;
 };
 const svgIcon = (inner, vb = "0 0 16 16") => {
@@ -825,8 +828,37 @@ const Store = (() => {
   // --- disk ---
   const P = (name) => `${DIR}/${name}`;
   const ext = (mime) => (mime === "image/jpeg" ? "jpg" : "png");
-  const readJSON = async (name, d) => { try { return JSON.parse(await fs.readFile(P(name), "utf8")); } catch { return d; } };
-  const writeJSON = async (name, v) => { const tmp = P(name + ".tmp"); await fs.writeFile(tmp, JSON.stringify(v), "utf8"); await fs.rename(tmp, P(name)); };
+  // A store file that exists but can't be read (locked by antivirus or a sync app, damaged) must never
+  // be replaced by an empty list: retry, keep a copy of a damaged file, and stop saving that file
+  // for this session if it stays unreadable.
+  const blocked = new Set();
+  const readJSON = async (name, d) => {
+    if (!(await fs.exists(P(name)).catch(() => false))) return d;
+    let text = null;
+    for (let i = 0; i < 5 && text == null; i++) {
+      try { text = await fs.readFile(P(name), "utf8"); } catch (e) { console.warn("store read", name, e); await new Promise((r) => setTimeout(r, 200 * (i + 1))); }
+    }
+    if (text == null) {
+      blocked.add(name);
+      toast("보관함 파일을 읽지 못해 이번에는 변경 내용을 저장하지 않습니다. 앱을 닫았다가 다시 열어 주세요.", { err: true, ms: 12000 });
+      return d;
+    }
+    try { return JSON.parse(text); }
+    catch { await fs.copyFile(P(name), P(`${name}.damaged-${Date.now()}`)).catch(() => {}); return d; }
+  };
+  // one write at a time per file, each through its own temporary file
+  const chains = new Map();
+  const writeJSON = (name, v) => {
+    const run = async () => {
+      if (blocked.has(name)) return;
+      const tmp = P(`${name}.${uid()}.tmp`);
+      try { await fs.writeFile(tmp, JSON.stringify(v), "utf8"); await fs.rename(tmp, P(name)); }
+      catch (e) { await fs.rm(tmp, { force: true }).catch(() => {}); throw e; }
+    };
+    const next = (chains.get(name) || Promise.resolve()).catch(() => {}).then(run);
+    chains.set(name, next);
+    return next;
+  };
   const metaOf = (a) => { const { src, ...m } = a; return m; };
 
   const api = {
@@ -1240,7 +1272,7 @@ function renderHome() {
     const exportsN = d.exportLog?.length || 0;
     list.append(el("div", { class: "doc-row" + (S.rec?.id === d.id ? " current" : ""), role: "listitem" },
       el("button", { class: "doc-open", type: "button", "data-tip": "보관함 사본으로 이어서 작업", onclick: () => openRecord(d) },
-        thumb, el("span", { class: "doc-title" }, el("strong", { text: d.name }), srcLine)),
+        thumb, el("span", { class: "doc-title" }, el("strong", { text: d.name, raw: true }), srcLine)),
       el("div", { class: "cell c-work" },
         el("span", { class: "chip " + (w.n ? "work" : "muted") }, el("i"), w.n ? `서명·도장 ${w.n}개` : "아직 없음"),
         el("small", { text: `${relTime(w.at)} 저장됨` })),
@@ -1755,7 +1787,7 @@ function syncLibrary() {
     lib.textContent = "";
     for (const id of ids) {
       const a = S.assets.get(id); if (!a) continue;
-      const nameSpan = el("span", { text: a.name, title: onHome && !a.sample ? "눌러서 이름 바꾸기" : a.name });
+      const nameSpan = el("span", { text: a.name, title: onHome && !a.sample ? osText("눌러서 이름 바꾸기") : a.name, raw: true });
       const tile = el(onHome ? "div" : "button", {
         class: "tile", draggable: onHome ? null : "true", "data-id": id, tabindex: onHome ? "0" : null,
         title: onHome ? a.name : `${a.name} — 눌러서 놓기, 끌어서 원하는 위치에 놓기`,
@@ -1850,7 +1882,7 @@ function syncInspector() {
     return el("div", { class: "row" }, el("span", { class: "lbl", text: label }), input, out);
   };
   const inkOk = canInk(a, o.fx);
-  const nameInput = a?.sample ? el("strong", { text: a.name }) : el("input", { id: "f-name", value: a?.name || "", maxlength: "40", "aria-label": "보관함 이름", title: "이름을 바꾸면 보관함에도 반영됩니다" });
+  const nameInput = a?.sample ? el("strong", { text: a.name, raw: true }) : el("input", { id: "f-name", value: a?.name || "", maxlength: "40", "aria-label": "보관함 이름", title: "이름을 바꾸면 보관함에도 반영됩니다" });
   if (nameInput.tagName === "INPUT") {
     nameInput.addEventListener("change", () => renameAsset(o.assetId, nameInput.value));
     nameInput.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") nameInput.blur(); });
@@ -1953,7 +1985,8 @@ async function buildPdf() {
   }
   return out.save({ useObjectStreams: true });
 }
-const cleanName = (s) => s.replace(/[\/\\:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/\.pdf$/i, "").slice(0, 180);
+const cleanName = (s) => s.replace(/[\/\\:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/\.pdf$/i, "").slice(0, 180)
+  .replace(/[. ]+$/, "").replace(/^(con|prn|aux|nul|com\d|lpt\d)$/i, "$&_");
 const saveState = { dir: null };
 let saveCheckToken = 0;
 async function checkSaveTarget() {

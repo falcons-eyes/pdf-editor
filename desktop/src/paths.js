@@ -20,7 +20,8 @@ function createPathMapper({ platform, home, appData, override = false }) {
   const isWin = platform === "win32";
   const P = isWin ? path.win32 : path.posix;
   const mapAppSupport = platform !== "darwin" && !override;
-  const parts = (s) => s.split(/[\\/]+/).filter(Boolean);
+  // backslash separates folders only on Windows; on a Mac a\b.pdf is a legal file name
+  const parts = (s) => s.split(isWin ? /[\\/]+/ : /\/+/).filter(Boolean);
   const within = (base, p) => {
     const rel = P.relative(base, p);
     return rel === "" || (!rel.startsWith("..") && !P.isAbsolute(rel));

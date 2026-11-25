@@ -40,7 +40,7 @@ DESKTOP_SHIM = r"""<script>
   const q = new URLSearchParams(location.search);
   let perm = q.get("perm") || "granted";
   const call = async (op, args) => {
-    const r = await fetch("/__fs", { method: "POST", body: JSON.stringify({ op, ...args }) });
+    const r = await fetch("/__fs", { method: "POST", headers: { "Content-Type": "application/json", "X-PDFE-Dev": "1" }, body: JSON.stringify({ op, ...args }) });
     const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
   };
   const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s); };
@@ -155,6 +155,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path != "/__fs":
             self._send(404, b"{}", "application/json"); return
+        # only this page may use the file API: other sites can't send the custom header without a
+        # CORS preflight (which this server never answers), and DNS rebinding fails the Host check
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0]
+        origin = self.headers.get("Origin")
+        if (self.headers.get("X-PDFE-Dev") != "1" or host not in ("localhost", "127.0.0.1")
+                or (origin and origin.split("://", 1)[-1].rsplit(":", 1)[0] not in ("localhost", "127.0.0.1"))):
+            self._send(403, b'{"error":"EACCES: forbidden"}', "application/json"); return
         req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")
         try:
             out = {"result": fs_op(req)}

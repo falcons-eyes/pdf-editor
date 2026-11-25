@@ -5,6 +5,7 @@
 //   node test/smoke.mjs                 # the unpacked build in dist/ (npm run pack)
 //   node test/smoke.mjs --dev           # electron . (needs npm run build:page)
 //   node test/smoke.mjs --app <path>    # a .app bundle, an executable, or PDFE_APP=<path>
+import { execFile } from "node:child_process";
 import { _electron as electron } from "playwright";
 import { PDFDocument } from "pdf-lib";
 import fs from "node:fs";
@@ -93,10 +94,11 @@ async function main() {
       await d.fs.rename("~/api/a/c.bin", "~/api/a/d.bin");
       r.list = (await d.fs.readdir("~/api/a")).map((e) => `${e.name}:${e.isDirectory ? "d" : "f"}`);
       r.exists = [await d.fs.exists("~/api/a/d.bin"), await d.fs.exists("~/api/a/c.bin")];
-      await d.fs.rm("~/api", { force: true });
-      r.gone = !(await d.fs.exists("~/api"));
-      r.rmMissing = await err(d.fs.rm("~/api"));
-      r.rmForce = await err(d.fs.rm("~/api", { force: true }));
+      r.rmFolder = await err(d.fs.rm("~/api", { force: true }));   // folders are never deleted
+      await d.fs.rm("~/api/a/d.bin");
+      r.gone = !(await d.fs.exists("~/api/a/d.bin")) && (await d.fs.exists("~/api/a/t.txt"));
+      r.rmMissing = await err(d.fs.rm("~/api/a/d.bin"));
+      r.rmForce = await err(d.fs.rm("~/api/a/d.bin", { force: true }));
       r.perm = [await d.permissions.state("full-access"), await d.permissions.state(), await d.permissions.request(["full-access"])];
       r.win = await d.window.setOptions({ minWidth: 880, minHeight: 600, titleBarStyle: "hiddenInset" });
       r.os = [await d.os.platform(), await d.os.arch()];
@@ -111,13 +113,13 @@ async function main() {
     check("fs write/read utf8/binary/base64", api.text === "안녕 hello" && api.binIsU8 && api.binLen === Buffer.byteLength("안녕 hello") && api.b64 === Buffer.from("안녕 hello").toString("base64"));
     check("fs stat", api.stat.size === 3 && api.stat.isFile && !api.stat.isDirectory && api.stat.mtimeMs > 0);
     check("fs readdir/copy/rename", JSON.stringify(api.list) === JSON.stringify(["b.bin:f", "b:d", "d.bin:f", "t.txt:f"]) || JSON.stringify([...api.list].sort()) === JSON.stringify(["b.bin:f", "b:d", "d.bin:f", "t.txt:f"]), api.list.join(" "));
-    check("fs exists/rm", api.exists[0] && !api.exists[1] && api.gone && /^ENOENT/.test(api.rmMissing) && api.rmForce === "resolved", api.rmMissing);
+    check("fs exists/rm (files only)", api.exists[0] && !api.exists[1] && api.gone && /^ENOENT/.test(api.rmMissing) && api.rmForce === "resolved" && /^EPERM/.test(api.rmFolder), api.rmFolder);
     check("permissions granted", api.perm[0] === "granted" && api.perm[1]["full-access"] === "granted" && api.perm[2]["full-access"] === "granted");
     check("window.setOptions applied now", api.win?.applied === "now");
     check("os / dock / install", api.os[0] === process.platform && api.os[1] && api.dock.written === false && api.install === "installed");
     check("pathForFile on an in-memory File is null", api.pathForBlobFile === null);
     check("openExternal refuses non-https", /^EPERM/.test(api.badUrl), api.badUrl);
-    check("files written into the override home", !fs.existsSync(path.join(home, "api")));
+    check("files written into the override home", fs.existsSync(path.join(home, "api", "a", "t.txt")));
 
     // menus: the page's template reached the native menu, and clicks come back to the page
     const labels = await app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.items.map((i) => i.label) || []);
@@ -177,6 +179,32 @@ async function main() {
     check("page opened the PDF from the OS", src.view === "editor" && src.path === "~/Out/smoke_signed.pdf" && src.pages === info.pages, JSON.stringify(src));
     await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(OUT, `opened-${process.platform}.png`) });
+
+    // README pictures (not checks): a bigger window, a signature and stamp on the opened document,
+    // then the 보관함 listing it. On Windows also a real screen grab so the window buttons show.
+    try {
+      await app.evaluate(({ BrowserWindow }) => { const w = BrowserWindow.getAllWindows()[0]; w.setContentSize(1440, 900); w.center(); w.focus(); });
+      await page.waitForTimeout(600);
+      // the signed page of the saved contract (its signature and stamp are now part of the PDF)
+      await page.evaluate(async () => {
+        window.__pdfe.select(null);
+        window.__pdfe.S.pages[window.__pdfe.S.pages.length - 1]?.thumb?.click();
+        await new Promise((r) => setTimeout(r, 1200));
+      });
+      const grab = async (name) => {
+        await page.screenshot({ path: path.join(OUT, `${name}-${process.platform}.png`) });
+        if (process.platform !== "win32") return;
+        const b = await app.evaluate(({ BrowserWindow }) => BrowserWindow.getAllWindows()[0].getBounds());
+        const out = path.join(OUT, `${name}-${process.platform}-window.png`).replace(/'/g, "''");
+        const ps = `Add-Type -AssemblyName System.Drawing; $b = New-Object System.Drawing.Bitmap ${b.width}, ${b.height}; ` +
+          `$g = [System.Drawing.Graphics]::FromImage($b); $g.CopyFromScreen(${b.x}, ${b.y}, 0, 0, $b.Size); $b.Save('${out}')`;
+        await new Promise((res) => execFile("powershell", ["-NoProfile", "-Command", ps], () => res()));
+      };
+      await grab("showcase-editor");
+      await page.evaluate(() => window.__pdfe.showHome());
+      await page.waitForTimeout(1200);
+      await grab("showcase-home");
+    } catch (e) { console.log("note: showcase screenshots skipped:", e.message); }
 
     check("no console errors / CSP violations / failed requests", problems.length === 0, problems.slice(0, 8).join("\n      "));
   } catch (e) {
