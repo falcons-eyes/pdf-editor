@@ -69,8 +69,8 @@ Windows
 
 | 컴퓨터 | 받을 파일 |
 | --- | --- |
-| Mac (Apple Silicon: M1, M2, M3, M4…) | `PDF-Editor-<버전>-arm64.dmg` |
-| Mac (Intel) | `PDF-Editor-<버전>-x64.dmg` |
+| Mac (Apple Silicon: M1, M2, M3, M4…), macOS 12 이상 | `PDF-Editor-<버전>-arm64.dmg` |
+| Mac (Intel), macOS 12 이상 | `PDF-Editor-<버전>-x64.dmg` |
 | Windows 10 · 11 (64비트) | `PDF-Editor-<버전>-setup-x64.exe` (설치형) |
 | Windows, 설치 없이 | `PDF-Editor-<버전>-portable-x64.exe` (바로 실행) |
 
