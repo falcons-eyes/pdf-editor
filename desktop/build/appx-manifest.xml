@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- Sealworks: electron-builder's appx template (app-builder-lib/templates/appx/appxmanifest.xml) plus
-     desktop4:SupportsMultipleInstances, so every activation (Start, "Open with" while running) starts a
-     new process like a regular Win32 launch and Electron's single-instance lock hands the file to the
-     running window. Without it Windows ended the running instance on a second "Open with" (seen in CI).
-     Used by electron-builder.msstore.cjs (appx.customManifestPath). -->
+     desktop4:SupportsMultipleInstances: every activation (Start, a file) starts a new process like a
+     regular Win32 launch, and Electron's single-instance lock hands its argv to the running window
+     (checked in CI by test/msstore-installed.ps1). Used by electron-builder.msstore.cjs
+     (appx.customManifestPath). -->
 <!--suppress XmlUnusedNamespaceDeclaration -->
 <Package
    xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
