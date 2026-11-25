@@ -6,6 +6,7 @@ const fsp = fs.promises;
 const os = require("node:os");
 const { createPathMapper, fsError, WIN_ROOT } = require("./paths");
 const { createSeal } = require("./seal");
+const { createBookmarks } = require("./bookmarks");
 
 const IS_MAC = process.platform === "darwin";
 function realpath(p) { try { return fs.realpathSync.native(p); } catch { return p; } }
@@ -14,7 +15,15 @@ const SCHEME = "app";
 const HOST = "pdf-editor";
 const ORIGIN = `${SCHEME}://${HOST}`;
 const INDEX_URL = `${ORIGIN}/index.html`;
+const PRODUCT = "Sealmark";
+const COPYRIGHT = "Copyright © 2026 Falcon Eyes Inc.";
 const REPO_URL = "https://github.com/falcons-eyes/pdf-editor";
+// desktop.links (docs/design/appstore-build.md); also the Help menu
+const LINKS = Object.freeze({
+  privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md",
+  support: "https://github.com/falcons-eyes/pdf-editor/issues",
+  repo: REPO_URL,
+});
 const APP_DIR = path.join(__dirname, "..", "app");
 const BAR_H = 52;
 const OVERLAY = { light: { color: "#fbfcfe", symbolColor: "#171a22" }, dark: { color: "#1b1e25", symbolColor: "#e8eaf0" } };
@@ -23,14 +32,45 @@ const STAGE_BG = { light: "#e9ecf2", dark: "#111318" };
 // PDFE_HOME_OVERRIDE (tests/dev): use this folder as the page's "~" and keep Electron's own data
 // inside it too, so a run never touches the real data store or the real app's single-instance lock.
 const HOME_OVERRIDE = process.env.PDFE_HOME_OVERRIDE ? realpath(path.resolve(process.env.PDFE_HOME_OVERRIDE)) : null;
-const HOME = HOME_OVERRIDE || os.homedir();
-// The page keeps its data in <appData>/PDF Editor (on macOS ~/Library/Application Support/PDF Editor),
-// so Electron's own caches and settings must live elsewhere: a hidden subfolder.
+// Mac App Store build: Electron's MAS variant (process.mas) runs inside the App Sandbox.
+// PDFE_TEST_SANDBOXED=1 (honoured only with a test home) makes a regular build behave the same way
+// as far as this file is concerned (desktop.sandboxed, the bookmark store, the import menu), so
+// those paths can be tested without the MAS Electron binary.
+const IS_MAS = !!process.mas;
+const SANDBOXED = IS_MAS || (!!HOME_OVERRIDE && process.env.PDFE_TEST_SANDBOXED === "1");
+// Inside the sandbox HOME (and os.homedir()) is the container's Data folder; the page's "~" must be
+// the user's real home so recorded paths and panel start folders point at real files.
+function realHome() {
+  let h = "";
+  try { h = os.userInfo().homedir || ""; } catch {}
+  if (!h || !path.isAbsolute(h)) h = os.homedir();
+  const m = /^(.*?)\/Library\/Containers\/[^/]+\/Data\/?$/.exec(h);
+  return m ? m[1] : h;
+}
+const HOME = HOME_OVERRIDE || (IS_MAS ? realHome() : os.homedir());
+// The page keeps its data in <appData>/PDF Editor (on macOS ~/Library/Application Support/PDF Editor;
+// in the store build that is the container's appData), so Electron's own caches and settings must
+// live elsewhere: a hidden subfolder.
 app.setPath("userData", HOME_OVERRIDE ? path.join(HOME_OVERRIDE, ".pdfe-electron") : path.join(app.getPath("appData"), "PDF Editor", ".electron"));
-const paths = createPathMapper({ platform: process.platform, home: HOME, appData: app.getPath("appData"), override: !!HOME_OVERRIDE });
+const paths = createPathMapper({
+  platform: process.platform, home: HOME, appData: app.getPath("appData"), override: !!HOME_OVERRIDE,
+  // store build: "~" is the real home but "~/Library/Application Support" is the container's
+  ...(IS_MAS && !HOME_OVERRIDE ? { mapAppSupport: true } : {}),
+});
 // the page's data store and the sealer key folder inside it
 const STORE_DIR = paths.toOs("~/Library/Application Support/PDF Editor");
 const SEAL_DIR = path.join(STORE_DIR, "seal");
+// security-scoped bookmarks (store build): main only, never readable by the page
+const bookmarks = createBookmarks({
+  file: path.join(app.getPath("userData"), "bookmarks.json"),
+  enabled: SANDBOXED,
+  startAccess: typeof app.startAccessingSecurityScopedResource === "function" ? (b) => app.startAccessingSecurityScopedResource(b) : undefined,
+  caseInsensitive: process.platform !== "linux",
+});
+const withAccess = bookmarks.withAccess;
+// tests (only with a test home) skip the native panels: confirmations pass, save panels return the default path
+const NO_DIALOGS = !!HOME_OVERRIDE && process.env.PDFE_TEST_NO_DIALOGS === "1";
+const docsDir = () => (IS_MAS && !HOME_OVERRIDE ? path.join(HOME, "Documents") : app.getPath("documents"));
 
 protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, codeCache: true } },
@@ -89,7 +129,7 @@ function createWindow() {
   const b = loadBounds();
   const opts = {
     x: b.x, y: b.y, width: b.width, height: b.height, minWidth: 880, minHeight: 600,
-    title: "PDF Editor", show: false, backgroundColor: STAGE_BG[theme()],
+    title: PRODUCT, show: false, backgroundColor: STAGE_BG[theme()],
     webPreferences: {
       preload: path.join(__dirname, "preload.js"),
       contextIsolation: true, sandbox: true, nodeIntegration: false, webviewTag: false,
@@ -228,18 +268,54 @@ const canon = (p) => {
   probe = probe.normalize("NFC");
   return IS_MAC || IS_WIN ? probe.toLowerCase() : probe;
 };
-function guarded(p, { tree = false } = {}) {
+// main's private files: the sealer key folder and the bookmark store
+const PRIVATE = [
+  { dir: SEAL_DIR, inside: "the sealer key folder is private", holds: "this folder holds the sealer key" },
+  { dir: bookmarks.file, inside: "this file is private to the app", holds: "this folder holds private app data" },
+];
+// while "Import data from the previous version" replaces the store, the page can't write into it
+let storeFrozen = false;
+const insideOf = (base, c) => c === base || c.startsWith(base + path.sep);
+function guarded(p, { tree = false, write = false } = {}) {
   const o = osPath(p);
-  const seal = canon(SEAL_DIR), c = canon(o);
-  if (c === seal || c.startsWith(seal + path.sep)) throw fsError("EPERM", `the sealer key folder is private: ${p}`);
-  // moving, copying or deleting a folder that contains the key folder would expose or destroy it
-  if (tree && (seal.startsWith(c.endsWith(path.sep) ? c : c + path.sep))) throw fsError("EPERM", `this folder holds the sealer key: ${p}`);
+  const c = canon(o);
+  for (const priv of PRIVATE) {
+    const k = canon(priv.dir);
+    if (insideOf(k, c)) throw fsError("EPERM", `${priv.inside}: ${p}`);
+    // moving, copying or deleting a folder that contains it would expose or destroy it
+    if (tree && (k.startsWith(c.endsWith(path.sep) ? c : c + path.sep))) throw fsError("EPERM", `${priv.holds}: ${p}`);
+  }
+  if (write && storeFrozen && insideOf(canon(STORE_DIR), c)) throw fsError("EBUSY", `importing data from the previous version: ${p}`);
   return o;
+}
+
+// The save panel with securityScopedBookmarks creates an empty file at the chosen path (store build).
+// If the page's write to it fails (or never comes), that 0-byte file is removed again.
+const placeholders = new Set();
+async function dropPlaceholder(o) {
+  const k = path.resolve(o);
+  if (!placeholders.delete(k)) return;
+  await withAccess(k, async () => { const st = await fsp.stat(k); if (st.size === 0) await fsp.unlink(k); }).catch(() => {});
+}
+function dropPlaceholdersSync() {
+  for (const k of placeholders) { try { if (fs.statSync(k).size === 0) fs.unlinkSync(k); } catch {} }
+  placeholders.clear();
+}
+
+// The sandbox lets anyone read metadata (lstat/access succeed on any path), so in the store build
+// stat/exists also open the file (or folder) to find out whether the app may actually read it:
+// no grant -> EPERM, as readFile/readdir would say.
+async function readable(o, st) {
+  if (!SANDBOXED) return;
+  st = st || (await fsp.stat(o));
+  if (st.isDirectory()) { const d = await fsp.opendir(o); await d.close(); }
+  else if (st.isFile()) { const h = await fsp.open(o, "r"); await h.close(); }
 }
 
 const FS = {
   async readFile(p, enc) {
-    const buf = await fsp.readFile(guarded(p));
+    const o = guarded(p);
+    const buf = await withAccess(o, () => fsp.readFile(o));
     if (enc === "utf8" || enc === "utf-8") return buf.toString("utf8");
     if (enc === "base64") return buf.toString("base64");
     return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -249,46 +325,64 @@ const FS = {
     if (typeof data === "string") buf = Buffer.from(data, enc === "base64" ? "base64" : "utf8");
     else if (data instanceof Uint8Array) buf = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
     else throw fsError("EINVAL", "data must be a string or bytes");
-    await fsp.writeFile(guarded(p), buf);
+    const o = guarded(p, { write: true });
+    try { await withAccess(o, () => fsp.writeFile(o, buf)); }
+    catch (err) { await dropPlaceholder(o); throw err; }
+    placeholders.delete(path.resolve(o));
   },
   async readdir(p) {
     const o = paths.toOs(p);
     if (o === WIN_ROOT) return (await winDrives()).map((l) => ({ name: `${l}:`, isFile: false, isDirectory: true, isSymbolicLink: false }));
-    const ents = await fsp.readdir(o, { withFileTypes: true });
-    const out = await Promise.all(ents.map(async (d) => {
-      let isFile = d.isFile(), isDirectory = d.isDirectory();
-      const isSymbolicLink = d.isSymbolicLink();
-      if (isSymbolicLink) { try { const st = await fsp.stat(path.join(o, d.name)); isFile = st.isFile(); isDirectory = st.isDirectory(); } catch {} }
-      return { name: d.name, isFile, isDirectory, isSymbolicLink };
-    }));
+    const out = await withAccess(o, async () => {
+      const ents = await fsp.readdir(o, { withFileTypes: true });
+      return Promise.all(ents.map(async (d) => {
+        let isFile = d.isFile(), isDirectory = d.isDirectory();
+        const isSymbolicLink = d.isSymbolicLink();
+        if (isSymbolicLink) { try { const st = await fsp.stat(path.join(o, d.name)); isFile = st.isFile(); isDirectory = st.isDirectory(); } catch {} }
+        return { name: d.name, isFile, isDirectory, isSymbolicLink };
+      }));
+    });
     return out.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0));
   },
   async stat(p) {
     const o = paths.toOs(p);
     if (o === WIN_ROOT) return dirStat();
-    const l = await fsp.lstat(o);
-    const st = l.isSymbolicLink() ? await fsp.stat(o).catch(() => l) : l;
+    // EPERM/EACCES (no permission in the sandbox) stay distinct from ENOENT (really missing)
+    const [l, st] = await withAccess(o, async () => {
+      const ls = await fsp.lstat(o);
+      const s2 = ls.isSymbolicLink() ? await fsp.stat(o).catch(() => ls) : ls;
+      await readable(o, s2);
+      return [ls, s2];
+    });
     return { size: st.size, mtimeMs: st.mtimeMs, isFile: st.isFile(), isDirectory: st.isDirectory(), isSymbolicLink: l.isSymbolicLink() };
   },
   async exists(p) {
     try {
       const o = paths.toOs(p);
       if (o === WIN_ROOT) return true;
-      await fsp.access(o); return true;
+      await withAccess(o, async () => { await fsp.access(o); await readable(o); }); return true;
     } catch { return false; }
   },
-  async mkdir(p, o) { await fsp.mkdir(guarded(p), { recursive: !!o?.recursive }); },
-  async rename(from, to) { await fsp.rename(guarded(from, { tree: true }), guarded(to, { tree: true })); },
+  async mkdir(p, o) { const t = guarded(p, { write: true }); await withAccess(t, () => fsp.mkdir(t, { recursive: !!o?.recursive })); },
+  async rename(from, to) {
+    const a = guarded(from, { tree: true, write: true }), b = guarded(to, { tree: true, write: true });
+    await bookmarks.withAccess2(a, b, () => fsp.rename(a, b));
+  },
   // the page only deletes its own single files (保管함 copies, thumbnails): folders are refused,
   // so a bug or injected script can never wipe a whole tree
   async rm(p, o) {
-    const target = guarded(p);
-    const st = await fsp.lstat(target).catch((e) => { if (e.code === "ENOENT" && o?.force) return null; throw e; });
-    if (!st) return;
-    if (st.isDirectory()) throw fsError("EPERM", `refusing to delete a folder: ${p}`);
-    await fsp.rm(target, { force: !!o?.force });
+    const target = guarded(p, { write: true });
+    await withAccess(target, async () => {
+      const st = await fsp.lstat(target).catch((e) => { if (e.code === "ENOENT" && o?.force) return null; throw e; });
+      if (!st) return;
+      if (st.isDirectory()) throw fsError("EPERM", `refusing to delete a folder: ${p}`);
+      await fsp.rm(target, { force: !!o?.force });
+    });
   },
-  async copyFile(from, to) { await fsp.copyFile(guarded(from, { tree: true }), guarded(to, { tree: true })); },
+  async copyFile(from, to) {
+    const a = guarded(from, { tree: true }), b = guarded(to, { tree: true, write: true });
+    await bookmarks.withAccess2(a, b, () => fsp.copyFile(a, b));
+  },
 };
 
 const IMAGE_EXT = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
@@ -303,9 +397,130 @@ async function openDialog(o = {}) {
   if (typeof o.start === "string") { try { const s = paths.toOs(o.start); if (s !== WIN_ROOT) defaultPath = s; } catch {} }
   const opts = { title: typeof o.title === "string" ? o.title : undefined, defaultPath, properties: props, filters };
   if (IS_MAC && typeof o.title === "string") opts.message = o.title;
-  const r = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
+  // store build: keep access to picked PDFs and folders across launches (images and .p12 files are read once)
+  if (SANDBOXED && (kind === "pdf" || kind === "folder")) opts.securityScopedBookmarks = true;
+  const r = await showOpen(opts);
   if (r.canceled || !r.filePaths?.length) return null;
+  rememberPicked(r, kind === "folder");
   return r.filePaths.map((p) => paths.toPage(p));
+}
+const showOpen = (opts) => (win ? dialog.showOpenDialog(win, opts) : dialog.showOpenDialog(opts));
+const showSave = (opts) => (win ? dialog.showSaveDialog(win, opts) : dialog.showSaveDialog(opts));
+function rememberPicked(r, isDir) {
+  (r.filePaths || []).forEach((p, i) => { const b = r.bookmarks?.[i]; if (b) bookmarks.remember(p, b, isDir); });
+}
+const startDir = (start) => {
+  let dir;
+  if (typeof start === "string") { try { dir = paths.toOs(start); } catch {} }
+  return !dir || dir === WIN_ROOT ? docsDir() : dir;
+};
+const cleanName = (n, fallback) => String(n || fallback).replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").trim().slice(0, 200) || fallback;
+
+// desktop.dialog.save: native save panel for a PDF, prefilled with folder `start` and file `name`
+async function saveDialog(o = {}) {
+  let name = cleanName(o?.name, "document.pdf");
+  if (!/\.pdf$/i.test(name)) name += ".pdf";
+  const defaultPath = path.join(startDir(o?.start), name);
+  const opts = {
+    title: typeof o?.title === "string" ? o.title : L().saveTitle, defaultPath,
+    filters: [{ name: "PDF", extensions: ["pdf"] }], properties: ["createDirectory", "showOverwriteConfirmation"],
+  };
+  if (IS_MAC) opts.message = opts.title;
+  if (SANDBOXED) opts.securityScopedBookmarks = true;
+  if (NO_DIALOGS) return paths.toPage(defaultPath);
+  const shownAt = Date.now();
+  const r = await showSave(opts);
+  if (r.canceled || !r.filePath) return null;
+  const chosen = path.resolve(r.filePath);
+  if (r.bookmark) bookmarks.remember(chosen, r.bookmark, false);
+  if (SANDBOXED) {
+    try { const st = fs.statSync(chosen); if (st.size === 0 && st.birthtimeMs >= shownAt - 2000) placeholders.add(chosen); } catch {}
+  }
+  return paths.toPage(chosen);
+}
+
+// desktop.access.request: ask the user to grant a file or folder again (open panel starting at it)
+async function requestAccess(p, o = {}) {
+  const kind = o?.kind === "folder" ? "folder" : "pdf";
+  let target;
+  try { const t = paths.toOs(String(p)); if (t !== WIN_ROOT) target = t; } catch {}
+  const name = target ? path.basename(target) : "";
+  const msg = kind === "folder" ? L().grantFolder(name) : L().grantFile(name);
+  const opts = {
+    title: msg, message: msg, buttonLabel: L().grantOk, defaultPath: target,
+    properties: kind === "folder" ? ["openDirectory", "createDirectory"] : ["openFile"],
+    filters: kind === "pdf" ? [{ name: "PDF", extensions: ["pdf"] }] : undefined,
+  };
+  if (SANDBOXED) opts.securityScopedBookmarks = true;
+  if (NO_DIALOGS) return target ? paths.toPage(target) : null;
+  const r = await showOpen(opts);
+  if (r.canceled || !r.filePaths?.length) return null;
+  rememberPicked(r, kind === "folder");
+  return paths.toPage(r.filePaths[0]);
+}
+
+/* ---------------- store build: import data from the previous version ---------------- */
+// what the page keeps in its store; never seal/ (the key is bound to the other build's Keychain
+// item: move it with a .p12 backup) and never .electron/ (Chromium caches, window bounds)
+const IMPORT_ITEMS = ["prefs.json", "documents.json", "library.json", "library", "docs", "thumbs"];
+async function importPreviousData() {
+  const l = L();
+  let src = null;
+  if (NO_DIALOGS) src = process.env.PDFE_TEST_IMPORT_FROM ? path.resolve(process.env.PDFE_TEST_IMPORT_FROM) : null;
+  else {
+    const r = await showOpen({
+      title: l.importTitle, message: l.importMsg, buttonLabel: l.importOk,
+      defaultPath: path.join(HOME_OVERRIDE ? HOME : realHome(), "Library", "Application Support", "PDF Editor"),
+      properties: ["openDirectory"],
+    });
+    if (!r.canceled && r.filePaths?.length) src = r.filePaths[0];
+  }
+  if (!src) return null;
+  const tell = async (message, detail, type = "info") => {
+    if (NO_DIALOGS) return;
+    const o = { type, message, detail, buttons: ["OK"] };
+    await (win ? dialog.showMessageBox(win, o) : dialog.showMessageBox(o));
+  };
+  const cs = canon(src), cstore = canon(STORE_DIR);
+  if (insideOf(cs, cstore) || insideOf(cstore, cs)) { await tell(l.importSame, "", "warning"); return { imported: 0, reason: "same" }; }
+  const present = IMPORT_ITEMS.filter((n) => fs.existsSync(path.join(src, n)));
+  if (!present.some((n) => n.endsWith(".json"))) { await tell(l.importNone, src, "warning"); return { imported: 0, reason: "empty" }; }
+  const existing = IMPORT_ITEMS.filter((n) => fs.existsSync(path.join(STORE_DIR, n)));
+  if (existing.length && !(await confirmNative(l.importQ, l.importD, l.importOk))) return null;
+
+  // let the page write out its state (it becomes the .before-import copy); from then on the page's
+  // writes into the store are refused (EBUSY) until the reloaded page has started, so neither a
+  // debounced save during the copy nor the old page's unload save can land on the imported files
+  if (win && !win.isDestroyed()) await flushPage(win);
+  storeFrozen = true;
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  try {
+    await fsp.mkdir(STORE_DIR, { recursive: true });
+    for (const n of present) {
+      const from = path.join(src, n), to = path.join(STORE_DIR, n);
+      if (fs.existsSync(to)) await fsp.rename(to, `${to}.before-import-${stamp}`);
+      await fsp.cp(from, to, {
+        recursive: true, force: false, errorOnExist: false, verbatimSymlinks: true,
+        // plain files and folders only: a symlink could point anywhere
+        filter: (s) => { try { return !fs.lstatSync(s).isSymbolicLink(); } catch { return false; } },
+      });
+    }
+  } finally {
+    reloadAfterImport();
+  }
+  await tell(l.importDone, l.importDoneD);
+  return { imported: present.length, items: present, backupSuffix: existing.length ? `.before-import-${stamp}` : null };
+}
+let confirmNative = async () => true; // set in registerIpc()
+// reload the page so it reads the imported store; the freeze ends when the new document's preload
+// checks in (pdfe:sync "info"), i.e. after everything the old document sent has been handled
+let thawOnBoot = false;
+function thawStore() { thawOnBoot = false; storeFrozen = false; }
+function reloadAfterImport() {
+  if (!win || win.isDestroyed()) { thawStore(); return; }
+  thawOnBoot = true;
+  setTimeout(() => { if (thawOnBoot) thawStore(); }, 15_000);
+  win.webContents.reload();
 }
 
 function openExternal(url) {
@@ -350,6 +565,16 @@ const LABELS = {
     help: "도움말", repo: "GitHub 저장소", dev: "개발", reload: "새로 고침", devTools: "개발자 도구", images: "이미지", certs: "인증서 (.p12, .pfx)",
     backupTitle: "봉인 정보 백업 저장", replaceQ: "지금 쓰는 봉인 정보를 바꿀까요?", replaceD: "지금 열쇠로 만든 봉인은 그대로 확인되지만, 앞으로는 새 열쇠로 봉인합니다. 백업이 없으면 지금 열쇠는 되찾을 수 없습니다.",
     removeQ: "봉인 정보를 지울까요?", removeD: "백업이 없으면 지금 열쇠는 되찾을 수 없습니다.", replaceOk: "바꾸기", removeOk: "지우기", cancel: "취소",
+    privacy: "개인정보 처리방침", support: "지원", saveTitle: "PDF 저장",
+    grantFile: (n) => (n ? `“${n}” 파일을 확인하려면 접근을 허용해 주세요. 파일을 고른 뒤 [허용]을 누르세요.` : "파일을 고른 뒤 [허용]을 누르세요."),
+    grantFolder: (n) => (n ? `“${n}” 폴더에 저장하려면 접근을 허용해 주세요. 이 폴더를 연 채로 [허용]을 누르세요.` : "폴더를 고른 뒤 [허용]을 누르세요."),
+    grantOk: "허용",
+    importPrev: "이전 버전 데이터 가져오기…", importTitle: "이전 버전 데이터 가져오기", importOk: "가져오기",
+    importMsg: "이전 버전의 데이터 폴더를 고르세요: 홈 › 라이브러리 › Application Support › PDF Editor",
+    importQ: "이 앱의 데이터를 이전 버전 데이터로 바꿀까요?",
+    importD: "지금 데이터는 지우지 않고 '.before-import-…' 이름으로 남겨 둡니다. 원래 폴더는 그대로 둡니다. 봉인 키는 옮겨지지 않으니, 이전 버전에서 백업(.p12)으로 내보낸 뒤 가져오세요.",
+    importNone: "이 폴더에는 이전 버전 데이터가 없습니다.", importSame: "이 앱의 데이터 폴더는 가져올 수 없습니다. 이전 버전의 폴더를 고르세요.",
+    importDone: "이전 버전 데이터를 가져왔습니다.", importDoneD: "봉인 키는 옮겨지지 않았습니다. 이전 버전에서 백업(.p12)으로 내보낸 뒤 여기서 가져오면 같은 지문으로 계속 봉인할 수 있습니다.",
   },
   en: {
     about: (n) => `About ${n}`, services: "Services", hide: (n) => `Hide ${n}`, hideOthers: "Hide Others", unhide: "Show All", quit: (n) => `Quit ${n}`,
@@ -358,6 +583,16 @@ const LABELS = {
     help: "Help", repo: "GitHub repository", dev: "Develop", reload: "Reload", devTools: "Developer Tools", images: "Images", certs: "Certificates (.p12, .pfx)",
     backupTitle: "Save sealer backup", replaceQ: "Replace your current sealer identity?", replaceD: "Files you already sealed still verify, but new seals will use the new key. Without a backup, the current key can't be recovered.",
     removeQ: "Delete your sealer identity?", removeD: "Without a backup, the current key can't be recovered.", replaceOk: "Replace", removeOk: "Delete", cancel: "Cancel",
+    privacy: "Privacy Policy", support: "Support", saveTitle: "Save PDF",
+    grantFile: (n) => (n ? `To check “${n}”, allow access to it: select the file and click Allow.` : "Select the file and click Allow."),
+    grantFolder: (n) => (n ? `To save into “${n}”, allow access to it: with this folder open, click Allow.` : "Select the folder and click Allow."),
+    grantOk: "Allow",
+    importPrev: "Import data from the previous version…", importTitle: "Import data from the previous version", importOk: "Import",
+    importMsg: "Choose the previous version's data folder: Home › Library › Application Support › PDF Editor",
+    importQ: "Replace this app's data with the data from the previous version?",
+    importD: "Your current data is kept as '.before-import-…' copies, and the original folder is left as it is. Seal keys are not copied: export a backup (.p12) in the previous version and import it here.",
+    importNone: "This folder doesn't contain data from the previous version.", importSame: "This is this app's own data folder. Choose the previous version's folder.",
+    importDone: "Data from the previous version was imported.", importDoneD: "Seal keys were not copied. Export a backup (.p12) in the previous version and import it here to keep sealing with the same fingerprint.",
   },
 };
 // the last language the page chose, kept with Electron's own settings so the first menu is already right
@@ -395,12 +630,26 @@ function appMenu() {
   const l = L(), n = app.name;
   return { label: n, submenu: [
     { role: "about", label: l.about(n) }, { type: "separator" },
+    ...(SANDBOXED ? [{ label: l.importPrev, click: () => runImport() }, { type: "separator" }] : []),
     { role: "services", label: l.services }, { type: "separator" },
     { role: "hide", label: l.hide(n) }, { role: "hideOthers", label: l.hideOthers }, { role: "unhide", label: l.unhide },
     { type: "separator" }, { role: "quit", label: l.quit(n) },
   ] };
 }
-const helpMenu = () => ({ label: L().help, role: "help", submenu: [{ label: L().repo, click: () => shell.openExternal(REPO_URL) }] });
+const helpMenu = () => { const l = L(); return { label: l.help, role: "help", submenu: [
+  { label: l.privacy, click: () => shell.openExternal(LINKS.privacy) },
+  { label: l.support, click: () => shell.openExternal(LINKS.support) },
+  { label: l.repo, click: () => shell.openExternal(LINKS.repo) },
+  ...(SANDBOXED && !IS_MAC ? [{ type: "separator" }, { label: l.importPrev, click: () => runImport() }] : []),
+] }; };
+let lastImport = null; // for tests: the result (or error) of the last import
+function runImport() {
+  lastImport = importPreviousData().then((r) => ({ ok: true, value: r }), (err) => {
+    if (!NO_DIALOGS) dialog.showErrorBox(L().importTitle, errText(err));
+    return { ok: false, error: errText(err) };
+  });
+  return lastImport;
+}
 const devMenu = () => ({ label: L().dev, submenu: [{ role: "reload", label: L().reload }, { role: "toggleDevTools", label: L().devTools }] });
 const ALLOWED_ROLES = new Set(["undo", "redo", "cut", "copy", "paste", "pasteAndMatchStyle", "delete", "selectAll", "reload", "forceReload",
   "togglefullscreen", "minimize", "close", "zoom", "front", "resetZoom", "zoomIn", "zoomOut", "editMenu", "windowMenu", "viewMenu", "fileMenu", "appMenu", "help", "window", "services", "about", "hide", "hideOthers", "unhide", "quit"]);
@@ -439,7 +688,8 @@ function setMenu(pageTemplate) {
 function registerIpc() {
   ipcMain.on("pdfe:sync", (e, op, arg) => {
     if (!trusted(e)) { e.returnValue = null; return; }
-    if (op === "info") e.returnValue = { version: app.getVersion(), platform: process.platform, arch: process.arch };
+    if (op === "info" && thawOnBoot) thawStore();
+    if (op === "info") e.returnValue = { version: app.getVersion(), platform: process.platform, arch: process.arch, mas: SANDBOXED, links: { ...LINKS } };
     else if (op === "toPage") { try { e.returnValue = paths.toPage(String(arg)); } catch { e.returnValue = null; } }
     else e.returnValue = null;
   });
@@ -456,15 +706,19 @@ function registerIpc() {
     // open only folders and documents/images, never programs or scripts
     if (op === "openPath") {
       const target = guarded(p);
-      const st = await fsp.stat(target);
-      if (!st.isDirectory() && !OPENABLE.test(target)) throw fsError("EPERM", `not a document: ${p}`);
-      const r = await shell.openPath(target); if (r) throw fsError("EIO", r); return;
+      return withAccess(target, async () => {
+        const st = await fsp.stat(target);
+        if (!st.isDirectory() && !OPENABLE.test(target)) throw fsError("EPERM", `not a document: ${p}`);
+        const r = await shell.openPath(target); if (r) throw fsError("EIO", r);
+      });
     }
-    if (op === "showItemInFolder") return shell.showItemInFolder(osPath(p));
+    if (op === "showItemInFolder") { const target = osPath(p); return withAccess(target, async () => shell.showItemInFolder(target)); }
     if (op === "trashItem") {
-      const target = guarded(p);
-      if ((await fsp.stat(target)).isDirectory()) throw fsError("EPERM", `refusing to trash a folder: ${p}`);
-      return shell.trashItem(target);
+      const target = guarded(p, { write: true });
+      return withAccess(target, async () => {
+        if ((await fsp.stat(target)).isDirectory()) throw fsError("EPERM", `refusing to trash a folder: ${p}`);
+        return shell.trashItem(target);
+      });
     }
     throw fsError("EINVAL", `unknown operation ${op}`);
   });
@@ -477,6 +731,8 @@ function registerIpc() {
   });
   handle("pdfe:menu", async (template) => { setMenu(template); return true; });
   handle("pdfe:dialog", async (o) => openDialog(o));
+  handle("pdfe:dialog-save", async (o) => saveDialog(o && typeof o === "object" ? o : {}));
+  handle("pdfe:access", async (p, o) => requestAccess(p, o && typeof o === "object" ? o : {}));
   handle("pdfe:open-external", async (url) => { await openExternal(url); return true; });
   handle("pdfe:open-file-ready", async () => { openListening = true; return pendingOpen.splice(0); });
   handle("pdfe:lang", async (l) => { setLanguage(l); return null; });
@@ -488,9 +744,7 @@ function registerIpc() {
     useOs: !HOME_OVERRIDE || process.env.PDFE_SEAL_SAFESTORAGE === "1",
   });
   const SEAL_OPS = new Set(["identity", "createIdentity", "exportIdentity", "importIdentity", "removeIdentity", "sign", "verify"]);
-  // tests (only with a test home) skip the native panels: confirmations pass, backups go to the default path
-  const NO_DIALOGS = !!HOME_OVERRIDE && process.env.PDFE_TEST_NO_DIALOGS === "1";
-  const confirmNative = async (q, d, ok) => {
+  confirmNative = async (q, d, ok) => {
     if (NO_DIALOGS) return true;
     const o = { type: "warning", message: q, detail: d, buttons: [ok, L().cancel], defaultId: 1, cancelId: 1 };
     const r = win ? await dialog.showMessageBox(win, o) : await dialog.showMessageBox(o);
@@ -503,13 +757,11 @@ function registerIpc() {
       const o = args[0] || {};
       const p12 = await seal.exportIdentity({ password: o.password });
       const name = String(o.defaultName || "sealer-backup.p12").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").slice(0, 120);
-      let dir; try { dir = typeof o.start === "string" ? paths.toOs(o.start) : app.getPath("documents"); } catch { dir = app.getPath("documents"); }
-      if (dir === WIN_ROOT) dir = app.getPath("documents");
-      const opts = { title: L().backupTitle, defaultPath: path.join(dir, /\.p12$/i.test(name) ? name : name + ".p12"), filters: [{ name: L().certs, extensions: ["p12"] }] };
-      const r = NO_DIALOGS ? { filePath: opts.defaultPath } : win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts);
+      const opts = { title: L().backupTitle, defaultPath: path.join(startDir(o.start), /\.p12$/i.test(name) ? name : name + ".p12"), filters: [{ name: L().certs, extensions: ["p12"] }] };
+      const r = NO_DIALOGS ? { filePath: opts.defaultPath } : await showSave(opts);
       if (r.canceled || !r.filePath) return null;
-      const target = guarded(paths.toPage(r.filePath));
-      await fsp.writeFile(target, p12);
+      const target = guarded(paths.toPage(r.filePath), { write: true });
+      await withAccess(target, () => fsp.writeFile(target, p12));
       return { path: paths.toPage(target) };
     }
     // replacing or deleting the identity is confirmed outside the page
@@ -545,7 +797,7 @@ function main() {
   });
   if (!IS_MAC) pdfsFromArgv(process.argv).forEach(openFromOs);
 
-  app.setAboutPanelOptions({ applicationName: "PDF Editor", applicationVersion: app.getVersion(), copyright: "MIT License", website: REPO_URL });
+  app.setAboutPanelOptions({ applicationName: PRODUCT, applicationVersion: app.getVersion(), copyright: COPYRIGHT, website: REPO_URL });
 
   app.whenReady().then(() => {
     const ses = session.defaultSession;
@@ -557,6 +809,7 @@ function main() {
     app.on("activate", () => { if (!win) createWindow(); });
   });
   app.on("before-quit", () => { quitting = true; });
+  app.on("will-quit", dropPlaceholdersSync);
   app.on("window-all-closed", () => { if (!IS_MAC || quitting) app.quit(); });
 }
 main();

@@ -6,6 +6,9 @@
 // //srv/share/x, and "/" alone is the list of drives). The page keeps its data store under
 // "~/Library/Application Support/<X>", which on Windows and Linux is <appData>/<X>.
 // With a home override (tests), "~" is the override folder and that mapping is literal.
+// Mac App Store build (sandboxed): "~" is the real home (/Users/<name>, so the paths the page
+// records point at the user's real files) while "~/Library/Application Support" is the
+// container's appData; main passes mapAppSupport: true for that.
 const path = require("node:path");
 
 const APP_SUPPORT = "Library/Application Support";
@@ -16,10 +19,10 @@ function fsError(code, message) {
   return e;
 }
 
-function createPathMapper({ platform, home, appData, override = false }) {
+function createPathMapper({ platform, home, appData, override = false, mapAppSupport }) {
   const isWin = platform === "win32";
   const P = isWin ? path.win32 : path.posix;
-  const mapAppSupport = platform !== "darwin" && !override;
+  if (typeof mapAppSupport !== "boolean") mapAppSupport = platform !== "darwin" && !override;
   // backslash separates folders only on Windows; on a Mac a\b.pdf is a legal file name
   const parts = (s) => s.split(isWin ? /[\\/]+/ : /\/+/).filter(Boolean);
   const within = (base, p) => {

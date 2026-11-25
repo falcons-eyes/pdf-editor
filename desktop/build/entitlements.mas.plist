@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!-- Required for the Mac App Store (App Review 2.4.5(i)): the app runs in the App Sandbox. -->
+  <key>com.apple.security.app-sandbox</key>
+  <true/>
+  <!-- Read/write the files and folders the user picks in an open or save panel: open a PDF,
+       import an image or a .p12, choose a save folder, save a PDF, export a .p12 backup. -->
+  <key>com.apple.security.files.user-selected.read-write</key>
+  <true/>
+  <!-- App-scoped security bookmarks, so the PDFs and folders picked above stay reachable on the
+       next launch (re-checking an original, saving into a folder granted once). -->
+  <key>com.apple.security.files.bookmarks.app-scope</key>
+  <true/>
+  <!-- Not requested (see desktop/README.md, "Mac App Store build"):
+       network.client/server  the app is offline; links open in the default browser via LaunchServices
+       files.downloads.*      saving goes through the save panel; nothing is written without one
+       cs.allow-jit           only matters under the hardened runtime, which MAS builds don't use;
+                              V8/Chromium run without it in the sandbox (verified locally)
+       print, device.camera, device.microphone, device.usb  in @electron/osx-sign's default.mas.plist, unused here
+       application-groups, application-identifier, team-identifier  added by @electron/osx-sign from
+                              the provisioning profile / ElectronTeamID when the store build is signed -->
+</dict>
+</plist>

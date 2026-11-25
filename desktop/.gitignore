@@ -1,0 +1,5 @@
+# signing material for the Mac App Store build: never committed (CI restores it from secrets)
+build/mas/*.provisionprofile
+*.p12
+*.p8
+*.cer

@@ -1,4 +1,4 @@
-"""Local preview for the PDF Editor artifact.
+"""Local preview for the Sealmark page (the artifact and the desktop app's page).
 
 The artifact host wraps the page in a small HTML skeleton at publish time;
 this server does the same on every request, so a reload shows the latest
@@ -12,8 +12,14 @@ calls are served from a sandbox folder (PDFE_DEV_HOME, used as "~"). Add
 &perm=prompt to start without file access granted, &os=win32 for Windows
 wording and layout, &standalone=1 for the Electron app's extra hooks (native dialogs,
 setLanguage, and a clearly fake in-memory `seal` so the seal UI can be exercised; the real
-signing lives in desktop/). This stand-in exists only here; it is never part of the
-published artifact.
+signing lives in desktop/), plus &sandboxed=1 for the Mac App Store build (docs/design/appstore-build.md):
+`sandboxed: true`, and paths listed in window.__shimDeny (e.g. ["~/Documents/x.pdf", "~/Documents"],
+kept in localStorage so it survives a reload) fail with EPERM until they are granted through
+dialog.open / dialog.save / access.request (remembered like security-scoped bookmarks) or opened
+with window.__shimOpenFile(path) (this page load only, like Finder's Open With). Answer the panels with
+window.__shimDialogNext, window.__shimSaveNext and window.__shimAccessNext (a path, or null = cancel;
+unset: save and access accept what they were offered). This stand-in exists only here; it is never part
+of the published artifact.
 """
 
 import base64
@@ -41,9 +47,26 @@ DESKTOP_SHIM = r"""<script>
 (() => {
   const q = new URLSearchParams(location.search);
   let perm = q.get("perm") || "granted";
+  const fail = (msg) => { const e = new Error(msg); e.code = String(msg).split(":")[0]; return e; };
+  // --- &sandboxed=1: an App Sandbox stand-in. Denied paths (and everything under a denied folder) throw EPERM
+  // unless granted: "bookmarks" (open/save panels, access.request) persist in localStorage, "session" grants
+  // (Open With via __shimOpenFile) last for this page load only.
+  const sandboxed = !!q.get("sandboxed");
+  const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch { return []; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  let denyList = sandboxed ? lsGet("shim.deny") : [];
+  Object.defineProperty(window, "__shimDeny", { get: () => denyList, set: (v) => { denyList = Array.isArray(v) ? v : []; lsSet("shim.deny", denyList); }, configurable: true });
+  const bookmarks = new Set(sandboxed ? lsGet("shim.bookmarks") : []), session = new Set();
+  const grant = (p, persist = true) => { if (!p) return; if (persist) { bookmarks.add(p); lsSet("shim.bookmarks", [...bookmarks]); } else session.add(p); };
+  window.__shimSandbox = { bookmarks, session, reset: () => { bookmarks.clear(); session.clear(); lsSet("shim.bookmarks", []); window.__shimDeny = []; } };
+  const under = (p, root) => p === root || p.startsWith(root.endsWith("/") ? root : root + "/");
+  const denied = (p) => sandboxed && typeof p === "string" && denyList.some((d) => under(p, d)) && ![...bookmarks, ...session].some((g) => under(p, g));
+  const guard = (...ps) => { for (const p of ps) if (denied(p)) throw fail(`EPERM: operation not permitted (sandbox): ${p}`); };
   const call = async (op, args) => {
+    if (op === "exists" && denied(args.path)) return false; // like fs.access in the sandbox: no permission reads as "no"
+    guard(args.path, args.from, args.to);
     const r = await fetch("/__fs", { method: "POST", headers: { "Content-Type": "application/json", "X-PDFE-Dev": "1" }, body: JSON.stringify({ op, ...args }) });
-    const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
+    const j = await r.json(); if (j.error) throw fail(j.error); return j.result;
   };
   const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s); };
   const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
@@ -70,11 +93,26 @@ DESKTOP_SHIM = r"""<script>
   };
   // &standalone=1 mimics the Electron app (desktop/): native dialogs, Open With, dropped-file paths.
   // Tests answer the dialog through window.__shimDialogNext and open files with window.__shimOpenFile(path).
+  // &sandboxed=1 adds the store build's behavior (see the module docstring). The save and access answers default
+  // to accepting what was offered; set window.__shimSaveNext / __shimAccessNext to a path or null (cancel) first.
+  const answer = (key, offered) => { const v = window[key]; window[key] = undefined; return v === undefined ? offered : v; };
   if (q.get("standalone")) Object.assign(desktop, {
-    standalone: true, platform: q.get("os") || "darwin", version: "dev",
-    dialog: { open: async (o) => { log("dialog.open", o); const r = window.__shimDialogNext ?? null; window.__shimDialogNext = undefined; return r; } },
+    standalone: true, platform: q.get("os") || "darwin", version: "dev", sandboxed,
+    dialog: {
+      open: async (o) => { log("dialog.open", o); const r = window.__shimDialogNext ?? null; window.__shimDialogNext = undefined; for (const p of r || []) grant(p); return r; },
+      save: async (o = {}) => {
+        log("dialog.save", o);
+        const r = answer("__shimSaveNext", `${o.start || "~/Documents"}/${o.name || "Untitled.pdf"}`);
+        grant(r); return r;
+      },
+    },
+    access: {
+      request: async (path, o = {}) => { log("access.request", path, o); const r = answer("__shimAccessNext", path); grant(r); return r; },
+    },
+    links: { privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md", support: "https://github.com/falcons-eyes/pdf-editor/issues", repo: "https://github.com/falcons-eyes/pdf-editor" },
+    openExternal: async (url) => { log("openExternal", url); if (!/^https:/i.test(url)) throw fail("EPERM: only https links can be opened"); },
     pathForFile: () => null,
-    onOpenFile: (cb) => { window.__shimOpenFile = cb; },
+    onOpenFile: (cb) => { window.__shimOpenFile = (p) => { grant(p, false); cb(p); }; },
     setLanguage: async (lang) => { log("setLanguage", lang); window.__shimLang = lang; },
     seal: mockSeal(),
   });

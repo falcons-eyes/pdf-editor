@@ -9,7 +9,8 @@ const { certInfo, isSelfSigned } = require("./pdfsig");
 
 const A = forge.asn1, T = A.Type, U = A.Class.UNIVERSAL, C = A.Class.CONTEXT_SPECIFIC;
 const MARKER_OID = "2.16.840.1.113730.1.13"; // Netscape comment: marks certificates this app made
-const MARKER = "PDF Editor seal";
+const MARKER = "Sealmark seal";
+const MARKERS = new Set([MARKER, "PDF Editor seal"]); // also certificates made before the rename
 const ADOBE_DOC_SIGNING = "1.2.840.113583.1.1.5";
 const VALID_YEARS = 10;
 
@@ -61,7 +62,7 @@ function describeCert(certDer) {
   const ci = certInfo(certDer);
   let marker = false;
   const m = ci.extensions.get(MARKER_OID);
-  if (m) { try { marker = der.value(der.read(m)).toString("latin1") === MARKER; } catch {} }
+  if (m) { try { marker = MARKERS.has(der.value(der.read(m)).toString("latin1")); } catch {} }
   return { ...ci, ours: marker && isSelfSigned(ci), selfSigned: isSelfSigned(ci) };
 }
 
@@ -89,7 +90,7 @@ const dataCI = (bytes) => A.create(U, T.SEQUENCE, true, [
  * in a plain SafeContents and an HMAC-SHA1 MAC: the combination macOS Keychain, Windows and
  * Acrobat all import.
  */
-function exportP12({ keyDer, certDer, chainDers = [], password, friendlyName = "PDF Editor seal" }) {
+function exportP12({ keyDer, certDer, chainDers = [], password, friendlyName = "Sealmark seal" }) {
   if (typeof password !== "string" || !password) throw err("EINVAL", "a password is required", "needPassword");
   const localKeyId = crypto.createHash("sha1").update(certDer).digest();
   const bagAttrs = A.create(U, T.SET, true, [

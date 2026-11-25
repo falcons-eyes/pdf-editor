@@ -174,7 +174,7 @@ async function main() {
       let info = "";
       try { info = run(["pkcs12", "-in", ours, "-info", "-nokeys", "-passin", "pass:backup password"]).toString(); }
       catch { try { info = run(["pkcs12", "-legacy", "-in", ours, "-info", "-nokeys", "-passin", "pass:backup password"]).toString(); } catch (e) { info = String(e.stderr || e); } }
-      check("our .p12 opens in openssl (3DES key bag, SHA-1 MAC)", /BEGIN CERTIFICATE/.test(info) && /friendlyName: PDF Editor seal/.test(info), info.split("\n")[0]);
+      check("our .p12 opens in openssl (3DES key bag, SHA-1 MAC)", /BEGIN CERTIFICATE/.test(info) && /friendlyName: Sealmark seal/.test(info), info.split("\n")[0]);
     } else console.log("note: openssl not found, openssl interop checks skipped");
 
     // ---- p12 round trip ----
@@ -199,7 +199,7 @@ async function main() {
     check("store: key is not stored in the clear", !keyBin.includes(Buffer.from("PRIVATE")) && keyBin.subarray(0, 7).toString() === "PDFEK1F");
     const ss = await store.sign(plain, { lang: "en" });
     const sv = await store.verify(ss);
-    check("store: sign -> verify intact + mine", sv.status === "intact" && sv.signatures[0].mine && sv.signatures[0].reason === "Sealed with PDF Editor");
+    check("store: sign -> verify intact + mine", sv.status === "intact" && sv.signatures[0].mine && sv.signatures[0].reason === "Sealed with Sealmark");
     const bk = await store.exportIdentity({ password: "pw" });
     check("store: export without password -> EINVAL", /^EINVAL/.test(await rejects(store.exportIdentity({}))));
     await store.removeIdentity();

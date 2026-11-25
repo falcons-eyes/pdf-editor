@@ -56,9 +56,145 @@ jobs:
         with:
           name: release-${{ runner.os }}
           path: |
-            desktop/dist/*.dmg
-            desktop/dist/*.exe
+            desktop/dist/Sealmark-*.dmg
+            desktop/dist/Sealmark-*.exe
           if-no-files-found: error
+
+  # ---- Mac App Store package (only when the signing secrets are configured) ----
+  # Secrets (Settings > Secrets and variables > Actions):
+  #   MAS_APP_CERT_P12              base64 of a .p12 with the "Apple Distribution" certificate + private key
+  #   MAS_APP_CERT_PASSWORD         its password
+  #   MAS_INSTALLER_CERT_P12        base64 of a .p12 with "Mac Installer Distribution"
+  #                                 ("3rd Party Mac Developer Installer") certificate + private key
+  #   MAS_INSTALLER_CERT_PASSWORD   its password
+  #   MAS_PROVISIONING_PROFILE      base64 of the "Mac App Store Connect" profile for com.falconoon.sealmark
+  #   APPLE_TEAM_ID                 the 10-character team ID (Info.plist ElectronTeamID, app group prefix)
+  # Optional, for validation/upload with an App Store Connect API key (App Manager role):
+  #   ASC_API_KEY_P8 (base64 of AuthKey_<id>.p8), ASC_API_KEY_ID, ASC_API_ISSUER_ID
+  # Uploading is off: set the repository variable MAS_UPLOAD=true to upload from CI; otherwise
+  # download the mas-pkg artifact and upload it with Transporter.
+  mas-check:
+    runs-on: ubuntu-latest
+    outputs:
+      enabled: ${{ steps.check.outputs.enabled }}
+    steps:
+      - id: check
+        env:
+          APP: ${{ secrets.MAS_APP_CERT_P12 }}
+          INSTALLER: ${{ secrets.MAS_INSTALLER_CERT_P12 }}
+          PROFILE: ${{ secrets.MAS_PROVISIONING_PROFILE }}
+          TEAM: ${{ secrets.APPLE_TEAM_ID }}
+        run: |
+          if [ -n "$APP" ] && [ -n "$INSTALLER" ] && [ -n "$PROFILE" ] && [ -n "$TEAM" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Mac App Store signing secrets are not configured; skipping the dist:mas job"
+          fi
+
+  mas:
+    name: Mac App Store package
+    needs: mas-check
+    if: needs.mas-check.outputs.enabled == 'true'
+    runs-on: macos-latest
+    defaults:
+      run:
+        working-directory: desktop
+        shell: bash
+    env:
+      HAS_ASC_KEY: ${{ secrets.ASC_API_KEY_P8 != '' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tag matches desktop/package.json version
+        run: |
+          want="${GITHUB_REF_NAME#v}"
+          have="$(node -p "require('./package.json').version")"
+          if [ "$want" != "$have" ]; then echo "::error::tag $GITHUB_REF_NAME but desktop/package.json has $have"; exit 1; fi
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - run: npm ci
+
+      - name: Restore certificates and provisioning profile
+        env:
+          MAS_APP_CERT_P12: ${{ secrets.MAS_APP_CERT_P12 }}
+          MAS_INSTALLER_CERT_P12: ${{ secrets.MAS_INSTALLER_CERT_P12 }}
+          MAS_PROVISIONING_PROFILE: ${{ secrets.MAS_PROVISIONING_PROFILE }}
+        run: |
+          umask 077
+          printf '%s' "$MAS_APP_CERT_P12" | base64 --decode > "$RUNNER_TEMP/mas-app.p12"
+          printf '%s' "$MAS_INSTALLER_CERT_P12" | base64 --decode > "$RUNNER_TEMP/mas-installer.p12"
+          printf '%s' "$MAS_PROVISIONING_PROFILE" | base64 --decode > build/mas/embedded.provisionprofile
+
+      # electron-builder imports both .p12 files into a temporary keychain, signs the app with
+      # build/entitlements.mas*.plist and builds the .pkg with the installer certificate
+      - name: Build (universal .pkg)
+        env:
+          CSC_LINK: ${{ runner.temp }}/mas-app.p12
+          CSC_KEY_PASSWORD: ${{ secrets.MAS_APP_CERT_PASSWORD }}
+          CSC_INSTALLER_LINK: ${{ runner.temp }}/mas-installer.p12
+          CSC_INSTALLER_KEY_PASSWORD: ${{ secrets.MAS_INSTALLER_CERT_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          # CFBundleVersion must grow with every upload
+          MAS_BUILD_VERSION: ${{ github.run_number }}
+        run: npm run dist:mas
+
+      - name: Check signature, entitlements, architectures
+        run: |
+          app="dist/mas-universal/Sealmark.app"
+          pkg="$(ls dist/mas-universal/Sealmark-*-mas-universal.pkg)"
+          codesign --verify --deep --strict --verbose=2 "$app"
+          codesign -d --entitlements - --xml "$app" | plutil -p -
+          codesign -d --entitlements - --xml "$app/Contents/Frameworks/Sealmark Helper (Renderer).app" | plutil -p -
+          lipo -archs "$app/Contents/MacOS/Sealmark"
+          plutil -p "$app/Contents/Info.plist" | grep -E 'CFBundleIdentifier|CFBundleVersion|CFBundleShortVersionString|ElectronTeamID|ITSAppUsesNonExemptEncryption|LSMinimumSystemVersion|LSApplicationCategoryType'
+          pkgutil --check-signature "$pkg"
+          for k in device.camera device.microphone device.usb print network.client allow-jit; do
+            if codesign -d --entitlements - --xml "$app" | grep -q "com.apple.security.$k"; then echo "::error::unexpected entitlement $k"; exit 1; fi
+          done
+
+      # App Store Connect rejects packages whose files carry com.apple.quarantine (since 2025-02-18)
+      - name: No quarantine attributes
+        run: |
+          if xattr -lr dist/mas-universal/Sealmark.app dist/mas-universal/*.pkg | grep -q com.apple.quarantine; then
+            echo "::error::com.apple.quarantine found in the store package"; xattr -lr dist/mas-universal | grep com.apple.quarantine | head; exit 1
+          fi
+
+      - name: Validate with App Store Connect
+        if: env.HAS_ASC_KEY == 'true'
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: |
+          mkdir -p ~/.appstoreconnect/private_keys
+          printf '%s' "$ASC_API_KEY_P8" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
+          xcrun altool --validate-app -f dist/mas-universal/Sealmark-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
+
+      - name: Upload to App Store Connect
+        if: vars.MAS_UPLOAD == 'true' && env.HAS_ASC_KEY == 'true'
+        env:
+          ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
+          ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
+          ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
+        run: xcrun altool --upload-app -f dist/mas-universal/Sealmark-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
+
+      - name: Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP"/mas-*.p12 build/mas/embedded.provisionprofile ~/.appstoreconnect/private_keys/AuthKey_*.p8
+
+      # not attached to the GitHub release: the store package is only for App Store Connect
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mas-pkg
+          path: desktop/dist/mas-universal/Sealmark-*-mas-universal.pkg
+          if-no-files-found: error
+          retention-days: 14
 
   publish:
     needs: build
@@ -78,6 +214,6 @@ jobs:
         run: |
           ls -la out
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title "PDF Editor ${TAG#v}" --generate-notes --verify-tag
+            gh release create "$TAG" --title "Sealmark ${TAG#v}" --generate-notes --verify-tag
           fi
           gh release upload "$TAG" out/* --clobber

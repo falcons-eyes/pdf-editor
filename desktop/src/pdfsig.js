@@ -258,7 +258,7 @@ function addSealPlaceholder(doc, o) {
     Type: "SigRef", TransformMethod: "DocMDP",
     TransformParams: { Type: "TransformParams", P: 1, V: "1.2" },
   }]));
-  const app = { Name: o.appName || "PDF Editor" };
+  const app = { Name: o.appName || "Sealmark" };
   if (o.appVersion) app.REx = PDFString.of(String(o.appVersion));
   sig.set("Prop_Build", ctx.obj({ Filter: { Name: "Adobe.PPKLite" }, App: app }));
   const sigDict = PDFDict.fromMapWithContext(new Map([...sig].map(([k, v]) => [N(k), v])), ctx);

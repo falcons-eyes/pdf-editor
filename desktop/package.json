@@ -1,9 +1,11 @@
 {
   "name": "pdf-editor-desktop",
-  "productName": "PDF Editor",
-  "version": "1.0.0",
-  "description": "PDF Editor: place signatures, stamps and images onto PDFs",
-  "author": "falcons-eyes",
+  "productName": "Sealmark",
+  "version": "1.1.0",
+  "description": "Sealmark: place signatures, stamps and images onto PDFs and seal them",
+  "author": {
+    "name": "Falcon Eyes Inc."
+  },
   "license": "MIT",
   "homepage": "https://github.com/falcons-eyes/pdf-editor",
   "repository": {
@@ -19,8 +21,12 @@
     "pack": "npm run build:page && electron-builder --dir --publish never",
     "dist:mac": "npm run build:page && electron-builder --mac dmg --arm64 --x64 --publish never",
     "dist:win": "npm run build:page && electron-builder --win nsis portable --x64 --publish never",
-    "test": "node test/seal.mjs && node test/smoke.mjs",
-    "test:seal": "node test/seal.mjs"
+    "dist:mas": "npm run build:page && electron-builder --config electron-builder.mas.cjs --mac mas --universal --publish never",
+    "dist:mas-dev": "npm run build:page && electron-builder --config electron-builder.mas.cjs --mac mas-dev --universal --publish never",
+    "test": "node test/seal.mjs && node test/unit.mjs && node test/smoke.mjs",
+    "test:seal": "node test/seal.mjs",
+    "test:unit": "node test/unit.mjs",
+    "test:sandbox": "node scripts/sandbox-local.mjs"
   },
   "dependencies": {
     "@signpdf/signpdf": "4.0.0",
@@ -39,9 +45,9 @@
     "playwright": "1.65.1"
   },
   "build": {
-    "appId": "io.github.falcons-eyes.pdf-editor",
-    "productName": "PDF Editor",
-    "copyright": "Copyright © 2026 falcons-eyes. MIT License.",
+    "appId": "com.falconoon.sealmark.direct",
+    "productName": "Sealmark",
+    "copyright": "Copyright © 2026 Falcon Eyes Inc.",
     "directories": {
       "output": "dist",
       "buildResources": "build"
@@ -78,7 +84,7 @@
       "identity": "-",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "artifactName": "PDF-Editor-${version}-${arch}.${ext}",
+      "artifactName": "Sealmark-${version}-${arch}.${ext}",
       "extendInfo": {
         "CFBundleDocumentTypes": [
           {
@@ -93,13 +99,35 @@
             ]
           }
         ],
-        "NSHumanReadableCopyright": "MIT License"
-      }
+        "NSHumanReadableCopyright": "Copyright © 2026 Falcon Eyes Inc.",
+        "ITSAppUsesNonExemptEncryption": false
+      },
+      "minimumSystemVersion": "13.0"
+    },
+    "mas": {
+      "appId": "com.falconoon.sealmark",
+      "type": "distribution",
+      "identity": null,
+      "hardenedRuntime": false,
+      "entitlements": "build/entitlements.mas.plist",
+      "entitlementsInherit": "build/entitlements.mas.inherit.plist",
+      "minimumSystemVersion": "13.0",
+      "artifactName": "Sealmark-${version}-mas-${arch}.${ext}",
+      "extraResources": [
+        {
+          "from": "build/mas/PrivacyInfo.xcprivacy",
+          "to": "PrivacyInfo.xcprivacy"
+        }
+      ]
+    },
+    "masDev": {
+      "type": "development",
+      "identity": null
     },
     "dmg": {
       "sign": false,
-      "title": "PDF Editor ${version}",
-      "artifactName": "PDF-Editor-${version}-${arch}.${ext}",
+      "title": "Sealmark ${version}",
+      "artifactName": "Sealmark-${version}-${arch}.${ext}",
       "window": {
         "width": 540,
         "height": 380
@@ -145,14 +173,15 @@
         "en_US"
       ],
       "multiLanguageInstaller": true,
-      "shortcutName": "PDF Editor",
+      "shortcutName": "Sealmark",
       "deleteAppDataOnUninstall": false,
       "include": "build/installer.nsh",
-      "artifactName": "PDF-Editor-${version}-setup-${arch}.${ext}",
-      "differentialPackage": false
+      "artifactName": "Sealmark-${version}-setup-${arch}.${ext}",
+      "differentialPackage": false,
+      "uninstallDisplayName": "Sealmark"
     },
     "portable": {
-      "artifactName": "PDF-Editor-${version}-portable-${arch}.${ext}"
+      "artifactName": "Sealmark-${version}-portable-${arch}.${ext}"
     },
     "publish": null
   }

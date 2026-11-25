@@ -8,6 +8,14 @@
 //   node test/smoke.mjs                 # the unpacked build in dist/ (npm run pack)
 //   node test/smoke.mjs --dev           # electron . (needs npm run build:page)
 //   node test/smoke.mjs --app <path>    # a .app bundle, an executable, or PDFE_APP=<path>
+//
+// Sandbox options (see scripts/sandbox-local.mjs, which runs a locally signed Mac App Store build):
+//   --home <dir>         use this folder as the test home (e.g. inside the app's container)
+//   --simulate-sandbox   PDFE_TEST_SANDBOXED=1: a regular build behaves as the store build in main
+//   --expect-sandboxed   desktop.sandboxed must be true; checks the bookmark store, the import menu
+//   --expect-mas         main must be Electron's MAS variant (process.mas)
+//   --outside <dir>      a folder the sandbox may not read: fs errors must be EPERM/EACCES, not ENOENT
+//   --safestorage        PDFE_SEAL_SAFESTORAGE=1: the sealer key must be protected by the OS (Keychain)
 import { execFile } from "node:child_process";
 import { _electron as electron } from "playwright";
 import { PDFDocument } from "pdf-lib";
@@ -22,6 +30,11 @@ const DESKTOP = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..")
 const OUT = path.join(DESKTOP, "test", "out");
 const argv = process.argv.slice(2);
 const flag = (name) => { const i = argv.indexOf(name); return i >= 0 ? argv[i + 1] : undefined; };
+const SIMULATE = argv.includes("--simulate-sandbox");
+const EXPECT_SANDBOX = SIMULATE || argv.includes("--expect-sandboxed");
+const EXPECT_MAS = argv.includes("--expect-mas");
+const SAFESTORAGE = argv.includes("--safestorage");
+const OUTSIDE = flag("--outside") ? path.resolve(flag("--outside")) : null;
 
 function resolveTarget() {
   if (argv.includes("--dev")) return { executablePath: require("electron"), args: [DESKTOP], label: "electron ." };
@@ -29,8 +42,8 @@ function resolveTarget() {
   if (!p) {
     const dist = path.join(DESKTOP, "dist");
     const candidates = process.platform === "darwin"
-      ? [`mac-${process.arch}`, "mac", "mac-arm64", "mac-universal"].map((d) => path.join(dist, d, "PDF Editor.app"))
-      : process.platform === "win32" ? [path.join(dist, "win-unpacked", "PDF Editor.exe"), path.join(dist, "win-arm64-unpacked", "PDF Editor.exe")]
+      ? [`mac-${process.arch}`, "mac", "mac-arm64", "mac-universal"].map((d) => path.join(dist, d, "Sealmark.app"))
+      : process.platform === "win32" ? [path.join(dist, "win-unpacked", "Sealmark.exe"), path.join(dist, "win-arm64-unpacked", "Sealmark.exe")]
       : [path.join(dist, "linux-unpacked", "pdf-editor-desktop")];
     p = candidates.find((c) => fs.existsSync(c));
     if (!p) throw new Error(`no unpacked build found in ${dist}; run npm run pack or pass --app`);
@@ -62,11 +75,17 @@ const check = (name, ok, detail = "") => {
 
 async function main() {
   fs.mkdirSync(OUT, { recursive: true });
-  const home = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "pdfe-smoke-")));
+  const homeBase = flag("--home") ? path.resolve(flag("--home")) : os.tmpdir();
+  fs.mkdirSync(homeBase, { recursive: true });
+  const home = fs.realpathSync.native(fs.mkdtempSync(path.join(homeBase, "pdfe-smoke-")));
   fs.mkdirSync(path.join(home, "Out"));
   const target = resolveTarget();
   console.log(`app:  ${target.label}\nhome: ${home}`);
-  const env = { ...process.env, PDFE_HOME_OVERRIDE: home, PDFE_TEST_NO_DIALOGS: "1" };
+  // a copy of the store to bring back with "Import data from the previous version" (sandboxed runs)
+  const legacyStore = path.join(home, "legacy", "PDF Editor");
+  const env = { ...process.env, PDFE_HOME_OVERRIDE: home, PDFE_TEST_NO_DIALOGS: "1", PDFE_TEST_IMPORT_FROM: legacyStore };
+  if (SIMULATE) env.PDFE_TEST_SANDBOXED = "1";
+  if (SAFESTORAGE) env.PDFE_SEAL_SAFESTORAGE = "1";
   delete env.ELECTRON_RUN_AS_NODE;
 
   const app = await electron.launch({ executablePath: target.executablePath, args: target.args, env, timeout: 90_000 });
@@ -92,6 +111,10 @@ async function main() {
     const storeDir = path.join(home, "Library", "Application Support", "PDF Editor");
     check("data store created under the override home", fs.existsSync(storeDir), storeDir);
     check("electron userData kept out of the data store", !fs.existsSync(path.join(storeDir, ".electron")) && fs.existsSync(path.join(home, ".pdfe-electron")));
+    if (EXPECT_MAS) {
+      const m = await app.evaluate(() => ({ mas: process.mas === true, sandboxed: process.sandboxed === true }));
+      check("main is Electron's Mac App Store variant (process.mas)", m.mas, JSON.stringify(m));
+    }
 
     // ---- desktop API contract ----
     const api = await page.evaluate(async () => {
@@ -123,6 +146,14 @@ async function main() {
       r.pathForBlobFile = d.pathForFile(new File(["x"], "x.pdf"));
       r.badUrl = await err(d.openExternal("file:///etc/passwd"));
       r.install = await d.install.state();
+      r.sandboxed = d.sandboxed;
+      r.links = d.links;
+      r.save = await d.dialog.save({ start: "~/Out", name: "named" });          // test mode: the prefilled path
+      r.saveKeepsPdf = await d.dialog.save({ start: "~/Out", name: "a/b:c.pdf" });
+      r.access = [await d.access.request("~/Out", { kind: "folder" }), await d.access.request("~/Out/x.pdf")];
+      r.bookmarkStore = await err(d.fs.readFile("~/.pdfe-electron/bookmarks.json"));
+      r.bookmarkWrite = await err(d.fs.writeFile("~/.pdfe-electron/bookmarks.json", "{}"));
+      r.bookmarkMove = await err(d.fs.rename("~/.pdfe-electron", "~/Out/moved-electron"));
       return r;
     });
     check("standalone flags", api.standalone === true && api.platform === process.platform && /^\d+\.\d+\.\d+/.test(api.version) && api.other === null, `${api.platform} ${api.version}`);
@@ -137,6 +168,27 @@ async function main() {
     check("pathForFile on an in-memory File is null", api.pathForBlobFile === null);
     check("openExternal refuses non-https", /^EPERM/.test(api.badUrl), api.badUrl);
     check("files written into the override home", fs.existsSync(path.join(home, "api", "a", "t.txt")));
+    check("desktop.sandboxed matches the build", api.sandboxed === EXPECT_SANDBOX, String(api.sandboxed));
+    check("desktop.links: privacy, support, repo (https)", /^https:\/\/github\.com\/falcons-eyes\/pdf-editor\/blob\/main\/PRIVACY\.md$/.test(api.links?.privacy) && /^https:\/\/github\.com\/falcons-eyes\/pdf-editor\/issues$/.test(api.links?.support) && api.links?.repo === "https://github.com/falcons-eyes/pdf-editor", JSON.stringify(api.links));
+    check("dialog.save / access.request return page paths", api.save === "~/Out/named.pdf" && api.saveKeepsPdf === "~/Out/a_b_c.pdf" && api.access[0] === "~/Out" && api.access[1] === "~/Out/x.pdf", JSON.stringify([api.save, api.saveKeepsPdf, ...api.access]));
+    check("the bookmark store is private to main", [api.bookmarkStore, api.bookmarkWrite, api.bookmarkMove].every((m) => /^EPERM: /.test(m)), [api.bookmarkStore, api.bookmarkWrite, api.bookmarkMove].join(" | "));
+
+    // ---- sandbox: no permission is EPERM/EACCES, never ENOENT ----
+    if (OUTSIDE) {
+      const out = await page.evaluate(async (dir) => {
+        const d = await window.claude.use("desktop");
+        const err = async (p) => { try { await p; return "resolved"; } catch (e) { return String(e.message); } };
+        return {
+          stat: await err(d.fs.stat(`${dir}/outside.pdf`)), read: await err(d.fs.readFile(`${dir}/outside.pdf`)),
+          list: await err(d.fs.readdir(dir)), missing: await err(d.fs.stat(`${dir}/missing.pdf`)),
+          write: await err(d.fs.writeFile(`${dir}/written.pdf`, "x")), exists: await d.fs.exists(`${dir}/outside.pdf`),
+        };
+      }, OUTSIDE);
+      const denied = (m) => /^(EPERM|EACCES): /.test(m);
+      // the sandbox itself allows metadata everywhere; main's stat/exists also check readability
+      check("sandbox: an outside file -> stat/read/readdir/write EPERM or EACCES, never ENOENT", denied(out.stat) && denied(out.read) && denied(out.list) && denied(out.write) && !fs.existsSync(path.join(OUTSIDE, "written.pdf")), JSON.stringify({ stat: out.stat, read: out.read, list: out.list, write: out.write }));
+      check("sandbox: exists(ungranted) is false, a missing file is ENOENT", out.exists === false && /^ENOENT: /.test(out.missing), JSON.stringify({ exists: out.exists, missing: out.missing }));
+    }
 
     // menus: the page's template reached the native menu, and clicks come back to the page
     // (the page picks Korean or English from the system language; either is fine here)
@@ -219,6 +271,7 @@ async function main() {
     if (check("desktop.seal and setLanguage exposed", sealed.api)) {
       const s0 = sealed.v?.signatures?.[0] || {};
       check("seal: no identity at first, createIdentity", sealed.before === null && sealed.created?.name === "홍길동" && sealed.created.org === "Smoke" && /^[0-9A-F]{4}( [0-9A-F]{4}){15}$/.test(sealed.created.fingerprint) && sealed.created.imported === false && ["os", "file"].includes(sealed.created.protected), JSON.stringify(sealed.created));
+      if (SAFESTORAGE) check("seal: key protected by safeStorage (Keychain)", sealed.created?.protected === "os" && sealed.identity?.protected === "os", sealed.created?.protected);
       check("seal: second createIdentity -> EEXIST", /^EEXIST: /.test(sealed.again), sealed.again);
       check("seal: sign returns bytes", sealed.isBytes);
       check("seal: verify -> intact, mine, certify", sealed.v.status === "intact" && s0.mine && s0.certify && s0.digestOk && s0.signatureOk && s0.coversWholeFile && s0.name === "홍길동" && s0.fingerprint === sealed.created.fingerprint, JSON.stringify(sealed.v));
@@ -253,10 +306,10 @@ async function main() {
       const enTop = en.map((m) => m.label);
       const help = en.find((m) => m.label === "Help");
       const appItems = process.platform === "darwin" ? en[0].items : [];
-      check("setLanguage(\"en\"): Edit / Window / Help menus in English", enTop.includes("Edit") && enTop.includes("Window") && help?.items.includes("GitHub repository") && (process.platform !== "darwin" || appItems.includes("Quit PDF Editor")), enTop.join(" | "));
+      check("setLanguage(\"en\"): Edit / Window / Help menus in English", enTop.includes("Edit") && enTop.includes("Window") && ["Privacy Policy", "Support", "GitHub repository"].every((x) => help?.items.includes(x)) && (process.platform !== "darwin" || (appItems.includes("Quit Sealmark") && appItems.includes("About Sealmark"))), enTop.join(" | "));
       const ko = await langOf("ko");
       const koTop = ko.map((m) => m.label);
-      check("setLanguage(\"ko\"): back to Korean", koTop.includes("편집") && koTop.includes("도움말") && ko.find((m) => m.label === "도움말")?.items.includes("GitHub 저장소"), koTop.join(" | "));
+      check("setLanguage(\"ko\"): back to Korean", koTop.includes("편집") && koTop.includes("도움말") && ["개인정보 처리방침", "지원", "GitHub 저장소"].every((x) => ko.find((m) => m.label === "도움말")?.items.includes(x)), koTop.join(" | "));
       const bad = await page.evaluate(() => window.claude.use("desktop").then((d) => d.setLanguage("fr")).then(() => "resolved", (e) => e.message));
       const saved = JSON.parse(fs.readFileSync(path.join(home, ".pdfe-electron", "settings.json"), "utf8"));
       check("setLanguage: persisted, unknown language -> EINVAL", saved.lang === "ko" && /^EINVAL: /.test(bad), `${JSON.stringify(saved)} ${bad}`);
@@ -365,6 +418,79 @@ async function main() {
       await page.waitForTimeout(1200);
       await grab("showcase-home");
     } catch (e) { console.log("note: showcase screenshots skipped:", e.message); }
+
+    // ---- store build, page flow: an original the sandbox won't let us read -> "needs permission" + Grant access ----
+    if (OUTSIDE) {
+      const flow = await page.evaluate(async (file) => {
+        const { S, fileChecks, refreshFileChecks, grantAccess, showHome, t } = window.__pdfe;
+        const rec = S.docs.find((d) => d.source?.path);
+        if (!rec) return { error: "no record with a source" };
+        const keep = rec.source;
+        rec.source = { ...keep, path: file };
+        await refreshFileChecks();
+        const before = fileChecks.get(rec.id)?.source;
+        showHome(); await refreshFileChecks();
+        await new Promise((r) => setTimeout(r, 300));
+        const tip = t("access.grant.src.tip");
+        const button = [...document.querySelectorAll("button")].some((b) => b.getAttribute("data-tip") === tip);
+        // test mode: the panel "returns" the same file without a real grant, so it must stay "needs permission"
+        await grantAccess(rec, "source");
+        const after = fileChecks.get(rec.id)?.source;
+        const toastText = [...document.querySelectorAll(".toast, [role=status], [role=alert]")].map((n) => n.innerText).join(" | ");
+        rec.source = keep; await refreshFileChecks();
+        return { before, button, after, toast: toastText.slice(0, 200), failText: t("access.fail"), restored: fileChecks.get(rec.id)?.source };
+      }, path.join(OUTSIDE, "outside.pdf"));
+      check("page flow (sandbox): an unreadable original reads \"needs permission\" with a Grant access button", flow.before === "noaccess" && flow.button, JSON.stringify(flow));
+      check("page flow (sandbox): Grant access without a real grant stays \"needs permission\" and says so", flow.after === "noaccess" && flow.toast.includes(flow.failText), `${flow.after} · ${flow.toast}`);
+      await page.screenshot({ path: path.join(OUT, `sandbox-noaccess-${process.platform}.png`) }).catch(() => {});
+    }
+    // ---- store build: a PDF opened through LaunchServices (Finder's Open With) is readable this launch ----
+    if (OUTSIDE && EXPECT_MAS && process.platform === "darwin") {
+      const lsFile = path.join(OUTSIDE, "opened-by-finder.pdf");
+      fs.copyFileSync(path.join(home, "Out", "smoke_signed.pdf"), lsFile);
+      const bundle = target.executablePath.replace(/\/Contents\/MacOS\/[^/]+$/, "");
+      await page.evaluate(() => { window.__smokeOpened = []; });
+      await new Promise((res) => execFile("open", ["-a", bundle, lsFile], () => res()));
+      await page.waitForFunction((f) => window.__pdfe.S.rec?.source?.path === f && window.__pdfe.S.pages.length > 0, lsFile, { timeout: 15_000 }).catch(() => {});
+      const ls = await page.evaluate(async (f) => {
+        const { S, fileChecks, refreshFileChecks } = window.__pdfe;
+        await refreshFileChecks();
+        return { path: S.rec?.source?.path, pages: S.pages.length, state: S.rec ? fileChecks.get(S.rec.id)?.source : null, opened: window.__smokeOpened };
+      }, lsFile);
+      check("sandbox: a PDF opened via LaunchServices (open -a) is read and checked this launch", ls.path === lsFile && ls.pages === info.pages && ls.state === "same", JSON.stringify(ls));
+    }
+
+    // ---- store build: import of the previous version's data (main's own menu) ----
+    const importLabels = ["Import data from the previous version…", "이전 버전 데이터 가져오기…"];
+    const importItem = (await menuLabels(app)).some((m) => m.items.some((x) => importLabels.includes(x)));
+    check(EXPECT_SANDBOX ? "store build: Import data from the previous version… in the menu" : "no import menu outside the store build", importItem === EXPECT_SANDBOX);
+    if (EXPECT_SANDBOX && importItem) {
+      // the "previous version": a copy of this store as it is now, plus a seal/ and .electron/ that must not come along
+      await page.evaluate(() => { dispatchEvent(new Event("pagehide")); });
+      await page.waitForTimeout(800);
+      const docsBefore = fs.readFileSync(path.join(storeDir, "documents.json"));
+      for (const n of ["prefs.json", "documents.json", "library.json", "library", "docs", "thumbs"]) {
+        if (fs.existsSync(path.join(storeDir, n))) fs.cpSync(path.join(storeDir, n), path.join(legacyStore, n), { recursive: true });
+      }
+      fs.mkdirSync(path.join(legacyStore, "seal"), { recursive: true });
+      fs.writeFileSync(path.join(legacyStore, "seal", "key.bin"), "not this key");
+      fs.mkdirSync(path.join(legacyStore, ".electron"), { recursive: true });
+      fs.writeFileSync(path.join(legacyStore, ".electron", "window-state.json"), "{}");
+      fs.writeFileSync(path.join(legacyStore, "library", "imported-marker.txt"), "from the previous version");
+      const keyBefore = fs.existsSync(path.join(storeDir, "seal", "key.bin")) ? fs.readFileSync(path.join(storeDir, "seal", "key.bin")) : null;
+      await app.evaluate(({ Menu }, labels) => {
+        for (const m of Menu.getApplicationMenu().items) for (const it of m.submenu?.items || []) if (labels.includes(it.label)) { it.click(); return; }
+      }, importLabels);
+      const marker = path.join(storeDir, "library", "imported-marker.txt");
+      for (let i = 0; i < 100 && !fs.existsSync(marker); i++) await page.waitForTimeout(100);
+      await page.waitForFunction(() => window.__pdfe && window.__pdfe.Store && window.__pdfe.Store.disk, null, { timeout: 30_000 }).catch(() => {});
+      const names = fs.readdirSync(storeDir);
+      const backups = names.filter((n) => /\.before-import-/.test(n));
+      const keyAfter = fs.existsSync(path.join(storeDir, "seal", "key.bin")) ? fs.readFileSync(path.join(storeDir, "seal", "key.bin")) : null;
+      check("import: copied, current data kept as .before-import-…, legacy folder left in place", fs.existsSync(marker) && backups.some((n) => n.startsWith("documents.json.before-import-")) && fs.readFileSync(path.join(storeDir, "documents.json")).equals(docsBefore) && fs.existsSync(path.join(legacyStore, "library", "imported-marker.txt")), backups.join(" "));
+      check("import: seal/ and .electron/ not copied", String(keyBefore) === String(keyAfter) && !fs.existsSync(path.join(storeDir, ".electron")), keyAfter ? "store key unchanged" : "no store key");
+      check("import: the page reloaded with disk storage", (await page.evaluate(() => !!(window.__pdfe && window.__pdfe.Store.disk && location.href.startsWith("app://pdf-editor/")))));
+    }
 
     check("no console errors / CSP violations / failed requests", problems.length === 0, problems.slice(0, 8).join("\n      "));
   } catch (e) {

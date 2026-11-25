@@ -97,10 +97,17 @@ const seal = {
   verify: async (pdf) => sealCall("verify", await bytesOf(pdf)),
 };
 
+const str = (v) => (typeof v === "string" ? v : undefined);
+const links = Object.freeze({ privacy: String(info.links?.privacy || ""), support: String(info.links?.support || ""), repo: String(info.links?.repo || "") });
+
 const desktop = {
   standalone: true,
   platform: info.platform || process.platform,
   version: info.version || "",
+  // true only in the Mac App Store build (App Sandbox): files outside the app's container need the
+  // user's permission (open/save panels, access.request); fs errors EPERM/EACCES mean "needs permission"
+  sandboxed: info.mas === true,
+  links,
   fs,
   shell: {
     openPath: (p) => call("pdfe:shell", "openPath", p),
@@ -132,6 +139,12 @@ const desktop = {
   os: { platform: async () => info.platform || process.platform, arch: async () => info.arch || process.arch },
   dialog: {
     open: (o) => call("pdfe:dialog", o && typeof o === "object" ? { kind: o.kind, title: o.title, start: o.start, multiple: !!o.multiple } : {}),
+    // native save panel for a PDF in folder `start` with file `name` -> chosen page path (access kept) or null
+    save: (o) => call("pdfe:dialog-save", o && typeof o === "object" ? { start: str(o.start), name: str(o.name), title: str(o.title) } : {}),
+  },
+  access: {
+    // ask the user to grant a file or folder again -> granted page path (may differ) or null
+    request: (path, o) => call("pdfe:access", String(path), { kind: o?.kind === "folder" ? "folder" : "pdf" }),
   },
   pathForFile: (file) => {
     try {
