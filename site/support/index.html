@@ -12,8 +12,8 @@
 <link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/support/">
 <link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/support/">
 <meta name="color-scheme" content="light dark">
-<meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
-<meta name="theme-color" content="#0d1120" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#f7f8fb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0b0f1c" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sealworks">
 <meta property="og:title" content="Support · Sealworks">
@@ -23,7 +23,7 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
-<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free and open source for Mac and Windows.">
+<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free to use on Mac and Windows.">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
@@ -36,34 +36,41 @@
 <a class="skip" href="#main">Skip to content</a>
 <header class="site-header">
   <div class="wrap">
-    <a class="brand" href="/" aria-label="Sealworks home"><img src="/assets/logo-64.png" width="32" height="32" alt=""><span>Sealworks</span></a>
+    <a class="brand" href="/" aria-label="Sealworks home"><img src="/assets/logo-64.png" width="30" height="30" alt=""><span>Sealworks</span></a>
     <nav class="site-nav" aria-label="Main">
       <ul>
-        <li><a href="/">Home</a></li>
+        <li class="nav-anchor"><a href="/#how">How it works</a></li>
+        <li class="nav-anchor"><a href="/#seal">Seal</a></li>
+        <li class="nav-minor"><a href="/privacy/">Privacy</a></li>
         <li><a href="/support/" aria-current="page">Support</a></li>
-        <li><a href="/privacy/">Privacy</a></li>
-        <li class="lang"><a href="/ko/support/" lang="ko" hreflang="ko" aria-label="한국어로 보기">한국어</a></li>
+        <li class="lang"><a href="/ko/support/" lang="ko" hreflang="ko">한국어</a></li>
+        <li class="nav-cta"><a href="/#download">Download</a></li>
       </ul>
     </nav>
   </div>
 </header>
 <main id="main" tabindex="-1">
-
-<div class="wrap narrow">
-  <header class="page-head">
+<header class="page-head">
+  <div class="wrap">
     <h1>Support</h1>
     <p class="lead">Questions about Sealworks? Write to us, or find a quick answer below.</p>
-  </header>
-  <div class="doc support">
-    <h2 id="contact">Contact</h2>
-    <div class="contact-card"><dl><dt>Email</dt><dd><a href="mailto:support@falconoon.com">support@falconoon.com</a></dd><dt>Reply time</dt><dd>We aim to reply within 3 business days.</dd><dt>Bug reports</dt><dd><a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. Issues are public, so please don't include personal information or documents.</dd><dt>Company</dt><dd>Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>)</dd></dl></div>
+  </div>
+</header>
+<div class="wrap doc-layout">
+  <aside class="doc-side">
     <nav class="toc" aria-labelledby="toc-title">
       <h2 id="toc-title">On this page</h2>
       <ol><li><a href="#first-launch">How do I open Sealworks the first time?</a></li><li><a href="#data">Where does Sealworks keep my data?</a></li><li><a href="#backup">How do I back up and restore my sealer key (.p12)?</a></li><li><a href="#verify">How do I verify a seal, and why does Acrobat say the signer isn't verified?</a></li><li><a href="#preview">Why did re-saving in macOS Preview break the seal?</a></li><li><a href="#legal">Is a seal a certified electronic signature?</a></li><li><a href="#language">How do I switch the language?</a></li><li><a href="#bug">How do I report a bug?</a></li></ol>
     </nav>
+  </aside>
+  <div class="doc support">
+    <section class="contact-card" aria-labelledby="contact">
+      <h2 id="contact">Contact</h2>
+      <dl><dt>Email</dt><dd><a class="email" href="mailto:support@falconoon.com">support@falconoon.com</a></dd><dt>Reply time</dt><dd>We aim to reply within 3 business days.</dd><dt>Bug reports</dt><dd><a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. Issues are public, so please don't include personal information or documents.</dd><dt>Company</dt><dd>Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>)</dd></dl>
+    </section>
     <h2 id="faq">Frequently asked questions</h2>
     <div class="faq"><div class="faq-item"><h3 id="first-launch">How do I open Sealworks the first time?</h3>
-<p><strong>Mac App Store version:</strong> it opens normally, like any app from the store.</p>
+<p><strong>Mac App Store version (after release):</strong> it opens normally, like any app from the store.</p>
 <p>The <strong>DMG and EXE downloads</strong> from GitHub aren't signed with paid Apple or Microsoft certificates, so macOS and Windows warn you the first time. Allow it once and it opens normally after that.</p>
 <h4>macOS (DMG)</h4>
 <ol>
@@ -82,7 +89,7 @@
 </ol>
 <p class="note">Not sure which Mac you have? Choose Apple menu › <strong>About This Mac</strong>. If it says <code>Chip  Apple M…</code>, download the <code>arm64</code> DMG. If it says <code>Processor  … Intel …</code>, download the <code>x64</code> DMG.</p></div><div class="faq-item"><h3 id="data">Where does Sealworks keep my data?</h3>
 <p>Everything stays on your computer. The Library (document copies, where you placed signatures, your signatures and stamps, settings) and your seal key are kept in this folder:</p>
-<div class="table-wrap"><table><thead><tr><th scope="col">Version</th><th scope="col">Folder</th></tr></thead><tbody><tr><td>Mac App Store</td><td>inside the app's container, <code>~/Library/Containers/com.falconoon.sealworks/</code></td></tr><tr><td>macOS, downloaded from GitHub (DMG)</td><td><code>~/Library/Application Support/PDF Editor</code></td></tr><tr><td>Windows</td><td><code>%APPDATA%\PDF Editor</code></td></tr></tbody></table></div>
+<div class="table-wrap"><table><thead><tr><th scope="col">Version</th><th scope="col">Folder</th></tr></thead><tbody><tr><td>Mac App Store (after release)</td><td>inside the app's container, <code>~/Library/Containers/com.falconoon.sealworks/</code></td></tr><tr><td>macOS, downloaded from GitHub (DMG)</td><td><code>~/Library/Application Support/PDF Editor</code></td></tr><tr><td>Windows</td><td><code>%APPDATA%\PDF Editor</code></td></tr></tbody></table></div>
 <p>The folder keeps its old name from when the app was called PDF Editor, so updating from 1.0 keeps all your documents. Your seal key is in the <code>seal</code> subfolder, encrypted with a key that the macOS Keychain or Windows (DPAPI) protects.</p>
 <p>To erase everything, quit Sealworks and delete that folder. Uninstalling the app leaves the folder in place. On macOS you can also remove the app's Keychain item in Keychain Access. Your original PDFs and the files you saved elsewhere aren't affected.</p></div><div class="faq-item"><h3 id="backup">How do I back up and restore my sealer key (.p12)?</h3>
 <p>Your sealer identity (the private key and certificate used for <strong>Seal and save</strong>) lives only on your computer. If you lose or reset the computer without a backup, you'll have to make a new identity, and its fingerprint will be different.</p>
@@ -98,7 +105,7 @@
   <li>Pick the <code>.p12</code> file and enter its password. Importing replaces the current sealer identity, so Sealworks asks you to confirm first.</li>
 </ol>
 <p>After restoring your own backup, your fingerprint is the same as before. <strong>Import…</strong> also accepts a <code>.p12</code> or <code>.pfx</code> certificate you already have.</p>
-<p class="note">Moving between the downloaded version and the Mac App Store version? The seal key doesn't move by itself. Back up in one and import in the other.</p></div><div class="faq-item"><h3 id="verify">How do I verify a seal, and why does Acrobat say the signer isn't verified?</h3>
+<p class="note">Moving between the downloaded version and the Mac App Store version (after release)? The seal key doesn't move by itself. Back up in one and import in the other.</p></div><div class="faq-item"><h3 id="verify">How do I verify a seal, and why does Acrobat say the signer isn't verified?</h3>
 <h4>In Sealworks</h4>
 <p>Click <strong>Verify seal</strong> in the title bar (or on the Library screen), then drop the PDF on the dialog or click <strong>Choose file…</strong>. Checking a file never adds it to your Library. You'll see <strong>Seal intact</strong>, <strong>Modified after sealing</strong>, <strong>Seal is not valid</strong> or <strong>Not sealed</strong>, plus who sealed it, when, and the certificate fingerprint.</p>
 <h4>In Adobe Acrobat or Acrobat Reader</h4>
@@ -126,15 +133,17 @@
 </div>
 </main>
 <footer class="site-footer">
-  <div class="wrap">
+  <div class="wrap footer-grid">
     <div>
-      <p>© 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈)</p>
-      <p>Sealworks is free and open source (MIT).</p>
+      <a class="footer-brand" href="/"><img src="/assets/logo-64.png" width="26" height="26" alt="">Sealworks</a>
+      <p>Sign, stamp and seal PDFs. Free to use · Source available.</p>
+      <p>© 2026 Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>) · Sealworks is a trademark of Falcon Eyes Inc. · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License: PolyForm Strict 1.0.0 (noncommercial)</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md">Additional permissions</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/TRADEMARKS.md">Brand</a></p>
     </div>
     <nav aria-label="Footer">
       <ul>
         <li><a href="/support/">Support</a></li>
         <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
         <li><a href="https://github.com/falcons-eyes/pdf-editor">Source code on GitHub</a></li>
         <li><a href="/ko/support/" lang="ko" hreflang="ko">한국어</a></li>
       </ul>
