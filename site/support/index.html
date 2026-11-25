@@ -23,7 +23,7 @@
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
-<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free to use on Mac and Windows.">
+<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. The app with a signature and a stamp placed on a contract’s signing line.">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
@@ -113,15 +113,11 @@
 <p>It will also say the signer's identity can't be verified. <strong>That's expected.</strong> The certificate was made by Sealworks on the sender's computer, not bought from a certificate authority, so Acrobat has no outside authority to vouch for the name. The part that matters for tamper evidence is whether the document was modified.</p>
 <p>To be sure a file came from a particular person, compare fingerprints: the sender finds theirs under <strong>Sealer…</strong> and shares it with you once, for example by phone or in person. If the fingerprint in the file matches, the file was sealed with their key.</p></div><div class="faq-item"><h3 id="preview">Why did re-saving in macOS Preview break the seal?</h3>
 <p>A seal covers every byte of the file. macOS Preview rewrites the whole PDF when it saves, even when you only add a note or highlight, and it saves changes automatically. The bytes change, so <strong>Verify seal</strong> shows <strong>Modified after sealing</strong>. Other apps that re-save PDFs do the same.</p>
-<ul>
-  <li>Keep a sealed file exactly as you received it.</li>
-  <li>If you want to annotate it, make a copy first and annotate the copy.</li>
-  <li>If the seal on a file you need is broken, ask the sender for the file again.</li>
-</ul></div><div class="faq-item"><h3 id="legal">Is a seal a certified electronic signature?</h3>
+<p>Keep a sealed file exactly as you received it. If you want to annotate it, make a copy first and annotate the copy. If the seal on a file you need is broken, ask the sender for the file again.</p></div><div class="faq-item"><h3 id="legal">Is a seal a certified electronic signature?</h3>
 <p>No. The seal is meant for spotting changes. It isn't a certified electronic signature under any law, and it uses a self-made certificate rather than one from a certificate authority. If a document needs a particular kind of electronic signature, check what the recipient or the law requires.</p>
 <p>A seal also shows tampering rather than preventing it: it can't stop someone from removing the seal and sending the file on as an ordinary, unsealed PDF. If a seal matters to you, check that one is there.</p></div><div class="faq-item"><h3 id="language">How do I switch the language?</h3>
 <p>Sealworks speaks English and Korean. The first time it opens, it follows your computer's language. To switch, click <strong>English</strong> or <strong lang="ko">한국어</strong> at the bottom right of the window (in the status bar), or use <strong>View › Language</strong>. Everything switches in place: nothing reloads, and your work stays where it is. Sealworks remembers your choice.</p>
-<p>This website is in both languages too. Use the <span lang="ko">한국어</span> / English link at the top of any page.</p></div><div class="faq-item"><h3 id="bug">How do I report a bug?</h3>
+<p>This website is in both languages too. Use the <span lang="ko">한국어</span> link at the top of any page to switch.</p></div><div class="faq-item"><h3 id="bug">How do I report a bug?</h3>
 <p>Open an issue on <a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. It helps to include:</p>
 <ul>
   <li>Your Sealworks version (shown under <strong>About Sealworks</strong> in the status bar) and where you got it (Mac App Store, DMG or Windows).</li>
@@ -136,15 +132,16 @@
   <div class="wrap footer-grid">
     <div>
       <a class="footer-brand" href="/"><img src="/assets/logo-64.png" width="26" height="26" alt="">Sealworks</a>
-      <p>Sign, stamp and seal PDFs. Free to use · Source available.</p>
-      <p>© 2026 Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>) · Sealworks is a trademark of Falcon Eyes Inc. · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License: PolyForm Strict 1.0.0 (noncommercial)</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md">Additional permissions</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/TRADEMARKS.md">Brand</a></p>
+      <p>A free app to sign, stamp and seal PDFs.</p>
+      <p>© 2026 Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>). Sealworks is a <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/TRADEMARKS.md">trademark</a> of Falcon Eyes Inc.</p>
     </div>
     <nav aria-label="Footer">
       <ul>
         <li><a href="/support/">Support</a></li>
         <li><a href="/privacy/">Privacy</a></li>
-        <li><a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
+        <li><a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License</a></li>
         <li><a href="https://github.com/falcons-eyes/pdf-editor">Source code on GitHub</a></li>
+        <li><a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
         <li><a href="/ko/support/" lang="ko" hreflang="ko">한국어</a></li>
       </ul>
     </nav>
