@@ -88,12 +88,13 @@ macOS
 
 <img src="docs/images/hero-en.png" alt="Sealworks on macOS: a contract with a signature and a stamp placed on the signing line" width="900">
 
-Windows (screenshots from version 1.0, in Korean)
+Windows (version 1.1, taken on a Windows runner)
 
 <table>
   <tr>
     <td><img src="docs/images/windows-home.png" alt="The Library screen on Windows"></td>
-    <td><img src="docs/images/windows-editor.png" alt="The editor on Windows"></td>
+    <td><img src="docs/images/windows-editor.png" alt="The editor on Windows: a sealed contract with a signature and a stamp"></td>
+    <td><img src="docs/images/windows-verify.png" alt="Verify seal on Windows: Seal intact"></td>
   </tr>
 </table>
 

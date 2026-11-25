@@ -80,7 +80,8 @@ If this policy changes, we will publish the new version here with a new effectiv
 ### 9. Contact
 
 - Publisher: Falcon Eyes Inc. (주식회사 팔콘아이즈)
-- Contact: [GitHub Issues](https://github.com/falcons-eyes/pdf-editor/issues). Issues are public, so please don't include personal information or documents.
+- Contact: [support@falconoon.com](mailto:support@falconoon.com). For bug reports you can also use [GitHub Issues](https://github.com/falcons-eyes/pdf-editor/issues); issues are public, so please don't include personal information or documents.
+- Privacy contact: Falcon Eyes Inc. support ([support@falconoon.com](mailto:support@falconoon.com)).
 
 ---
 
@@ -160,5 +161,6 @@ If this policy changes, we will publish the new version here with a new effectiv
 ### 9. 문의처
 
 - 회사: 주식회사 팔콘아이즈 (Falcon Eyes Inc.)
-- 문의: [GitHub Issues](https://github.com/falcons-eyes/pdf-editor/issues). 이슈는 누구나 볼 수 있으니 개인정보나 문서는 올리지 마세요.
-- 개인정보 보호책임자(또는 개인정보 고충 처리 부서)의 성명·부서와 전화번호: **TODO (게시 전 법무 확인 필요):** 「개인정보 보호법」 제30조와 시행령 제31조가 처리방침에 적도록 한 항목입니다. 회사가 개인정보를 처리하지 않더라도 적어 둘지 법무가 정하고, 적는다면 이 줄을 실제 정보로 바꿉니다.
+- 문의: [support@falconoon.com](mailto:support@falconoon.com). 버그 제보는 [GitHub Issues](https://github.com/falcons-eyes/pdf-editor/issues)도 됩니다. 이슈는 누구나 볼 수 있으니 개인정보나 문서는 올리지 마세요.
+- 개인정보 보호책임자: 주식회사 팔콘아이즈 고객지원 담당 ([support@falconoon.com](mailto:support@falconoon.com))
+<!-- 「개인정보 보호법」 제30조·시행령 제31조: 책임자 성명·부서·전화번호를 정하면 이 줄에 추가합니다. -->

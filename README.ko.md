@@ -88,12 +88,13 @@ macOS
 
 <img src="docs/images/hero-ko.png" alt="macOS에서 계약서 서명란에 서명과 도장을 놓은 편집 화면" width="900">
 
-Windows (1.0 버전 화면)
+Windows (1.1 버전, Windows 빌드 서버에서 찍은 영어 화면)
 
 <table>
   <tr>
     <td><img src="docs/images/windows-home.png" alt="Windows의 보관함 화면"></td>
-    <td><img src="docs/images/windows-editor.png" alt="Windows의 편집 화면"></td>
+    <td><img src="docs/images/windows-editor.png" alt="Windows의 편집 화면: 서명과 도장을 넣고 봉인한 계약서"></td>
+    <td><img src="docs/images/windows-verify.png" alt="Windows에서 봉인 확인: 봉인 그대로"></td>
   </tr>
 </table>
 
