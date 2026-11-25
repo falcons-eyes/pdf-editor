@@ -1,7 +1,7 @@
 # Sealworks for Android
 
 Capacitor 8 shell (Android only) for `web/pdf-editor.html`, the same offline page the desktop app ships.
-Package `com.falconoon.sealworks`, version 1.2.0 (versionCode 1), minSdk 26, target/compile SDK 36.
+Package `com.falconoon.sealworks`, version 1.2.0 (versionCode 2), minSdk 26, target/compile SDK 36.
 Design contract: `docs/design/android.md` (plus `seal-and-language.md`, `appstore-build.md`).
 
 ```sh

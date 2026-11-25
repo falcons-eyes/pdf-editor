@@ -31,7 +31,23 @@
     await P().addToLibrary(a); return a.id;
   }
 
+  // Android mode (dev server &os=android): the page may only reach documents it was handed (/android/<id>/…), so the
+  // sandbox home is written through the dev server's file endpoint, and documents are opened the way a share from
+  // another app opens them (window.__shimOpenFile), which gives them their /android/ path.
+  const android = () => !!window.__shimAndroid;
+  async function rawFs(op, args) {
+    const r = await fetch("/__fs", { method: "POST", headers: { "Content-Type": "application/json", "X-PDFE-Dev": "1" }, body: JSON.stringify({ op, ...args }) });
+    const j = await r.json(); if (j.error) throw new Error(j.error); return j.result;
+  }
+  const b64 = (u8) => { let s = ""; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode(...u8.subarray(i, i + 0x8000)); return btoa(s); };
+
   async function writeHome(path, bytes) {
+    if (android()) {
+      await rawFs("mkdir", { path: path.slice(0, path.lastIndexOf("/")), recursive: true });
+      await rawFs("writeFile", { path, data: b64(new Uint8Array(bytes)) });
+      const st = await rawFs("stat", { path });
+      return { size: st.size, mtime: st.mtimeMs };
+    }
     const d = await desk();
     await d.fs.mkdir(path.slice(0, path.lastIndexOf("/")), { recursive: true });
     await d.fs.writeFile(path, bytes);
@@ -39,6 +55,16 @@
     return { size: st.size, mtime: st.mtimeMs };
   }
   async function openPath(path) {
+    if (android()) {
+      const name = path.slice(path.lastIndexOf("/") + 1), S = P().S, t0 = Date.now();
+      window.__shimOpenFile(path);
+      while (!(S.rec?.name === name && /^\/android\//.test(S.rec?.source?.path || "") && S.pages.length && S.view === "editor")) {
+        if (Date.now() - t0 > 15000) throw new Error(`${path} did not open`);
+        await new Promise((r) => setTimeout(r, 100));
+      }
+      await new Promise((r) => setTimeout(r, 700));
+      return;
+    }
     const d = await desk(); const bytes = new Uint8Array(await d.fs.readFile(path)); const st = await d.fs.stat(path);
     const name = path.slice(path.lastIndexOf("/") + 1);
     await P().openPdfBytes(bytes, name, { path, stat: { size: st.size, mtime: st.mtimeMs }, quiet: true });

@@ -77,6 +77,26 @@ async function launch() {
   }
 }
 
+// Times the app shows (e.g. "Sealed on") read as office hours whenever a capture runs: Korean stays on Asia/Seoul;
+// English uses America/New_York when it is daytime there, else a fixed-offset zone on the same date where it is about 10 AM
+function officeTimezone(lang = LANG) {
+  if (lang !== "en") return "Asia/Seoul";
+  const now = new Date();
+  const parts = (tz) => Object.fromEntries(new Intl.DateTimeFormat("en-US", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", hourCycle: "h23" })
+    .formatToParts(now).map((p) => [p.type, p.value]));
+  const ny = parts("America/New_York");
+  if (+ny.hour >= 9 && +ny.hour <= 17) return "America/New_York";
+  const day = `${ny.year}-${ny.month}-${ny.day}`;
+  let best = null;
+  for (let off = -12; off <= 14; off++) {
+    const tz = off === 0 ? "Etc/GMT" : `Etc/GMT${off > 0 ? "-" : "+"}${Math.abs(off)}`; // Etc/GMT-3 is UTC+3
+    const p = parts(tz);
+    if (`${p.year}-${p.month}-${p.day}` !== day || +p.hour < 9 || +p.hour > 17) continue;
+    if (!best || Math.abs(+p.hour - 10) < Math.abs(best.h - 10)) best = { tz, h: +p.hour };
+  }
+  return best ? best.tz : "America/New_York";
+}
+
 async function newPage(browser, { scale = 2, width = 1440, height = 900 } = {}) {
   const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: "light",
     locale: LANG === "ko" ? "ko-KR" : "en-US", timezoneId: LANG === "ko" ? "Asia/Seoul" : "America/New_York" });
@@ -87,10 +107,10 @@ async function newPage(browser, { scale = 2, width = 1440, height = 900 } = {}) 
   return page;
 }
 
-async function openApp(page) {
+async function openApp(page, url = URL_APP) {
   for (let i = 0; i < 3; i++) {
     try {
-      await page.goto(URL_APP, { waitUntil: "networkidle" });
+      await page.goto(url, { waitUntil: "networkidle" });
       await page.waitForFunction(() => window.__pdfe && window.__pdfe.S.fs && window.PDFLib, null, { timeout: 15000 });
       break;
     } catch (e) { if (i === 2) throw e; console.warn("reload:", e.message); }
@@ -146,7 +166,15 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
   await page.evaluate(() => { const S = window.__pdfe.S; if (!S.prefs.homeSide) document.querySelector("#btn-side").click(); });
   await sleep(200);
 
+  // phones and small tablets keep the Library in a bottom sheet: open it before pressing its buttons
+  // (homeSide on: with it off, .home.no-side > .side outranks .side.open and the home sheet stays below the screen)
+  const homeSheet = () => page.evaluate(() => {
+    const p = window.__pdfe; if (!p.isCompact()) return;
+    p.S.prefs.homeSide = true; document.querySelector("#home").classList.remove("no-side");
+    p.closeSheet(false); p.openSheet("home");
+  });
   // 2) signature drawn in the pad
+  await homeSheet(); await sleep(400);
   await page.locator('#home .add-btn[data-add="draw"]').click();
   await sleep(300);
   await drawSignature(page);
@@ -174,6 +202,7 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
     }
   }, copies);
   // date stamp typed in the text dialog
+  await homeSheet(); await sleep(400);
   await page.locator('#home .add-btn[data-add="text"]').click();
   await sleep(300);
   await page.locator("#txt-input").fill(SC.dateText);
@@ -221,7 +250,7 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
     await s.openPath(D.school); fill(ex.school.items); await save(signed(D.school));
     await s.openPath(D.quote); fill(ex.quote.items); await save(signed(D.quote));
     await s.openPath(D.agreement); fill(ex.agreement.items);
-    const d = await window.claude.use("desktop"); for (const f of SC.folders) await d.fs.mkdir(f, { recursive: true });
+    if (!window.__shimAndroid) { const d = await window.claude.use("desktop"); for (const f of SC.folders) await d.fs.mkdir(f, { recursive: true }); } // Android: no folders of its own
     await s.openPath(D.lease);
     if (!keepMainClean) fill(ex.lease.items);
   }, { keepMainClean, SC, SUFFIX, ex });
@@ -277,4 +306,4 @@ async function shot(page, name, { clip, keepToasts = false } = {}) {
   return file;
 }
 
-module.exports = { ROOT, OUT, RAW, IMAGES, LANG, LANGS, SC, SCENARIOS, SUFFIX, rawDir, base, stem, signedPath, fakeHome, wipeFakeHome, launch, newPage, openApp, seed, makeSealer, readHome, appendToFile, verifyPath, drawSignature, shot, sleep };
+module.exports = { ROOT, OUT, RAW, IMAGES, LANG, LANGS, SC, SCENARIOS, SUFFIX, URL_APP, rawDir, base, stem, signedPath, fakeHome, wipeFakeHome, launch, officeTimezone, newPage, openApp, seed, makeSealer, readHome, appendToFile, verifyPath, drawSignature, shot, sleep };

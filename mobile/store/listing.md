@@ -1,7 +1,7 @@
 # Google Play store listing (Sealworks, `com.falconoon.sealworks`)
 
 Graphics: `play-icon-512.png`, `play/feature-{en,ko}.png` (1024×500), phone `play/phone-{en,ko}-*.png`
-(1080×1920), tablet `play/tablet-{en,ko}-*.png` (1600×2560). Built from the dev page with the built-in
+(1080×1920), tablet `play/tablet-{en,ko}-*.png` (1440×2560). Built from the dev page with the built-in
 example document (no real data).
 
 ## English (en-US)
