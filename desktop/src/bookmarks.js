@@ -47,7 +47,7 @@ function createBookmarks({ file, enabled, startAccess, caseInsensitive = true, m
     const out = {};
     for (const v of map.values()) out[v.path] = { b: v.b, dir: v.dir, at: v.at };
     try {
-      fs.mkdirSync(P.dirname(file), { recursive: true });
+      fs.mkdirSync(path.dirname(file), { recursive: true }); // the store file is a local path, keys use P
       const tmp = `${file}.${process.pid}.tmp`;
       fs.writeFileSync(tmp, JSON.stringify(out), { mode: 0o600 });
       fs.renameSync(tmp, file);
