@@ -1,0 +1,2691 @@
+<title>PDF Editor</title>
+<script type="application/json" id="claude-artifacts-manifest">{"permissions": ["full-access"]}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600&family=Nanum+Myeongjo:wght@800&family=Nanum+Pen+Script&display=swap">
+<style>
+/* Layout: desktop document app — title bar / (home: document list | library) or (editor: page rail | paper stage | library + inspector) / status bar.
+   Ink-blue accent (pen signature), seal red reserved for stamp-related cues. */
+:root {
+  --bg: #e9ecf2;          /* stage behind the paper */
+  --surface: #fbfcfe;     /* bars and panels */
+  --panel: #f3f5f9;
+  --line: #dde1ea;
+  --line-strong: #c9cfdb;
+  --fg: #171a22;
+  --muted: #5f6779;
+  --faint: #8a91a1;
+  --accent: #2446c7;      /* ballpoint ink */
+  --accent-fg: #ffffff;
+  --accent-soft: #e4e9fb;
+  --seal: #c3302a;        /* stamp ink (인주) */
+  --seal-soft: #f9e5e3;
+  --ok: #19794a;
+  --ok-soft: #e2f3ea;
+  --paper: #ffffff;
+  --paper-shadow: 0 1px 2px rgba(20, 28, 52, .10), 0 6px 20px rgba(20, 28, 52, .08);
+  --checker-a: #f1f3f7;
+  --checker-b: #e3e7ee;
+  --focus: #2446c7;
+  --font-ui: "IBM Plex Sans KR", -apple-system, "Apple SD Gothic Neo", system-ui, sans-serif;
+  --font-num: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --radius: 8px;
+  --bar-h: 52px;
+  --status-h: 28px;
+  --rail-w: 156px;
+  --side-w: 300px;
+  --traffic: 0px;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111318; --surface: #1b1e25; --panel: #171a20; --line: #2a2f39; --line-strong: #3a404c;
+    --fg: #e8eaf0; --muted: #a0a7b6; --faint: #737b8c;
+    --accent: #8299ff; --accent-fg: #0d1230; --accent-soft: #232b4d;
+    --seal: #ff7468; --seal-soft: #3a2022; --ok: #5ccf94; --ok-soft: #173326;
+    --paper: #ffffff; --paper-shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.45);
+    --checker-a: #eef0f4; --checker-b: #dde1e8; --focus: #8299ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111318; --surface: #1b1e25; --panel: #171a20; --line: #2a2f39; --line-strong: #3a404c;
+  --fg: #e8eaf0; --muted: #a0a7b6; --faint: #737b8c;
+  --accent: #8299ff; --accent-fg: #0d1230; --accent-soft: #232b4d;
+  --seal: #ff7468; --seal-soft: #3a2022; --ok: #5ccf94; --ok-soft: #173326;
+  --paper: #ffffff; --paper-shadow: 0 1px 2px rgba(0,0,0,.5), 0 8px 28px rgba(0,0,0,.45);
+  --checker-a: #eef0f4; --checker-b: #dde1e8; --focus: #8299ff;
+  color-scheme: dark;
+}
+
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--font-ui); font-size: 13px;
+  overflow: hidden; -webkit-font-smoothing: antialiased; user-select: none; -webkit-user-select: none;
+}
+button, input, select { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.is-desktop { --traffic: 76px; }
+/* Windows: no traffic lights; the standalone app's window buttons sit over the right end of the title bar */
+.is-win { --traffic: 0px; }
+.is-overlay { --wctl: 138px; }
+.mono { font-family: var(--font-num); font-size: 12px; }
+
+#app { height: 100%; display: grid; grid-template-rows: var(--bar-h) minmax(0, 1fr) var(--status-h); }
+
+/* ---------- title bar ---------- */
+.titlebar {
+  display: flex; align-items: center; gap: 12px; min-width: 0;
+  padding-left: max(16px, calc(var(--traffic) + 8px)); padding-right: calc(16px + var(--wctl, 0px));
+  background: var(--surface); border-bottom: 1px solid var(--line);
+  app-region: drag; -webkit-app-region: drag;
+}
+.titlebar > *, .tb-editor > * { app-region: no-drag; -webkit-app-region: no-drag; }
+.titlebar .grow { flex: 1; app-region: drag; -webkit-app-region: drag; }
+.tb-editor { display: flex; align-items: center; gap: 12px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; app-region: drag; -webkit-app-region: drag; }
+.brand-mark { width: 22px; height: 22px; flex: none; }
+.doc-name { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.doc-name strong { font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 30vw; }
+.doc-name span { color: var(--muted); font-size: 11px; white-space: nowrap; }
+.doc-name .dirty { color: var(--seal); }
+.tb-group { display: flex; align-items: center; gap: 2px; padding: 2px; border-radius: 9px; background: var(--panel); border: 1px solid var(--line); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  height: 30px; padding: 0 10px; border-radius: 7px; border: 1px solid transparent;
+  background: transparent; cursor: pointer; white-space: nowrap; color: var(--fg);
+}
+.btn:hover:not(:disabled) { background: color-mix(in oklab, var(--fg) 8%, transparent); }
+.btn:active:not(:disabled) { background: color-mix(in oklab, var(--fg) 14%, transparent); }
+.btn:disabled { opacity: .38; cursor: default; }
+.btn.icon { width: 30px; padding: 0; }
+.btn svg { width: 16px; height: 16px; flex: none; }
+.btn.outline { border-color: var(--line-strong); background: var(--surface); }
+.btn.primary { background: var(--accent); color: var(--accent-fg); font-weight: 600; padding: 0 14px; }
+.btn.primary:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, black); }
+.btn.danger { color: var(--seal); }
+.btn.sm { height: 26px; padding: 0 8px; font-size: 12px; }
+.zoom-val { width: 52px; text-align: center; font-family: var(--font-num); font-size: 12px; font-variant-numeric: tabular-nums; color: var(--muted); }
+
+/* ---------- home (document list) ---------- */
+.home { display: grid; grid-template-columns: minmax(0, 1fr) var(--side-w); min-height: 0; }
+.home-main { overflow-y: auto; min-width: 0; padding-block: 28px 48px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: 16px; }
+.home-wrap { max-width: 980px; margin: 0 auto; display: grid; gap: 16px; padding: 0 16px; }
+.home-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.home-head h1 { margin: 0 0 4px; font-size: 22px; font-weight: 600; letter-spacing: -.01em; }
+.home-tools { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.search { display: flex; align-items: center; gap: 6px; height: 32px; padding: 0 10px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface); min-width: 220px; }
+.search:focus-within { border-color: var(--accent); }
+.search svg { width: 14px; height: 14px; color: var(--faint); flex: none; }
+.search input { border: none; background: none; outline: none; width: 100%; min-width: 0; user-select: text; -webkit-user-select: text; }
+.perm {
+  display: flex; align-items: center; gap: 14px; padding: 12px 14px; border-radius: 10px;
+  background: var(--accent-soft); border: 1px solid color-mix(in oklab, var(--accent) 30%, transparent);
+}
+.perm svg { width: 22px; height: 22px; color: var(--accent); flex: none; }
+.perm p { margin: 0; flex: 1; line-height: 1.55; min-width: 0; }
+.perm b { font-weight: 600; }
+.doc-list { display: grid; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+.doc-row, .doc-head {
+  display: grid; grid-template-columns: minmax(0, 1fr) 170px 210px 92px; align-items: center; gap: 14px;
+  padding: 10px 14px 10px 10px; border-bottom: 1px solid var(--line); min-width: 0;
+}
+.doc-head { padding-block: 7px; background: var(--panel); font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--faint); }
+.doc-head span:first-child { padding-left: 52px; }
+.cell { display: grid; gap: 4px; justify-items: start; min-width: 0; }
+.cell small { color: var(--muted); font-size: 11px; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cell small.warn { color: var(--seal); }
+.doc-acts { justify-content: flex-end; }
+.doc-row:last-child { border-bottom: none; }
+.doc-row:hover { background: color-mix(in oklab, var(--accent) 4%, var(--surface)); }
+.doc-row.current { box-shadow: inset 3px 0 0 var(--accent); }
+.doc-open { display: flex; align-items: center; gap: 12px; min-width: 0; border: none; background: none; padding: 0; cursor: pointer; text-align: left; }
+.doc-thumb { width: 40px; height: 52px; flex: none; border-radius: 3px; background: var(--paper); box-shadow: 0 0 0 1px var(--line-strong); overflow: hidden; display: grid; place-items: center; }
+.doc-thumb img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.doc-title { display: grid; gap: 3px; min-width: 0; }
+.doc-title strong { font-weight: 600; font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.doc-title span { color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.chip { justify-self: start; display: inline-flex; align-items: center; gap: 5px; height: 22px; padding: 0 8px; border-radius: 11px; font-size: 11.5px; font-weight: 500; white-space: nowrap; }
+.chip i { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.chip.ok { background: var(--ok-soft); color: var(--ok); }
+.chip.work { background: var(--accent-soft); color: var(--accent); }
+.chip.muted { background: var(--panel); color: var(--muted); }
+.chip.warn { background: var(--seal-soft); color: var(--seal); }
+.src-warn { color: var(--seal); font-weight: 500; }
+.doc-acts { display: flex; gap: 2px; }
+.doc-acts .btn { color: var(--muted); }
+.doc-acts .btn:hover { color: var(--fg); }
+.home-empty { display: grid; justify-items: center; gap: 10px; text-align: center; padding: 56px 24px; border: 1.5px dashed var(--line-strong); border-radius: 14px; background: var(--surface); }
+.home-empty svg { width: 72px; height: 72px; }
+.home-empty h2 { margin: 0; font-size: 18px; font-weight: 600; }
+.home-empty p { margin: 0 0 8px; color: var(--muted); max-width: 40ch; line-height: 1.6; text-wrap: balance; }
+.home-empty .row-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.no-match { padding: 28px; text-align: center; color: var(--muted); }
+
+/* ---------- editor grid ---------- */
+.main { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--side-w); min-height: 0; }
+.main.no-rail { grid-template-columns: 0 minmax(0, 1fr) var(--side-w); }
+.main.no-rail .rail { visibility: hidden; }
+
+.rail { background: var(--panel); border-right: 1px solid var(--line); overflow-y: auto; overflow-x: hidden; padding: 14px 0 24px; }
+.thumbs { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.thumb { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; border: none; background: none; padding: 0; }
+.thumb-box { position: relative; width: 104px; background: var(--paper); box-shadow: 0 0 0 1px var(--line-strong); border-radius: 2px; overflow: hidden; }
+.thumb canvas { display: block; width: 100%; height: 100%; }
+.thumb .thumb-num { font-family: var(--font-num); font-size: 11px; color: var(--muted); padding: 1px 7px; border-radius: 10px; }
+.thumb.current .thumb-box { box-shadow: 0 0 0 2px var(--accent); }
+.thumb.current .thumb-num { background: var(--accent); color: var(--accent-fg); }
+.thumb .dot { position: absolute; right: 4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px var(--paper); }
+
+.stage { position: relative; overflow: auto; min-width: 0; overscroll-behavior: contain; }
+.pages { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 28px 32px 64px; width: max-content; min-width: 100%; box-sizing: border-box; }
+.page { position: relative; background: var(--paper); box-shadow: var(--paper-shadow); flex: none; }
+.page canvas.render { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.page .layer { position: absolute; inset: 0; }
+.page .pageno { position: absolute; left: 0; bottom: -18px; font-family: var(--font-num); font-size: 10px; color: var(--faint); }
+.page.loading::after {
+  content: ""; position: absolute; inset: 0; background: linear-gradient(100deg, transparent 30%, rgba(120,130,160,.08) 50%, transparent 70%);
+  background-size: 200% 100%; animation: shimmer 1.2s linear infinite;
+}
+@keyframes shimmer { to { background-position: -200% 0; } }
+.sample-bar {
+  position: sticky; top: 12px; z-index: 5; margin: 12px auto -40px; width: fit-content; max-width: calc(100% - 32px);
+  display: flex; align-items: center; gap: 12px; padding: 6px 6px 6px 14px; border-radius: 10px;
+  background: var(--surface); border: 1px solid var(--line); box-shadow: 0 4px 16px rgba(20, 28, 52, .10); font-size: 12px; color: var(--muted);
+}
+.sample-bar b { color: var(--fg); font-weight: 600; }
+
+/* overlays */
+.ov { position: absolute; transform-origin: 50% 50%; cursor: grab; touch-action: none; }
+.ov img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
+.ov:hover { outline: 1px dashed color-mix(in oklab, var(--accent) 60%, transparent); }
+.ov.sel { outline: 1.5px solid var(--accent); cursor: move; z-index: 3; }
+.ov.dragging { cursor: grabbing; }
+.h { position: absolute; width: 10px; height: 10px; background: #fff; border: 1.5px solid var(--accent); border-radius: 2px; box-sizing: border-box; }
+.h.tl { left: -6px; top: -6px; cursor: nwse-resize; } .h.br { right: -6px; bottom: -6px; cursor: nwse-resize; }
+.h.tr { right: -6px; top: -6px; cursor: nesw-resize; } .h.bl { left: -6px; bottom: -6px; cursor: nesw-resize; }
+.h.rot { left: 50%; top: -30px; margin-left: -6px; width: 12px; height: 12px; border-radius: 50%; cursor: grab; }
+.h.rot::after { content: ""; position: absolute; left: 4.25px; top: 10px; width: 1.5px; height: 14px; background: var(--accent); }
+.guide { position: absolute; background: var(--seal); pointer-events: none; z-index: 4; }
+.guide.v { width: 1px; top: 0; bottom: 0; } .guide.h { height: 1px; left: 0; right: 0; }
+.measure {
+  position: absolute; z-index: 6; pointer-events: none; transform: translate(-50%, -140%);
+  background: var(--fg); color: var(--bg); font-family: var(--font-num); font-size: 11px; padding: 2px 6px; border-radius: 5px; white-space: nowrap;
+}
+.drop-veil {
+  position: fixed; inset: calc(var(--bar-h) + 10px) 10px calc(var(--status-h) + 10px); border: 2px dashed var(--accent); border-radius: 14px; z-index: 20;
+  background: color-mix(in oklab, var(--accent) 8%, transparent); display: grid; place-items: center; pointer-events: none;
+}
+.drop-veil div { background: var(--surface); padding: 10px 16px; border-radius: 10px; font-weight: 600; box-shadow: 0 6px 24px rgba(0,0,0,.12); }
+
+/* ---------- side panel (library + inspector) ---------- */
+.side { background: var(--surface); border-left: 1px solid var(--line); min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.sec { padding: 14px 16px; border-bottom: 1px solid var(--line); }
+.sec:last-child { border-bottom: none; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; }
+.sec-title { font-size: 11px; font-weight: 600; letter-spacing: .06em; color: var(--muted); }
+.add-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-bottom: 12px; }
+.add-btn {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 9px 4px 8px; border-radius: var(--radius);
+  border: 1px solid var(--line); background: var(--panel); cursor: pointer; font-size: 12px; color: var(--fg);
+}
+.add-btn svg { width: 18px; height: 18px; color: var(--accent); }
+.add-btn:hover { border-color: var(--accent); background: var(--accent-soft); }
+.lib { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.tile {
+  position: relative; display: flex; flex-direction: column; border-radius: var(--radius); border: 1px solid var(--line);
+  background: var(--surface); cursor: pointer; overflow: hidden; text-align: left; padding: 0;
+}
+.tile:hover { border-color: var(--accent); }
+.tile .art {
+  height: 64px; display: grid; place-items: center; padding: 8px;
+  background-color: var(--checker-a);
+  background-image: linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%), linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%);
+  background-size: 12px 12px; background-position: 0 0, 6px 6px;
+}
+.tile .art img { max-height: 48px; max-width: 100%; object-fit: contain; pointer-events: none; }
+.tile .meta { display: flex; align-items: center; gap: 6px; padding: 6px 8px; font-size: 11.5px; min-width: 0; }
+.tile .meta span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; min-width: 0; }
+.tag { flex: none; font-size: 10px; padding: 1px 5px; border-radius: 4px; background: var(--accent-soft); color: var(--accent); font-weight: 600; font-style: normal; }
+.tag.seal { background: var(--seal-soft); color: var(--seal); }
+.tag.sample { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+.tile .tile-acts { position: absolute; top: 4px; right: 4px; display: none; gap: 3px; }
+.tile:hover .tile-acts, .tile:focus-within .tile-acts { display: flex; }
+.tile-acts span {
+  width: 22px; height: 22px; border-radius: 6px; display: grid; place-items: center; background: var(--surface); color: var(--muted);
+  cursor: pointer; box-shadow: 0 1px 3px rgba(0,0,0,.15); font-size: 13px;
+}
+.tile-acts span:hover { color: var(--fg); }
+.tile-acts span.x:hover { color: var(--seal); }
+.tile-acts svg { width: 12px; height: 12px; }
+.hint { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.kbd { font-family: var(--font-num); font-size: 10.5px; padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line-strong); background: var(--panel); color: var(--fg); justify-self: start; }
+.store-info { display: grid; gap: 8px; }
+.store-info .path { word-break: break-all; color: var(--fg); }
+
+.insp-empty { display: grid; gap: 10px; }
+.shortcuts { display: grid; grid-template-columns: auto 1fr; gap: 6px 10px; font-size: 12px; color: var(--muted); align-items: center; }
+.fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.field { display: flex; align-items: center; gap: 6px; height: 30px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); }
+.field:focus-within { border-color: var(--accent); }
+.field label { color: var(--faint); font-size: 11px; width: 12px; flex: none; }
+.field input { width: 100%; min-width: 0; border: none; background: none; outline: none; font-family: var(--font-num); font-size: 12px; font-variant-numeric: tabular-nums; user-select: text; -webkit-user-select: text; }
+.field .unit { color: var(--faint); font-size: 10.5px; }
+.row { display: flex; align-items: center; gap: 10px; margin-top: 12px; }
+.row > .lbl { width: 56px; flex: none; color: var(--muted); font-size: 12px; }
+.row input[type=range] { flex: 1; accent-color: var(--accent); }
+.row .val { width: 40px; text-align: right; font-family: var(--font-num); font-size: 11.5px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.swatches { display: flex; gap: 6px; flex-wrap: wrap; }
+.sw {
+  height: 26px; min-width: 26px; padding: 0 8px; border-radius: 13px; border: 1px solid var(--line-strong); background: var(--surface);
+  display: inline-flex; align-items: center; gap: 6px; cursor: pointer; font-size: 11.5px;
+}
+.sw i { width: 12px; height: 12px; border-radius: 50%; display: block; box-shadow: 0 0 0 1px color-mix(in oklab, var(--fg) 28%, transparent); }
+.sw[aria-pressed="true"] { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.toggle { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 12px; }
+.toggle input { accent-color: var(--accent); width: 15px; height: 15px; }
+.actions { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-top: 14px; }
+.actions .btn { justify-content: flex-start; border: 1px solid var(--line); background: var(--panel); }
+.actions .wide { grid-column: 1 / -1; }
+.sel-head { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
+.sel-head .art { width: 44px; height: 32px; border-radius: 6px; border: 1px solid var(--line); display: grid; place-items: center; background: var(--checker-a); flex: none; }
+.sel-head .art img { max-width: 40px; max-height: 28px; }
+.sel-head .nm { min-width: 0; flex: 1; display: grid; gap: 2px; }
+.sel-head input { width: 100%; box-sizing: border-box; border: 1px solid transparent; border-radius: 6px; background: none; padding: 2px 4px; margin-left: -5px; font-weight: 600; outline: none; user-select: text; -webkit-user-select: text; }
+.sel-head input:hover { border-color: var(--line); }
+.sel-head input:focus { border-color: var(--accent); background: var(--panel); }
+.sel-head span { color: var(--muted); font-size: 11.5px; }
+
+/* ---------- status bar ---------- */
+.status {
+  display: flex; align-items: center; gap: 16px; padding-left: 16px; padding-right: 16px; min-width: 0;
+  background: var(--surface); border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden;
+}
+.status .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
+.status .grow { flex: 1; }
+.status .private { display: inline-flex; align-items: center; gap: 6px; color: var(--ok); }
+.status .private svg { width: 13px; height: 13px; }
+
+/* ---------- dialogs ---------- */
+dialog {
+  border: 1px solid var(--line); border-radius: 14px; padding: 0; background: var(--surface); color: var(--fg);
+  width: min(600px, calc(100vw - 32px)); box-shadow: 0 24px 60px rgba(10, 14, 30, .28);
+}
+dialog::backdrop { background: rgba(14, 18, 30, .38); }
+.dlg-head { display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border-bottom: 1px solid var(--line); }
+.dlg-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.dlg-body { padding: 16px 18px; display: grid; gap: 14px; }
+.dlg-foot { display: flex; align-items: center; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); }
+.dlg-foot .grow { flex: 1; }
+.fld-label { font-size: 12px; color: var(--muted); font-weight: 500; }
+.pad-wrap { position: relative; border-radius: 10px; border: 1px solid var(--line-strong); background: #fff; overflow: hidden; }
+.pad-wrap canvas { display: block; width: 100%; height: 220px; touch-action: none; cursor: crosshair; }
+.pad-wrap .baseline { position: absolute; left: 24px; right: 24px; bottom: 56px; border-bottom: 1px dashed #c9cfdb; pointer-events: none; }
+.pad-wrap .pad-hint { position: absolute; left: 24px; bottom: 34px; color: #8a91a1; font-size: 12px; pointer-events: none; }
+.text-input { width: 100%; box-sizing: border-box; height: 40px; padding: 0 12px; border-radius: 9px; border: 1px solid var(--line-strong); background: var(--panel); font-size: 15px; user-select: text; -webkit-user-select: text; }
+.text-input:focus { outline: none; border-color: var(--accent); }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.preview-box { border-radius: 10px; border: 1px solid var(--line); background: #fff; height: 120px; display: grid; place-items: center; overflow: hidden; }
+.preview-box canvas { max-width: 100%; max-height: 110px; }
+.seg { display: inline-flex; padding: 2px; border-radius: 9px; background: var(--panel); border: 1px solid var(--line); }
+.seg button { border: none; background: none; height: 28px; padding: 0 12px; border-radius: 7px; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--surface); box-shadow: 0 1px 2px rgba(0,0,0,.12); font-weight: 600; }
+.opt-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.opt-row .lbl { color: var(--muted); font-size: 12px; width: 44px; }
+
+/* save dialog */
+.name-row { display: flex; align-items: center; gap: 8px; }
+.name-row .ext { color: var(--muted); font-family: var(--font-num); }
+.dir-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; align-items: center; }
+.dir-box { display: flex; align-items: center; gap: 8px; height: 36px; padding: 0 10px; border-radius: 8px; background: var(--panel); border: 1px solid var(--line); min-width: 0; }
+.dir-box svg { width: 16px; height: 16px; color: var(--accent); flex: none; }
+.dir-box span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; direction: rtl; text-align: left; }
+.save-msg { margin: 0; font-size: 12.5px; min-height: 1em; }
+.save-msg.warn { color: var(--seal); }
+
+/* file browser */
+dialog.fb-dlg { width: min(940px, calc(100vw - 32px)); }
+.fb { display: grid; grid-template-columns: 172px minmax(0, 1fr); height: min(460px, calc(100vh - 220px)); min-height: 280px; }
+.fb.with-preview { grid-template-columns: 172px minmax(0, 1fr) 200px; }
+.fb-places { border-right: 1px solid var(--line); padding: 10px 8px; overflow-y: auto; display: grid; align-content: start; gap: 2px; background: var(--panel); }
+.fb-places .cap { font-size: 10.5px; font-weight: 600; letter-spacing: .06em; color: var(--faint); padding: 8px 8px 4px; }
+.fb-places button { display: flex; align-items: center; gap: 8px; height: 28px; padding: 0 8px; border: none; border-radius: 6px; background: none; cursor: pointer; text-align: left; min-width: 0; }
+.fb-places button span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-places button svg { width: 15px; height: 15px; color: var(--accent); flex: none; }
+.fb-places button:hover { background: color-mix(in oklab, var(--fg) 7%, transparent); }
+.fb-places button[aria-current="true"] { background: var(--accent-soft); color: var(--accent); font-weight: 600; }
+.fb-main { display: grid; grid-template-rows: auto minmax(0, 1fr); min-width: 0; }
+.fb-bar { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--line); min-width: 0; }
+.fb-crumbs { display: flex; align-items: center; gap: 2px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.fb-crumbs button { border: none; background: none; height: 26px; padding: 0 6px; border-radius: 5px; cursor: pointer; white-space: nowrap; color: var(--muted); }
+.fb-crumbs button:last-child { color: var(--fg); font-weight: 600; }
+.fb-crumbs button:hover { background: color-mix(in oklab, var(--fg) 7%, transparent); }
+.fb-crumbs i { color: var(--faint); font-style: normal; }
+.fb-bar .search { min-width: 170px; height: 28px; }
+.fb-list { overflow-y: auto; outline: none; padding: 4px 0; }
+.fb-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) 96px 64px; gap: 10px; align-items: center; height: 30px; padding: 0 12px; cursor: default; }
+.fb-row svg { width: 16px; height: 16px; }
+.fb-row .nm { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fb-row .dt, .fb-row .sz { color: var(--muted); font-size: 11.5px; text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.fb-row.folder svg { color: var(--accent); }
+.fb-row.file svg { color: var(--seal); }
+.fb-row.dim { opacity: .45; }
+.fb-row:hover { background: color-mix(in oklab, var(--fg) 5%, transparent); }
+.fb-row[aria-selected="true"] { background: var(--accent); color: var(--accent-fg); }
+.fb-row[aria-selected="true"] svg, .fb-row[aria-selected="true"] .dt, .fb-row[aria-selected="true"] .sz { color: var(--accent-fg); }
+.fb-row.cursor:not([aria-selected="true"]) { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.fb-note { padding: 24px; color: var(--muted); text-align: center; }
+.fb-preview { border-left: 1px solid var(--line); padding: 12px; display: grid; align-content: start; gap: 8px; background: var(--panel); min-width: 0; }
+.fb-preview .pv { aspect-ratio: 4 / 3; border-radius: 8px; display: grid; place-items: center; overflow: hidden;
+  background-color: var(--checker-a); background-image: linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%), linear-gradient(45deg, var(--checker-b) 25%, transparent 25%, transparent 75%, var(--checker-b) 75%);
+  background-size: 12px 12px; background-position: 0 0, 6px 6px; }
+.fb-preview img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.fb-preview span { font-size: 11.5px; color: var(--muted); word-break: break-all; }
+
+/* toast */
+.toasts { position: fixed; left: 50%; bottom: calc(var(--status-h) + 16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); display: grid; gap: 8px; z-index: 50; pointer-events: none; justify-items: center; }
+.toast { display: flex; align-items: center; gap: 12px; background: var(--fg); color: var(--bg); padding: 8px 8px 8px 14px; border-radius: 10px; font-size: 12.5px; box-shadow: 0 8px 24px rgba(0,0,0,.2); animation: rise .18s ease-out; max-width: min(560px, calc(100vw - 32px)); pointer-events: auto; }
+.toast > span { padding-block: 1px; }
+.toast.plain { padding-right: 14px; }
+.toast.err { background: var(--seal); color: #fff; }
+.toast button { border: none; background: color-mix(in oklab, var(--bg) 16%, transparent); color: inherit; height: 26px; padding: 0 10px; border-radius: 6px; cursor: pointer; font-weight: 600; white-space: nowrap; }
+.toast button:hover { background: color-mix(in oklab, var(--bg) 26%, transparent); }
+@keyframes rise { from { transform: translateY(8px); opacity: 0; } }
+.spinner { width: 14px; height: 14px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* panels that can be shown or hidden */
+.home.no-side { grid-template-columns: minmax(0, 1fr) 0; }
+.home.no-side > .side, .main.no-side > .side { display: none; }
+.main.no-side { grid-template-columns: var(--rail-w) minmax(0, 1fr) 0; }
+.main.no-side.no-rail { grid-template-columns: 0 minmax(0, 1fr) 0; }
+.btn.icon[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+.btn.back { padding: 0 10px 0 6px; gap: 2px; }
+.explain { display: flex; flex-wrap: wrap; gap: 6px 18px; font-size: 12px; color: var(--muted); line-height: 1.5; }
+.explain b { color: var(--fg); font-weight: 600; margin-right: 4px; }
+.warnbar { border-color: color-mix(in oklab, var(--seal) 40%, var(--line)); background: color-mix(in oklab, var(--seal) 6%, var(--surface)); color: var(--fg); max-width: min(760px, calc(100% - 32px)); }
+.warnbar b { color: var(--seal); }
+.warnbar .btn { flex: none; }
+/* tooltip: action name + shortcut, shown quickly on hover or keyboard focus */
+.tip {
+  position: fixed; z-index: 100; pointer-events: none; display: flex; align-items: center; gap: 8px; max-width: 320px;
+  background: var(--fg); color: var(--bg); font-size: 12px; line-height: 1.4; padding: 5px 8px; border-radius: 6px;
+  box-shadow: 0 6px 18px rgba(0,0,0,.18); opacity: 0; transform: translateY(-3px); transition: opacity .12s, transform .12s;
+}
+.tip.show { opacity: 1; transform: none; }
+.tip kbd { font-family: var(--font-num); font-size: 11px; padding: 0 4px; border-radius: 4px; background: color-mix(in oklab, var(--bg) 18%, transparent); white-space: nowrap; }
+
+/* ---------- narrow windows ---------- */
+@media (max-width: 1080px) {
+  .main, .main.no-rail { grid-template-columns: 0 minmax(0, 1fr) var(--side-w); } .rail { visibility: hidden; } #btn-rail { display: none; }
+  .doc-row, .doc-head { grid-template-columns: minmax(0, 1fr) 190px 92px; } .c-work { display: none !important; }
+  .main.no-side, .main.no-side.no-rail { grid-template-columns: 0 minmax(0, 1fr) 0; }
+}
+@media (max-width: 760px) {
+  :root { --side-w: 0px; }
+  .main, .main.no-rail, .home { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .rail { display: none; }
+  .side { border-left: none; border-top: 1px solid var(--line); max-height: 42vh; }
+  .hide-narrow, .doc-name, #btn-rail { display: none !important; }
+  .titlebar, .tb-editor { gap: 6px; }
+  .pages { padding: 16px 16px 48px; }
+  .home-wrap { padding: 0; }
+  .doc-row, .doc-head { grid-template-columns: minmax(0, 1fr) auto; } .c-file { display: none !important; } .explain { display: none; }
+  .main.no-side, .main.no-side.no-rail, .home.no-side { grid-template-columns: minmax(0, 1fr); }
+  .fb, .fb.with-preview { grid-template-columns: minmax(0, 1fr); } .fb-places, .fb-preview { display: none; }
+  .search { min-width: 0; flex: 1; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div id="app">
+  <header class="titlebar">
+    <button class="btn outline back" id="btn-back" data-tip="보관함으로 돌아가기" data-key="⇧⌘H" aria-label="보관함으로 돌아가기" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg><span class="hide-narrow">보관함</span></button>
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="2" width="14" height="19" rx="2" fill="var(--paper)" stroke="var(--line-strong)"/><path d="M6.5 15.5c1.6-2.8 2.4-.2 3.4-1.6s1.6-2.2 2.4-.4 2.2-.8 3.2-1.4" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/><circle cx="17.5" cy="17.5" r="4" fill="none" stroke="var(--seal)" stroke-width="1.6"/></svg>
+      <div class="doc-name"><strong id="doc-title">PDF Editor</strong><span id="doc-sub">보관함</span></div>
+    </div>
+    <div class="grow"></div>
+    <button class="btn outline" id="btn-open" data-tip="Finder에서 PDF를 골라 보관함에 넣고 엽니다" data-key="⌘O"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.75 4.25v8.5h11.5l1-6h-10l-1 6M1.75 4.25V3.25h4l1.25 1.5h5.25v2"/></svg><span class="hide-narrow">새 PDF 열기</span></button>
+    <div class="tb-editor" id="tb-editor" hidden>
+      <div class="tb-group">
+        <button class="btn icon" id="btn-undo" data-tip="실행 취소" data-key="⌘Z" aria-label="실행 취소" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8h-2"/></svg></button>
+        <button class="btn icon" id="btn-redo" data-tip="다시 실행" data-key="⇧⌘Z" aria-label="다시 실행" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8h2"/></svg></button>
+      </div>
+      <div class="tb-group">
+        <button class="btn icon" id="btn-zoom-out" data-tip="축소" data-key="⌘−" aria-label="축소"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.5 8h9"/></svg></button>
+        <button class="btn zoom-val" id="zoom-val" data-tip="실제 크기(100%)로 보기" data-key="⌘0" aria-label="실제 크기로 보기">100%</button>
+        <button class="btn icon" id="btn-zoom-in" data-tip="확대" data-key="⌘+" aria-label="확대"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M3.5 8h9M8 3.5v9"/></svg></button>
+        <button class="btn icon hide-narrow" id="btn-fit-w" data-tip="쪽 너비를 창에 맞추기" data-key="⌘9" aria-label="폭 맞춤"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3v10M14.5 3v10M4 8h8M6 6 4 8l2 2M10 6l2 2-2 2"/></svg></button>
+        <button class="btn icon hide-narrow" id="btn-fit-p" data-tip="한 쪽 전체를 창에 맞추기" data-key="⌘8" aria-label="쪽 맞춤"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="4" y="1.75" width="8" height="12.5" rx="1"/><path d="M1.5 5V2.5a1 1 0 0 1 1-1M14.5 5V2.5a1 1 0 0 0-1-1M1.5 11v2.5a1 1 0 0 0 1 1M14.5 11v2.5a1 1 0 0 1-1 1" stroke-linecap="round"/></svg></button>
+      </div>
+      <button class="btn icon outline" id="btn-rail" data-tip="왼쪽 쪽 목록 보기/숨기기" data-key="⌘\" aria-label="왼쪽 쪽 목록 보기/숨기기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M5.75 2.25v11.5"/></svg></button>
+    </div>
+    <button class="btn icon outline" id="btn-side" data-tip="오른쪽 서명·도장 패널 보기/숨기기" data-key="⌥⌘\" aria-label="오른쪽 서명·도장 패널 보기/숨기기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M10.25 2.25v11.5"/></svg></button>
+    <button class="btn outline" id="btn-install" hidden>앱으로 설치</button>
+    <button class="btn primary" id="btn-export" data-tip="서명을 넣은 새 PDF 파일을 만듭니다. 원본과 보관함은 그대로입니다" data-key="⌘S" hidden disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.75 6.75 8 10l3.25-3.25M2.5 11.5v2h11v-2"/></svg><span>파일로 저장</span></button>
+  </header>
+
+  <!-- HOME: document history + library -->
+  <section class="home no-side" id="home" aria-label="보관함">
+    <div class="home-main" id="home-main">
+      <div class="home-wrap">
+        <div class="home-head">
+          <div><h1>보관함</h1><p class="hint" id="home-sub" style="margin:0">서명할 PDF를 열거나, 하던 작업을 이어서 하세요.</p></div>
+          <div class="home-tools">
+            <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input id="doc-search" type="search" placeholder="문서 이름이나 폴더로 찾기" aria-label="문서 찾기" autocomplete="off"></label>
+            <div class="seg" id="doc-filter" role="group" aria-label="상태로 거르기"><button type="button" data-f="all" aria-pressed="true">전체</button><button type="button" data-f="work" data-tip="파일로 저장하지 않았거나, 저장한 뒤 더 고친 문서">저장 전</button><button type="button" data-f="saved" data-tip="마지막으로 고친 내용이 파일로 저장된 문서">파일 저장됨</button><button type="button" data-f="check" data-tip="원본이나 저장한 파일이 Finder에서 바뀌었거나 없어진 문서">확인 필요</button></div>
+          </div>
+        </div>
+        <div class="explain" id="explain">
+          <span><b>보관함</b> 작업 내용은 앱에 자동으로 저장됩니다.</span>
+          <span><b>원본</b> 처음 연 PDF. 앱은 원본을 바꾸지 않고 사본으로 작업합니다.</span>
+          <span><b>저장한 파일</b> ‘파일로 저장’을 해야 Finder에 새 PDF가 생깁니다.</span>
+        </div>
+        <div class="perm" id="perm-banner" hidden></div>
+        <div class="doc-list" id="doc-list" role="list" hidden></div>
+        <div class="home-empty" id="home-empty" hidden>
+          <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="6" width="36" height="48" rx="3" fill="var(--paper)" stroke="var(--line-strong)" stroke-width="1.5"/><path d="M21 40c3-6 5-1 7-4s3-4 5-1 4-2 6-3" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><circle cx="46" cy="46" r="9" fill="none" stroke="var(--seal)" stroke-width="2.4"/></svg>
+          <h2>보관함이 비어 있습니다</h2>
+          <p>PDF를 열거나 이 창에 끌어다 놓으세요. 연 문서는 보관함에 사본으로 들어가고, 놓은 서명과 함께 언제든 이어서 작업할 수 있습니다.</p>
+          <div class="row-btns"><button class="btn primary" id="btn-open-empty">새 PDF 열기</button><button class="btn outline" id="btn-sample">예시 문서로 둘러보기</button></div>
+        </div>
+      </div>
+    </div>
+    <aside class="side" aria-label="서명·도장">
+      <section class="sec">
+        <div class="sec-head"><span class="sec-title">서명 · 도장</span><span class="hint lib-count"></span></div>
+        <div class="add-row">
+          <button class="add-btn" data-add="image" data-tip="PNG·JPG 이미지 가져오기"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2" y="3" width="14" height="12" rx="2"/><circle cx="6.5" cy="7" r="1.4"/><path d="m2.5 13 4-3.5 3 2.5 2.5-2 3.5 3"/></svg>이미지</button>
+          <button class="add-btn" data-add="draw" data-tip="마우스나 트랙패드로 서명 그리기"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14.5c2-3 3-6.5 4.5-6.5S7 12 9 12s2.2-4 3.6-4 1.4 3 3.4 3"/><path d="M2 16.5h14" opacity=".5"/></svg>직접 서명</button>
+          <button class="add-btn" data-add="text" data-tip="날짜·이름 같은 글자 도장"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.5 4.5V3h11v1.5M9 3v12M7 15h4"/></svg>글자·날짜</button>
+        </div>
+        <div class="lib" id="home-lib"></div>
+        <p class="hint lib-hint" style="margin:10px 0 0">등록한 서명과 도장은 계속 남아서 다른 문서에서도 바로 다시 쓸 수 있습니다. 이름을 누르면 바꿀 수 있습니다.</p>
+      </section>
+      <section class="sec store-info" id="store-info" aria-label="저장 위치"></section>
+    </aside>
+  </section>
+
+  <!-- EDITOR -->
+  <div class="main" id="main" hidden>
+    <nav class="rail" id="rail" aria-label="쪽 목록"><div class="thumbs" id="thumbs"></div></nav>
+    <main class="stage" id="stage" tabindex="-1" aria-label="문서">
+      <div class="sample-bar" id="sample-bar" hidden>
+        <span><b>예시 문서</b>로 둘러보는 중입니다. 보관함에 남지 않습니다. 내 PDF를 열거나 이 창에 끌어다 놓으세요.</span>
+        <button class="btn primary" id="btn-open-2">새 PDF 열기</button>
+      </div>
+      <div class="sample-bar warnbar" id="doc-bar" hidden></div>
+      <div class="pages" id="pages"></div>
+    </main>
+    <aside class="side">
+      <section class="sec" aria-label="서명·도장">
+        <div class="sec-head"><span class="sec-title">서명 · 도장</span><span class="hint lib-count"></span></div>
+        <div class="add-row">
+          <button class="add-btn" data-add="image" data-tip="PNG·JPG 이미지 가져오기 (붙여넣기 ⌘V도 됩니다)"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2" y="3" width="14" height="12" rx="2"/><circle cx="6.5" cy="7" r="1.4"/><path d="m2.5 13 4-3.5 3 2.5 2.5-2 3.5 3"/></svg>이미지</button>
+          <button class="add-btn" data-add="draw" data-tip="마우스나 트랙패드로 서명 그리기"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14.5c2-3 3-6.5 4.5-6.5S7 12 9 12s2.2-4 3.6-4 1.4 3 3.4 3"/><path d="M2 16.5h14" opacity=".5"/></svg>직접 서명</button>
+          <button class="add-btn" data-add="text" data-tip="날짜·이름 같은 글자 도장"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"><path d="M3.5 4.5V3h11v1.5M9 3v12M7 15h4"/></svg>글자·날짜</button>
+        </div>
+        <div class="lib" id="lib"></div>
+        <p class="hint lib-hint" style="margin:10px 0 0">항목을 누르면 지금 보이는 쪽에 놓이고, 쪽 위로 끌어다 놓을 수도 있습니다. 마지막에 쓴 크기를 기억합니다.</p>
+      </section>
+      <section class="sec" id="inspector" aria-label="선택 항목"></section>
+    </aside>
+  </div>
+
+  <footer class="status">
+    <span class="num" id="st-page"></span>
+    <span id="st-items"></span>
+    <span class="grow"></span>
+    <span id="st-install" hidden></span>
+    <span class="private" title="PDF와 이미지는 이 기기 안에서만 처리되고 어디로도 전송되지 않습니다"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg><span class="hide-narrow">파일은 이 기기 안에서만 처리됩니다</span></span>
+  </footer>
+</div>
+<div class="drop-veil" id="drop-veil" hidden><div id="drop-msg">놓으면 엽니다</div></div>
+
+<input type="file" id="file-pdf" accept="application/pdf,.pdf" hidden>
+<input type="file" id="file-img" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" multiple hidden>
+
+<dialog id="dlg-draw" aria-labelledby="dlg-draw-title">
+  <div class="dlg-head"><h2 id="dlg-draw-title">서명 그리기</h2><button class="btn icon" data-close aria-label="닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body">
+    <div class="pad-wrap"><canvas id="pad"></canvas><div class="baseline"></div><div class="pad-hint" id="pad-hint">여기에 서명하세요</div></div>
+    <div class="opt-row">
+      <span class="lbl">잉크</span>
+      <div class="swatches" id="pad-colors"></div>
+      <span class="lbl" style="margin-left:8px">굵기</span>
+      <div class="seg" id="pad-width"><button type="button" data-w="1.6">가늘게</button><button type="button" data-w="2.6" aria-pressed="true">보통</button><button type="button" data-w="4">굵게</button></div>
+    </div>
+  </div>
+  <div class="dlg-foot"><button class="btn outline" id="pad-undo">한 획 지우기</button><button class="btn outline" id="pad-clear">모두 지우기</button><span class="grow"></span><button class="btn" data-close>취소</button><button class="btn primary" id="pad-save" disabled>보관함에 추가</button></div>
+</dialog>
+
+<dialog id="dlg-text" aria-labelledby="dlg-text-title">
+  <div class="dlg-head"><h2 id="dlg-text-title">글자·날짜 도장 만들기</h2><button class="btn icon" data-close aria-label="닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body">
+    <input class="text-input" id="txt-input" maxlength="60" placeholder="예: 홍길동 / 2026. 11. 25." autocomplete="off">
+    <div class="chips" id="txt-presets"></div>
+    <div class="opt-row"><span class="lbl">글꼴</span><div class="seg" id="txt-font"><button type="button" data-f="sans" aria-pressed="true">고딕</button><button type="button" data-f="pen">손글씨</button><button type="button" data-f="serif">명조</button></div></div>
+    <div class="opt-row"><span class="lbl">색</span><div class="swatches" id="txt-colors"></div></div>
+    <div class="preview-box"><canvas id="txt-preview"></canvas></div>
+  </div>
+  <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close>취소</button><button class="btn primary" id="txt-save" disabled>보관함에 추가</button></div>
+</dialog>
+
+<dialog id="dlg-save" aria-labelledby="dlg-save-title">
+  <div class="dlg-head"><h2 id="dlg-save-title">파일로 저장</h2><button class="btn icon" data-close aria-label="닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <form class="dlg-body" id="save-form">
+    <label class="fld-label" for="save-name">파일 이름</label>
+    <div class="name-row"><input class="text-input" id="save-name" autocomplete="off" spellcheck="false"><span class="ext">.pdf</span></div>
+    <div id="save-dir-wrap" hidden style="display:grid;gap:8px">
+      <span class="fld-label">저장 위치</span>
+      <div class="dir-row"><div class="dir-box"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><path d="M1.75 4.25v8.5h12.5v-7.5H7.5L6.25 3.75h-4.5z"/></svg><span class="mono" id="save-dir"></span></div><button type="button" class="btn outline" id="save-dir-btn">바꾸기…</button></div>
+      <label class="toggle"><input type="checkbox" id="save-open"> 저장한 뒤 바로 열기</label>
+    </div>
+    <p class="save-msg" id="save-msg"></p>
+    <p class="hint" style="margin:0">고른 위치에 서명을 넣은 새 PDF가 만들어집니다. 원본 PDF와 보관함의 작업 내용은 그대로입니다.</p>
+  </form>
+  <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close>취소</button><button class="btn primary" id="save-ok" type="submit" form="save-form">저장</button></div>
+</dialog>
+
+<dialog id="dlg-files" class="fb-dlg" aria-labelledby="fb-title">
+  <div class="dlg-head"><h2 id="fb-title">새 PDF 열기</h2><button class="btn icon" data-close aria-label="닫기"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="fb" id="fb">
+    <nav class="fb-places" id="fb-places" aria-label="위치"></nav>
+    <div class="fb-main">
+      <div class="fb-bar">
+        <button class="btn icon" id="fb-up" title="상위 폴더 (⌘↑)" aria-label="상위 폴더"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M8 13V3.5M4 7.5l4-4 4 4"/></svg></button>
+        <div class="fb-crumbs" id="fb-crumbs"></div>
+        <label class="search"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3"/></svg><input id="fb-filter" type="search" placeholder="이 폴더에서 찾기" aria-label="이 폴더에서 찾기" autocomplete="off"></label>
+      </div>
+      <div class="fb-list" id="fb-list" role="listbox" tabindex="0" aria-label="파일"></div>
+    </div>
+    <div class="fb-preview" id="fb-preview" hidden><div class="pv"><img id="fb-preview-img" alt=""></div><span id="fb-preview-name"></span></div>
+  </div>
+  <div class="dlg-foot"><span class="hint" id="fb-status"></span><span class="grow"></span><button class="btn" data-close>취소</button><button class="btn primary" id="fb-ok" disabled>열기</button></div>
+</dialog>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js" integrity="sha384-weMABwrltA6jWR8DDe9Jp5blk+tZQh7ugpCsF3JwSA53WZM9/14PjS5LAJNHNjAI" crossorigin="anonymous"></script>
+<script>
+"use strict";
+(() => {
+/* ================================================================
+   Constants & helpers
+   ================================================================ */
+const PT_PER_MM = 72 / 25.4;
+const MIN_PT = 6;
+const MAX_ZOOM = 5, MIN_ZOOM = 0.2;
+const MAX_CANVAS_PX = 16e6;
+const ASSET_MAX_SIDE = 2400;
+const MAX_DOCS = 300;
+const INKS = [
+  { key: null, name: "원본", color: null },
+  { key: "#111318", name: "검정", color: "#111318" },
+  { key: "#1d3fb8", name: "파랑", color: "#1d3fb8" },
+  { key: "#c62a22", name: "빨강", color: "#c62a22" },
+];
+const KIND_LABEL = { image: "이미지", draw: "서명", text: "글자", seal: "도장" };
+const RE_PDF = /\.pdf$/i, RE_IMG = /\.(png|jpe?g|webp|gif|bmp)$/i;
+
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+// wording follows the computer the app runs on: Finder and ⌘ on a Mac, 파일 탐색기 and Ctrl on Windows
+const OS = { win: false };
+// only the app's own phrases change; a file named "MacBook 견적서.pdf" keeps its name
+const OS_WORDS = [[/⇧⌘/g, "Ctrl+Shift+"], [/⌥⌘/g, "Ctrl+Alt+"], [/⌘/g, "Ctrl+"], [/⇧ 끌기/g, "Shift + 끌기"], [/⌥ 끌기/g, "Alt + 끌기"],
+  [/Finder(?=에서|의|에|\))/g, "파일 탐색기"], [/이 Mac/g, "이 PC"], [/Mac (폴더|파일)/g, "PC $1"]];
+const osText = (s) => (OS.win && typeof s === "string" ? OS_WORDS.reduce((t, [re, to]) => t.replace(re, to), s) : s);
+const OS_ATTRS = ["data-tip", "data-key", "title", "aria-label", "placeholder"];
+function localizeStatic(root = document.body) {
+  if (!OS.win) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+  for (let t = w.nextNode(); t; t = w.nextNode()) { const v = osText(t.nodeValue); if (v !== t.nodeValue) t.nodeValue = v; }
+  for (const n of root.querySelectorAll(OS_ATTRS.map((a) => `[${a}]`).join(","))) for (const a of OS_ATTRS) if (n.hasAttribute(a)) n.setAttribute(a, osText(n.getAttribute(a)));
+}
+const el = (tag, attrs = {}, ...kids) => {
+  const n = document.createElement(tag);
+  for (const [k, v] of Object.entries(attrs)) {
+    if (v == null || v === false) continue;
+    if (k === "class") n.className = v;
+    else if (k === "text") n.textContent = osText(v);
+    else if (k.startsWith("on")) n.addEventListener(k.slice(2), v);
+    else n.setAttribute(k, v === true ? "" : OS_ATTRS.includes(k) ? osText(v) : v);
+  }
+  for (const c of kids) if (c != null && c !== false) n.append(osText(c));
+  return n;
+};
+const svgIcon = (inner, vb = "0 0 16 16") => {
+  const s = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  s.setAttribute("viewBox", vb); s.setAttribute("fill", "none"); s.setAttribute("stroke", "currentColor");
+  s.setAttribute("stroke-width", "1.4"); s.setAttribute("stroke-linejoin", "round"); s.setAttribute("stroke-linecap", "round"); s.setAttribute("aria-hidden", "true");
+  s.innerHTML = inner; return s;
+};
+const ICONS = {
+  copy: '<rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.75A1.25 1.25 0 0 1 4.25 2.5H10.5"/>',
+  center: '<path d="M8 1.5v13M1.5 8h13"/><rect x="5" y="5" width="6" height="6" rx="1"/>',
+  pages: '<rect x="2" y="3.5" width="7" height="10" rx="1"/><rect x="7" y="2.5" width="7" height="10" rx="1"/>',
+  trash: '<path d="M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4"/>',
+  folder: '<path d="M1.75 4.25v8.5h12.5v-7.5H7.5L6.25 3.75h-4.5z"/>',
+  file: '<path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M9.5 1.75v3h3"/>',
+  image: '<rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.2"/><path d="m2.5 11.5 3.5-3 2.5 2 2-1.5 3 2.5"/>',
+  reveal: '<path d="M1.75 4.25v8.5h12.5v-7.5H7.5L6.25 3.75h-4.5z"/><path d="M8 7.5v3M6.5 9 8 10.5 9.5 9"/>',
+  openOut: '<path d="M9 2.5h4.5V7M13.5 2.5 7.5 8.5"/><path d="M12 9.5v4H2.5V4h4"/>',
+  x: '<path d="m4.5 4.5 7 7M11.5 4.5l-7 7"/>',
+  home: '<path d="M2.5 7.5 8 3l5.5 4.5V13h-11z"/>',
+  desktop: '<rect x="1.75" y="2.75" width="12.5" height="8.5" rx="1"/><path d="M5.5 13.75h5M8 11.25v2.5"/>',
+  doc: '<path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M6 8h4.5M6 10.5h4.5"/>',
+  download: '<path d="M8 2v8M4.75 6.75 8 10l3.25-3.25M2.5 11.5v2h11v-2"/>',
+  cloud: '<path d="M4.5 12.5h7.25a2.75 2.75 0 0 0 .3-5.48A4 4 0 0 0 4.3 6.6 3 3 0 0 0 4.5 12.5z"/>',
+  drive: '<rect x="1.75" y="5" width="12.5" height="6" rx="1.5"/><circle cx="11.5" cy="8" r=".6" fill="currentColor"/>',
+  clock: '<circle cx="8" cy="8" r="6"/><path d="M8 4.5V8l2.5 1.5"/>',
+  pen: '<path d="M2.5 13.5 3 11l7.5-7.5 2 2L5 13z"/>',
+  lock: '<rect x="3" y="7" width="10" height="7" rx="1.5"/><path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2"/>',
+};
+const icon = (name) => svgIcon(ICONS[name]);
+const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const fmtMM = (pt) => (pt / PT_PER_MM).toFixed(1);
+const fmtBytes = (n) => n == null ? "" : n < 1024 * 1024 ? `${Math.max(1, Math.round(n / 1024))} KB` : `${(n / 1048576).toFixed(1)} MB`;
+const today = () => { const d = new Date(); return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`; };
+const loadImage = (src) => new Promise((res, rej) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => rej(new Error("이미지를 읽을 수 없습니다")); i.src = src; });
+const readFile = (file, as) => new Promise((res, rej) => {
+  const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error);
+  as === "url" ? r.readAsDataURL(file) : r.readAsArrayBuffer(file);
+});
+const dataURLBytes = (url) => { const b = atob(url.split(",")[1]); const a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+const bytesToDataURL = (bytes, mime) => readFile(new Blob([bytes], { type: mime }), "url");
+const mimeOf = (name) => /\.png$/i.test(name) ? "image/png" : /\.jpe?g$/i.test(name) ? "image/jpeg" : /\.webp$/i.test(name) ? "image/webp" : /\.gif$/i.test(name) ? "image/gif" : /\.bmp$/i.test(name) ? "image/bmp" : "application/octet-stream";
+const debounce = (fn, ms = 400) => {
+  let t = 0, pending = false;
+  const d = (...a) => { pending = true; clearTimeout(t); t = setTimeout(() => { pending = false; fn(...a); }, ms); };
+  d.flush = () => { if (!pending) return; clearTimeout(t); pending = false; fn(); }; // only runs when a call is waiting
+  return d;
+};
+const rtf = new Intl.RelativeTimeFormat("ko", { numeric: "auto" });
+function relTime(ts) {
+  if (!ts) return "";
+  const s = (Date.now() - ts) / 1000;
+  if (s < 45) return "방금";
+  if (s < 3600) return rtf.format(-Math.round(s / 60), "minute");
+  if (s < 86400) return rtf.format(-Math.round(s / 3600), "hour");
+  if (s < 86400 * 7) return rtf.format(-Math.round(s / 86400), "day");
+  const d = new Date(ts), y = new Date().getFullYear();
+  return d.toLocaleDateString("ko-KR", d.getFullYear() === y ? { month: "long", day: "numeric" } : { year: "numeric", month: "short", day: "numeric" });
+}
+// paths: kept as "~/…" under the home folder, absolute otherwise
+const basename = (p) => p.slice(p.lastIndexOf("/") + 1);
+const stem = (name) => name.replace(/\.[^.]+$/, "");
+function dirname(p) { const i = p.lastIndexOf("/"); if (i < 0) return "~"; if (i === 0) return "/"; return p.slice(0, i); }
+const joinPath = (dir, name) => (dir === "/" ? "/" + name : `${dir}/${name}`);
+const KO_HOME_DIRS = { Desktop: "데스크탑", Documents: "문서", Downloads: "다운로드", Pictures: "사진", Movies: "동영상", Music: "음악" };
+const prettyDir = (p) => p == null ? "" : p === "~" ? "홈" : /^\/[A-Za-z]:/.test(p) ? p.slice(1).replaceAll("/", "\\") : p.replace(/^~\/([^/]+)/, (_, top) => KO_HOME_DIRS[top] || top);
+async function mapLimit(items, n, fn) {
+  const out = new Array(items.length); let i = 0;
+  await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
+    while (i < items.length) { const k = i++; try { out[k] = await fn(items[k], k); } catch { out[k] = null; } }
+  }));
+  return out;
+}
+
+function toast(msg, opts = {}) {
+  const { err = false, ms = err ? 6000 : 3400, actions = [] } = typeof opts === "boolean" ? { err: opts } : opts;
+  const t = el("div", { class: "toast" + (err ? " err" : "") + (actions.length ? "" : " plain"), role: err ? "alert" : "status" }, el("span", { text: msg }));
+  let timer = 0;
+  const close = () => { clearTimeout(timer); t.remove(); };
+  for (const a of actions) t.append(el("button", { type: "button", text: a.label, onclick: () => { close(); a.fn(); } }));
+  $("#toasts").append(t);
+  timer = setTimeout(close, actions.length ? Math.max(ms, 6000) : ms);
+  return close;
+}
+
+/* ---------- tooltips: what an icon button does, with its shortcut ---------- */
+const tipEl = el("div", { class: "tip", role: "tooltip", "aria-hidden": "true" });
+document.body.append(tipEl);
+let tipTimer = 0, tipFor = null;
+function showTip(t) {
+  if (!t.isConnected || !t.dataset.tip) return;
+  tipEl.textContent = ""; tipEl.append(el("span", { text: t.dataset.tip }));
+  if (t.dataset.key) tipEl.append(el("kbd", { text: t.dataset.key }));
+  const r = t.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
+  let y = r.bottom + 8; if (y + th > innerHeight - 8) y = r.top - th - 8;
+  tipEl.style.left = `${clamp(r.left + r.width / 2 - tw / 2, 8, innerWidth - tw - 8)}px`; tipEl.style.top = `${y}px`;
+  tipEl.classList.add("show");
+}
+const hideTip = () => { clearTimeout(tipTimer); tipFor = null; tipEl.classList.remove("show"); };
+document.addEventListener("pointerover", (e) => {
+  const t = e.target.closest?.("[data-tip]");
+  if (t === tipFor) return;
+  hideTip(); if (!t || t.closest("dialog")) return;
+  tipFor = t; tipTimer = setTimeout(() => showTip(t), 380);
+});
+document.addEventListener("pointerdown", hideTip, true);
+document.addEventListener("keydown", hideTip, true);
+document.addEventListener("focusin", (e) => { const t = e.target.closest?.("[data-tip]"); if (t?.matches(":focus-visible") && !t.closest("dialog")) { tipFor = t; showTip(t); } });
+document.addEventListener("focusout", hideTip);
+
+/* ================================================================
+   State
+   ================================================================ */
+const DEFAULT_PREFS = { lastDir: {}, recentDirs: [], railHidden: false, openAfterSave: false, homeSide: false, editorSide: true };
+const S = {
+  view: "home",
+  doc: null,        // { name, bytes, size, pdf, isSample, path }
+  rec: null,        // history record of the open document
+  docs: [],         // document history records
+  pages: [],
+  overlays: [],     // { id, assetId, page, x, y, w, h, rot, opacity, fx:{removeBg, ink} }
+  sel: null,
+  zoom: 1, fit: "width", cur: 0,
+  assets: new Map(),// id -> asset (user assets + examples)
+  samples: [],
+  history: [], future: [], clip: null,
+  prefs: structuredClone(DEFAULT_PREFS),
+  desktop: null, fs: null, shell: null, perm: "unavailable",
+  homeFilter: "all", homeQuery: "",
+};
+
+/* ================================================================
+   Storage: Mac folder when the installed app has file access, browser storage otherwise
+   ================================================================ */
+const Store = (() => {
+  const DIR = "~/Library/Application Support/PDF Editor";
+  let fs = null;
+  // --- browser (IndexedDB) ---
+  let dbp = null;
+  const idb = () => dbp ??= new Promise((res, rej) => {
+    try {
+      const r = indexedDB.open("pdf-editor", 2);
+      r.onupgradeneeded = () => {
+        const db = r.result;
+        if (!db.objectStoreNames.contains("assets")) db.createObjectStore("assets", { keyPath: "id" });
+        for (const n of ["kv", "docbytes"]) if (!db.objectStoreNames.contains(n)) db.createObjectStore(n);
+      };
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  });
+  const tx = async (store, mode, fn) => {
+    const db = await idb();
+    return new Promise((res, rej) => {
+      const t = db.transaction(store, mode); const req = fn(t.objectStore(store));
+      t.oncomplete = () => res(req?.result); t.onerror = () => rej(t.error); t.onabort = () => rej(t.error);
+    });
+  };
+  const B = {
+    get: (k) => tx("kv", "readonly", (s) => s.get(k)).catch(() => undefined),
+    set: (k, v) => tx("kv", "readwrite", (s) => s.put(v, k)),
+    del: (k) => tx("kv", "readwrite", (s) => s.delete(k)).catch(() => {}),
+    async loadAll() {
+      return { prefs: (await B.get("prefs")) || null, docs: (await B.get("docs")) || [], assets: (await tx("assets", "readonly", (s) => s.getAll()).catch(() => [])) || [] };
+    },
+    getCopy: (id) => tx("docbytes", "readonly", (s) => s.get(id)).catch(() => null),
+    thumb: (id) => B.get("thumb:" + id),
+  };
+  // --- disk ---
+  const P = (name) => `${DIR}/${name}`;
+  const ext = (mime) => (mime === "image/jpeg" ? "jpg" : "png");
+  const readJSON = async (name, d) => { try { return JSON.parse(await fs.readFile(P(name), "utf8")); } catch { return d; } };
+  const writeJSON = async (name, v) => { const tmp = P(name + ".tmp"); await fs.writeFile(tmp, JSON.stringify(v), "utf8"); await fs.rename(tmp, P(name)); };
+  const metaOf = (a) => { const { src, ...m } = a; return m; };
+
+  const api = {
+    DIR,
+    get disk() { return !!fs; },
+    async useDisk(f) {
+      fs = f;
+      for (const d of ["", "/library", "/thumbs", "/docs"]) await fs.mkdir(DIR + d, { recursive: true });
+    },
+    async loadAll() {
+      if (!fs) return B.loadAll();
+      const prefs = await readJSON("prefs.json", null), docs = await readJSON("documents.json", []), metas = await readJSON("library.json", []);
+      const assets = (await mapLimit(metas, 8, async (m) => ({ ...m, src: `data:${m.mime};base64,${await fs.readFile(P(`library/${m.id}.${ext(m.mime)}`), "base64")}` }))).filter(Boolean);
+      return { prefs, docs, assets };
+    },
+    async savePrefs(v) { fs ? await writeJSON("prefs.json", v) : await B.set("prefs", v); },
+    async saveDocs(v) { fs ? await writeJSON("documents.json", v) : await B.set("docs", v); },
+    async saveAssets(list) {
+      if (fs) return writeJSON("library.json", list.map(metaOf));
+      await tx("assets", "readwrite", (s) => { s.clear(); for (const a of list) s.put(a); });
+    },
+    async putAssetImage(a) { if (fs) await fs.writeFile(P(`library/${a.id}.${ext(a.mime)}`), dataURLBytes(a.src)); },
+    async putThumb(id, url) { fs ? await fs.writeFile(P(`thumbs/${id}.jpg`), dataURLBytes(url)) : await B.set("thumb:" + id, url); },
+    async thumb(id) {
+      try { return fs ? `data:image/jpeg;base64,${await fs.readFile(P(`thumbs/${id}.jpg`), "base64")}` : (await B.thumb(id)) || null; } catch { return null; }
+    },
+    async putCopy(id, bytes) { fs ? await fs.writeFile(P(`docs/${id}.pdf`), bytes) : await tx("docbytes", "readwrite", (s) => s.put(bytes, id)); },
+    async getCopy(id) { try { return fs ? await fs.readFile(P(`docs/${id}.pdf`)) : await B.getCopy(id); } catch { return null; } },
+    async dropDoc(id) {
+      try {
+        if (fs) { await fs.rm(P(`docs/${id}.pdf`), { force: true }); await fs.rm(P(`thumbs/${id}.jpg`), { force: true }); }
+        else { await tx("docbytes", "readwrite", (s) => s.delete(id)); await B.del("thumb:" + id); }
+      } catch {}
+    },
+    // first switch to the Mac folder: bring over what was kept in the browser so far
+    async migrateFromBrowser() {
+      const disk = await api.loadAll();
+      if (disk.docs.length || disk.assets.length) return false;
+      const b = await B.loadAll();
+      if (!b.docs.length && !b.assets.length) return false;
+      for (const a of b.assets) await api.putAssetImage(a);
+      await api.saveAssets(b.assets);
+      for (const d of b.docs) {
+        if (d.copy) { const bytes = await B.getCopy(d.id); if (bytes) await api.putCopy(d.id, bytes); }
+        const t = await B.thumb(d.id); if (t) await api.putThumb(d.id, t);
+      }
+      await api.saveDocs(b.docs);
+      if (b.prefs) await api.savePrefs(b.prefs);
+      return true;
+    },
+  };
+  return api;
+})();
+const persistDocs = debounce(() => Store.saveDocs(S.docs).catch((e) => console.warn("save docs", e)), 500);
+const persistPrefs = debounce(() => Store.savePrefs(S.prefs).catch(() => {}), 500);
+const userAssets = () => [...S.assets.values()].filter((a) => !a.sample);
+const persistAssets = debounce(() => Store.saveAssets(userAssets()).catch((e) => console.warn("save library", e)), 200);
+
+async function loadStoredState() {
+  const { prefs, docs, assets } = await Store.loadAll();
+  S.prefs = { ...structuredClone(DEFAULT_PREFS), ...(prefs || {}), lastDir: { ...(prefs?.lastDir || {}) } };
+  S.docs = (Array.isArray(docs) ? docs : []).map(migrateRecord);
+  for (const [id, a] of S.assets) if (!a.sample) S.assets.delete(id);
+  for (const a of assets) S.assets.set(a.id, a);
+  $("#main").classList.toggle("no-rail", !!S.prefs.railHidden);
+}
+
+/* ================================================================
+   pdf.js setup
+   ================================================================ */
+const BASE = document.baseURI;
+const pdfjsLib = window.pdfjsLib;
+if (pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc = new URL("vendor/pdfjs/pdf.worker.min.js", BASE).href;
+// CMaps (for Korean PDFs without embedded fonts) and the standard 14 fonts ship as
+// base64 JSON beside the page, fetched only when a document asks for one.
+const packed = {};
+const loadPacked = (file) => packed[file] ??= fetch(new URL(`vendor/pdfjs/${file}`, BASE)).then((r) => (r.ok ? r.json() : {})).catch(() => ({}));
+const b64bytes = (s) => { const b = atob(s); const a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
+class PackedCMapFactory {
+  constructor() {}
+  async fetch({ name }) {
+    const s = (await loadPacked("cmaps-ko.json"))[name];
+    if (!s) throw new Error(`CMap ${name} is not bundled`);
+    return { cMapData: b64bytes(s), compressionType: pdfjsLib.CMapCompressionType.BINARY };
+  }
+}
+class PackedFontFactory {
+  constructor() {}
+  async fetch({ filename }) {
+    const s = (await loadPacked("standard-fonts.json"))[filename];
+    if (!s) throw new Error(`Font ${filename} is not bundled`);
+    return b64bytes(s);
+  }
+}
+
+/* ================================================================
+   Assets (library items) & image processing
+   ================================================================ */
+// asset: { id, kind, name, src (data URL), mime, w, h, hasAlpha, autoRemoveBg, created, lastUsed?, lastW?, hidden?, sample? }
+async function makeAssetFromSource(src, { kind, name, sample = false }) {
+  const img = await loadImage(src);
+  let w = img.naturalWidth, h = img.naturalHeight;
+  const scale = Math.min(1, ASSET_MAX_SIDE / Math.max(w, h));
+  w = Math.max(1, Math.round(w * scale)); h = Math.max(1, Math.round(h * scale));
+  const c = canvasOf(w, h); const g = c.getContext("2d", { willReadFrequently: true });
+  g.drawImage(img, 0, 0, w, h);
+  const { data } = g.getImageData(0, 0, w, h);
+  let transparent = 0, samples = 0, light = 0, border = 0;
+  const step = Math.max(1, Math.floor(Math.sqrt((w * h) / 40000)));
+  for (let y = 0; y < h; y += step) for (let x = 0; x < w; x += step) {
+    const i = (y * w + x) * 4; samples++;
+    if (data[i + 3] < 250) transparent++;
+    if (x < w * 0.06 || x > w * 0.94 || y < h * 0.06 || y > h * 0.94) {
+      border++; if (data[i] > 200 && data[i + 1] > 200 && data[i + 2] > 200) light++;
+    }
+  }
+  const hasAlpha = transparent / samples > 0.01;
+  const autoRemoveBg = !hasAlpha && border > 0 && light / border > 0.8;
+  const mime = hasAlpha ? "image/png" : "image/jpeg";
+  const out = scale < 1 || !src.startsWith("data:" + mime) ? c.toDataURL(mime, 0.92) : src;
+  return { id: uid(), kind, name, src: out, mime, w, h, hasAlpha, autoRemoveBg, created: Date.now(), sample };
+}
+function canvasOf(w, h) { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; }
+
+const fxCache = new Map();
+const fxKey = (a, fx) => `${a.id}|${fx.removeBg ? 1 : 0}|${fx.ink || ""}`;
+function processed(asset, fx) {
+  const key = fxKey(asset, fx);
+  if (fxCache.has(key)) return fxCache.get(key);
+  const p = (async () => {
+    if (!fx.removeBg && !fx.ink) return { url: asset.src, plain: true };
+    const img = await loadImage(asset.src);
+    const c = canvasOf(asset.w, asset.h); const g = c.getContext("2d", { willReadFrequently: true });
+    g.drawImage(img, 0, 0, asset.w, asset.h);
+    const id = g.getImageData(0, 0, asset.w, asset.h); const d = id.data;
+    let ir = 0, ig = 0, ib = 0;
+    if (fx.ink) { const n = parseInt(fx.ink.slice(1), 16); ir = n >> 16; ig = (n >> 8) & 255; ib = n & 255; }
+    const LO = 140, HI = 232; // luminance soft-key: paper -> transparent, ink stays
+    for (let i = 0; i < d.length; i += 4) {
+      let a = d[i + 3];
+      if (fx.removeBg) { const L = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; a = a * clamp((HI - L) / (HI - LO), 0, 1); }
+      if (fx.ink && a > 0) {
+        if (!fx.removeBg) { const L = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]; a = a * clamp(1.15 - L / 255, 0.35, 1); }
+        d[i] = ir; d[i + 1] = ig; d[i + 2] = ib;
+      }
+      d[i + 3] = a;
+    }
+    g.putImageData(id, 0, 0);
+    const blob = await new Promise((r) => c.toBlob(r, "image/png"));
+    return { url: URL.createObjectURL(blob), blob, plain: false };
+  })();
+  fxCache.set(key, p);
+  return p;
+}
+const canInk = (a, fx) => a.hasAlpha || fx.removeBg || a.kind !== "image";
+
+/* ---------- library operations ---------- */
+function libraryIds() {
+  const mine = userAssets().filter((a) => !a.hidden).sort((a, b) => (b.lastUsed || b.created) - (a.lastUsed || a.created)).map((a) => a.id);
+  return mine.length ? mine : S.samples;
+}
+async function addToLibrary(a) {
+  S.assets.set(a.id, a); syncLibrary();
+  try { await Store.putAssetImage(a); persistAssets(); }
+  catch { toast("보관함을 저장하지 못했습니다. 이번 작업 동안만 쓸 수 있습니다.", true); }
+}
+function touchAsset(id, patch) {
+  const a = S.assets.get(id); if (!a) return;
+  Object.assign(a, patch);
+  if (!a.sample) persistAssets();
+}
+function renameAsset(id, name) {
+  const a = S.assets.get(id); name = (name || "").trim().slice(0, 40);
+  if (!a || !name || a.name === name) return;
+  touchAsset(id, { name }); syncLibrary();
+  for (const n of $$(`.ov[data-asset="${id}"]`)) n.setAttribute("aria-label", name);
+}
+function hideFromLibrary(id) {
+  const a = S.assets.get(id); if (!a) return;
+  touchAsset(id, { hidden: true }); syncLibrary();
+  // kept on disk so documents that already use it still open with it
+  toast(`보관함에서 “${a.name}”을 지웠습니다.`, { actions: [{ label: "되돌리기", fn: () => { touchAsset(id, { hidden: false }); syncLibrary(); } }] });
+}
+
+/* ================================================================
+   Document history (보관함). The app keeps its own copy of every PDF it opens
+   and works on that copy; it never moves, renames or deletes files in Finder.
+   For the original and for each file written by "파일로 저장" it remembers a
+   fingerprint (size, modified time, SHA-256) so it can tell when Finder's copy
+   was moved, renamed, deleted or edited outside the app.
+   ================================================================ */
+async function hashBytes(bytes) {
+  try { const d = await crypto.subtle.digest("SHA-256", bytes); return [...new Uint8Array(d).slice(0, 16)].map((b) => b.toString(16).padStart(2, "0")).join(""); }
+  catch { return null; }
+}
+// records saved by the previous version: { path, copy, savedPath, savedName, savedAt, savedOverlays }
+function migrateRecord(r) {
+  if (r.path && !r.source) r.source = { path: r.path };
+  if (r.savedAt && !r.export) r.export = { path: r.savedPath || null, name: r.savedName || null, at: r.savedAt };
+  if (r.savedOverlays && !r.exportedOverlays) r.exportedOverlays = r.savedOverlays;
+  for (const k of ["path", "savedPath", "savedName", "savedAt", "savedOverlays"]) delete r[k];
+  r.exportLog ??= r.export ? [{ name: r.export.name, path: r.export.path, at: r.export.at }] : [];
+  return r;
+}
+const workOf = (r) => ({ n: r.overlays?.length || 0, at: r.editedAt || r.openedAt });
+// app work compared with the last saved file (both as the app knows them)
+function exportOf(r) {
+  if (!r.export) return "none";
+  const dirty = r.exportedOverlays ? JSON.stringify(r.overlays || []) !== JSON.stringify(r.exportedOverlays) : (r.editedAt || 0) > (r.export.at || 0);
+  return dirty ? "behind" : "same";
+}
+// what Finder says now (cached; refreshed on the 보관함 screen and when the window regains focus)
+const fileChecks = new Map();
+async function fileStateOf(fp) {
+  if (!fp?.path || !S.fs) return "unknown";
+  let st; try { st = await S.fs.stat(fp.path); } catch { return "missing"; }
+  if (fp.size == null || fp.mtime == null) return "same";
+  if (st.size === fp.size && Math.abs(st.mtimeMs - fp.mtime) < 1500) return "same";
+  // touched but maybe not changed: compare contents when the size still matches
+  if (fp.hash && st.size === fp.size && st.size < 80 * 1048576) { try { if ((await hashBytes(await S.fs.readFile(fp.path))) === fp.hash) return "same"; } catch {} }
+  return "changed";
+}
+async function checkRecordFiles(r) {
+  const [source, file] = await Promise.all([fileStateOf(r.source), r.export?.path ? fileStateOf(r.export) : Promise.resolve(r.export ? "unknown" : "none")]);
+  const v = { source, file }; fileChecks.set(r.id, v); return v;
+}
+let checkingFiles = false;
+async function refreshFileChecks() {
+  if (!S.fs || checkingFiles) return;
+  checkingFiles = true;
+  try { await mapLimit(S.docs, 6, checkRecordFiles); } finally { checkingFiles = false; }
+  if (S.view === "home") renderHome(); else { syncDocBar(); syncDocTitle(); }
+}
+const needsCheck = (r) => { const c = fileChecks.get(r.id); return !!c && (c.source === "missing" || c.source === "changed" || c.file === "missing" || c.file === "changed"); };
+// one label per state, used on the 보관함 screen and in the editor title
+function sourceLabel(r) {
+  const c = fileChecks.get(r.id)?.source;
+  if (!r.source?.path) return { text: "원본 위치 모름", warn: false, tip: "끌어다 놓거나 이 화면 밖에서 연 PDF라 원본 위치를 모릅니다. 보관함 사본으로 작업합니다." };
+  if (c === "missing") return { text: "원본 없음", warn: true, tip: `원래 위치에 원본이 없습니다(옮김·이름 변경·삭제): ${r.source.path}` };
+  if (c === "changed") return { text: "원본이 앱 밖에서 바뀜", warn: true, tip: `원본 PDF가 Finder에서 수정되었습니다: ${r.source.path}` };
+  return { text: prettyDir(dirname(r.source.path)), warn: false, tip: r.source.path };
+}
+function fileLabel(r) {
+  const c = fileChecks.get(r.id)?.file, e = exportOf(r);
+  if (e === "none") return { key: "none", text: "저장 안 함", cls: "muted", sub: "파일로 저장하면 Finder에 새 PDF가 생깁니다" };
+  const sub = `${r.export.name || "PDF"} · ${relTime(r.export.at)}`;
+  if (c === "missing") return { key: "missing", text: "저장한 파일 없음", cls: "warn", sub, tip: `저장했던 파일을 찾을 수 없습니다(옮김·이름 변경·삭제): ${r.export.path}` };
+  if (c === "changed") return { key: "changed", text: "앱 밖에서 수정됨", cls: "warn", sub, tip: `저장한 뒤 Finder에서 바뀐 파일입니다: ${r.export.path}` };
+  if (e === "behind") return { key: "behind", text: "저장 후 더 고침", cls: "work", sub, tip: "파일로 저장한 뒤 앱에서 더 고쳤습니다. 다시 저장해야 파일에 반영됩니다." };
+  return { key: "same", text: r.export.path ? "파일 저장됨" : "내려받음", cls: "ok", sub, tip: r.export.path || "브라우저 다운로드로 저장했습니다. 저장된 위치는 앱이 모릅니다." };
+}
+const autosave = debounce(() => {
+  if (!S.rec) return;
+  S.rec.overlays = snap(); S.rec.editedAt = Date.now();
+  persistDocs.flush(); Store.saveDocs(S.docs).catch((e) => console.warn("save docs", e)); syncDocTitle();
+}, 250);
+const thumbCache = new Map();
+async function makeThumb(rec, p) {
+  try {
+    const s = 160 / p.w, vp = p.pg.getViewport({ scale: s });
+    const c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height));
+    await p.pg.render({ canvasContext: c.getContext("2d", { alpha: false }), viewport: vp }).promise;
+    const url = c.toDataURL("image/jpeg", 0.8);
+    thumbCache.set(rec.id, url); await Store.putThumb(rec.id, url);
+  } catch {}
+}
+
+/* ---------- original moved / changed: relink or adopt the new version ---------- */
+async function fingerprintPath(path, bytes) {
+  const st = await S.fs.stat(path).catch(() => null);
+  return { path, size: st?.size ?? bytes.byteLength, mtime: st?.mtimeMs ?? null, hash: await hashBytes(bytes) };
+}
+async function adoptSource(rec, bytes, fp) {
+  await Store.putCopy(rec.id, bytes);
+  Object.assign(rec, { copy: true, copyHash: fp.hash, source: fp, size: bytes.byteLength });
+  persistDocs(); fileChecks.set(rec.id, { ...(fileChecks.get(rec.id) || {}), source: "same" });
+  if (S.rec?.id === rec.id) await openPdfBytes(bytes, rec.name, { recId: rec.id, quiet: true });
+  else if (S.view === "home") renderHome();
+  toast("원본의 새 내용으로 보관함 사본을 바꿨습니다. 놓아 둔 서명·도장은 그대로입니다.");
+}
+async function reloadChangedSource(rec) {
+  try { const bytes = new Uint8Array(await S.fs.readFile(rec.source.path)); await adoptSource(rec, bytes, await fingerprintPath(rec.source.path, bytes)); }
+  catch { toast("원본을 읽지 못했습니다.", true); }
+}
+async function relinkSource(rec, openAfter = false) {
+  const picked = await browse({ kind: "pdf", title: `“${rec.name}”의 원본 찾기`, start: rec.source?.path ? dirname(rec.source.path) : null });
+  if (!picked?.length) return;
+  let bytes; try { bytes = new Uint8Array(await S.fs.readFile(picked[0])); } catch { toast("이 파일을 읽지 못했습니다.", true); return; }
+  const fp = await fingerprintPath(picked[0], bytes);
+  if (rec.copy && rec.copyHash && fp.hash !== rec.copyHash) {
+    toast("고른 파일은 보관함 사본과 내용이 다릅니다.", { ms: 10000, actions: [{ label: "이 파일로 사본 바꾸기", fn: () => adoptSource(rec, bytes, fp) }] });
+    return;
+  }
+  if (!rec.copy) { await Store.putCopy(rec.id, bytes); rec.copy = true; rec.copyHash = fp.hash; }
+  rec.source = fp; persistDocs(); fileChecks.set(rec.id, { ...(fileChecks.get(rec.id) || {}), source: "same" });
+  toast("원본을 다시 연결했습니다.");
+  if (openAfter) openRecord(rec); else if (S.view === "home") renderHome(); else { syncDocBar(); syncDocTitle(); }
+}
+
+/* ================================================================
+   Views
+   ================================================================ */
+function applySide() {
+  const showHomeSide = !!S.prefs.homeSide, showEditorSide = S.prefs.editorSide !== false;
+  $("#home").classList.toggle("no-side", !showHomeSide);
+  $("#main").classList.toggle("no-side", !showEditorSide);
+  $("#btn-side").setAttribute("aria-pressed", String(S.view === "home" ? showHomeSide : showEditorSide));
+}
+function toggleSide() {
+  if (S.view === "home") S.prefs.homeSide = !S.prefs.homeSide;
+  else S.prefs.editorSide = S.prefs.editorSide === false;
+  persistPrefs(); applySide();
+  if (S.view === "editor") setTimeout(() => (S.fit ? applyFit() : scheduleRender()), 0);
+}
+function showHome() {
+  if (S.view === "home") { renderHome(); return; }
+  autosave.flush();
+  S.view = "home";
+  $("#home").hidden = false; $("#main").hidden = true; $("#tb-editor").hidden = true; $("#btn-back").hidden = true; $("#btn-export").hidden = true;
+  document.title = "PDF Editor";
+  applySide(); syncDocTitle(); renderHome(); syncStatus(); refreshFileChecks();
+}
+function showEditor() {
+  S.view = "editor";
+  $("#home").hidden = true; $("#main").hidden = false; $("#tb-editor").hidden = false; $("#btn-back").hidden = false; $("#btn-export").hidden = false;
+  document.title = S.doc && !S.doc.isSample ? `${S.doc.name} — PDF Editor` : "PDF Editor";
+  applySide(); syncDocTitle(); syncStatus(); syncDocBar();
+  requestAnimationFrame(() => { if (S.fit) applyFit(); else { layoutPages(); scheduleRender(); } updateCurrentPage(); });
+}
+function syncDocTitle() {
+  const t = $("#doc-title"), sub = $("#doc-sub"); sub.textContent = ""; sub.removeAttribute("data-tip");
+  if (S.view === "home" || !S.doc) {
+    t.textContent = "PDF Editor";
+    sub.textContent = `보관함 문서 ${S.docs.length}개 · 서명·도장 ${userAssets().filter((a) => !a.hidden).length}개`;
+    return;
+  }
+  t.textContent = S.doc.isSample ? "예시 · 용역 계약서" : S.doc.name;
+  sub.append(`${S.pages.length}쪽 · ${fmtBytes(S.doc.size)}`);
+  if (S.doc.isSample) { sub.append(" · 예시 (보관함에 남지 않음)"); return; }
+  if (!S.rec) return;
+  const f = fileLabel(S.rec);
+  sub.append(" · 작업은 앱에 자동 저장 · ");
+  sub.append(el("span", { class: f.cls === "warn" || f.key === "behind" || (f.key === "none" && S.overlays.length) ? "dirty" : "", text: f.key === "none" ? "파일로 저장 안 함" : f.key === "same" ? (S.rec.export.path ? "파일과 같음" : "내려받음") : f.text }));
+  sub.dataset.tip = f.tip || "‘파일로 저장’을 하면 Finder에 서명이 들어간 새 PDF가 생깁니다";
+}
+function syncStatus() {
+  if (S.view === "home") {
+    $("#st-page").textContent = "";
+    const pend = S.docs.filter((d) => workOf(d).n && exportOf(d) !== "same").length, saved = S.docs.filter((d) => exportOf(d) === "same" && !needsCheck(d)).length, check = S.docs.filter(needsCheck).length;
+    $("#st-items").textContent = S.docs.length ? `파일로 저장 전 ${pend}개 · 파일 저장됨 ${saved}개${check ? ` · 확인 필요 ${check}개` : ""}` : "";
+  } else { updateCurrentPage(); syncOverlayCount(); }
+}
+// notice bar in the editor when Finder's files no longer match what the app knows
+const dismissedBars = new Set();
+function syncDocBar() {
+  const bar = $("#doc-bar"); bar.textContent = ""; bar.hidden = true;
+  const r = S.rec; if (!r || S.view !== "editor" || !S.fs) return;
+  const c = fileChecks.get(r.id) || {};
+  const show = (key, [bold, rest], actions) => {
+    if (dismissedBars.has(`${r.id}:${key}`)) return false;
+    bar.append(el("span", {}, el("b", { text: bold }), " " + rest));
+    for (const a of actions) bar.append(el("button", { class: "btn " + (a.primary ? "primary" : "outline"), type: "button", onclick: a.fn }, a.label));
+    bar.append(el("button", { class: "btn icon", type: "button", "data-tip": "이 안내 닫기", "aria-label": "안내 닫기", onclick: () => { dismissedBars.add(`${r.id}:${key}`); syncDocBar(); } }, icon("x")));
+    bar.hidden = false; return true;
+  };
+  if (c.source === "changed" && show("source-changed", ["원본 PDF가 앱 밖에서 바뀌었습니다.", "지금은 보관함에 넣어 둔 이전 사본으로 작업하고 있습니다."],
+    [{ label: "바뀐 원본으로 바꾸기", primary: true, fn: () => reloadChangedSource(r) }])) return;
+  if (c.source === "missing" && show("source-missing", ["원본 PDF가 원래 자리에 없습니다", "(옮김·이름 변경·삭제). 보관함 사본으로 계속 작업할 수 있습니다."],
+    [{ label: "원본 다시 연결…", fn: () => relinkSource(r) }])) return;
+  if (c.file === "changed") show("file-changed", ["저장한 파일이 앱 밖에서 수정되었습니다.", "같은 이름으로 다시 저장하면 그 수정 내용을 덮어씁니다."], []);
+  else if (c.file === "missing") show("file-missing", ["저장했던 파일이 원래 자리에 없습니다.", "필요하면 다시 파일로 저장하세요."], []);
+}
+
+/* ---------- 보관함 (home) rendering ---------- */
+function renderHome() {
+  const list = $("#doc-list"), empty = $("#home-empty");
+  const q = S.homeQuery.trim().toLowerCase();
+  const recT = (r) => Math.max(r.openedAt || 0, r.editedAt || 0, r.export?.at || 0);
+  const match = {
+    all: () => true,
+    work: (d) => workOf(d).n > 0 && exportOf(d) !== "same",
+    saved: (d) => exportOf(d) === "same" && !needsCheck(d),
+    check: needsCheck,
+  };
+  const docs = [...S.docs].sort((a, b) => recT(b) - recT(a))
+    .filter(match[S.homeFilter] || match.all)
+    .filter((d) => !q || d.name.toLowerCase().includes(q) || (d.source?.path || "").toLowerCase().includes(q));
+  empty.hidden = S.docs.length > 0; list.hidden = S.docs.length === 0; list.textContent = "";
+  const pend = S.docs.filter(match.work).length, check = S.docs.filter(needsCheck).length;
+  $("#home-sub").textContent = S.docs.length
+    ? `문서 ${S.docs.length}개${pend ? ` · 파일로 저장 전 ${pend}개` : ""}${check ? ` · 확인 필요 ${check}개` : ""}. 문서를 누르면 놓아 둔 서명과 함께 이어서 작업합니다.`
+    : "서명할 PDF를 열거나, 하던 작업을 이어서 하세요.";
+  const checkBtn = $('#doc-filter [data-f="check"]'); checkBtn.textContent = check ? `확인 필요 ${check}` : "확인 필요";
+  $("#explain").hidden = S.docs.length === 0;
+  if (S.docs.length) list.append(el("div", { class: "doc-head", "aria-hidden": "true" },
+    el("span", { text: "문서 · 원본 위치" }), el("span", { class: "c-work", text: "앱 작업 (자동 저장)" }), el("span", { class: "c-file", text: "저장한 파일 (Finder)" }), el("span")));
+  if (S.docs.length && !docs.length) list.append(el("div", { class: "no-match", text: q ? `“${S.homeQuery}”와 맞는 문서가 없습니다.` : "이 상태의 문서가 없습니다." }));
+  for (const d of docs) {
+    const w = workOf(d), src = sourceLabel(d), f = fileLabel(d);
+    const img = el("img", { alt: "" });
+    const thumb = el("span", { class: "doc-thumb" }, img);
+    const cached = thumbCache.get(d.id);
+    if (cached) img.src = cached; else Store.thumb(d.id).then((u) => { if (u) { thumbCache.set(d.id, u); img.src = u; } else img.replaceWith(icon("doc")); });
+    const srcLine = el("span", {}, el("span", { class: src.warn ? "src-warn" : "", "data-tip": src.tip, text: src.text }), ` · ${d.pages || "?"}쪽 · ${fmtBytes(d.size)}`);
+    const c = fileChecks.get(d.id) || {};
+    const acts = el("span", { class: "doc-acts" });
+    if (S.shell && d.source?.path && c.source !== "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": "원본 PDF를 Finder에서 보기", "aria-label": `${d.name} 원본을 Finder에서 보기`, onclick: () => revealPath(d.source.path) }, icon("reveal")));
+    if (S.fs && d.source?.path && c.source === "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": "옮긴 원본을 찾아 다시 연결", "aria-label": `${d.name} 원본 다시 연결`, onclick: () => relinkSource(d) }, icon("folder")));
+    if (S.shell && d.export?.path && c.file !== "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": `저장한 파일 열기 · ${d.export.name}`, "aria-label": `${d.name} 저장한 파일 열기`, onclick: () => openPath(d.export.path) }, icon("openOut")));
+    acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": "보관함에서 빼기 · Finder의 파일은 지우지 않습니다", "aria-label": `${d.name} 보관함에서 빼기`, onclick: () => removeRecord(d.id) }, icon("x")));
+    const exportsN = d.exportLog?.length || 0;
+    list.append(el("div", { class: "doc-row" + (S.rec?.id === d.id ? " current" : ""), role: "listitem" },
+      el("button", { class: "doc-open", type: "button", "data-tip": "보관함 사본으로 이어서 작업", onclick: () => openRecord(d) },
+        thumb, el("span", { class: "doc-title" }, el("strong", { text: d.name }), srcLine)),
+      el("div", { class: "cell c-work" },
+        el("span", { class: "chip " + (w.n ? "work" : "muted") }, el("i"), w.n ? `서명·도장 ${w.n}개` : "아직 없음"),
+        el("small", { text: `${relTime(w.at)} 저장됨` })),
+      el("div", { class: "cell c-file" },
+        el("span", { class: "chip " + f.cls, "data-tip": f.tip || null }, el("i"), f.text),
+        el("small", { class: f.cls === "warn" ? "warn" : "", text: f.sub, "data-tip": exportsN > 1 ? `파일로 저장 ${exportsN}회 · 최근: ${d.exportLog.slice(-3).reverse().map((x) => x.name).join(", ")}` : null })),
+      acts));
+  }
+  renderPermBanner(); renderStoreInfo(); syncLibrary(); syncDocTitle(); syncStatus();
+}
+function removeRecord(id) {
+  const i = S.docs.findIndex((d) => d.id === id); if (i < 0) return;
+  const [rec] = S.docs.splice(i, 1);
+  if (S.rec?.id === id) S.rec = null;
+  persistDocs(); renderHome();
+  const timer = setTimeout(() => Store.dropDoc(id), 8000);
+  toast(`“${rec.name}”을 보관함에서 뺐습니다. Finder의 원본과 저장한 파일은 그대로입니다.`, { ms: 8000, actions: [{ label: "되돌리기", fn: () => { clearTimeout(timer); S.docs.splice(i, 0, rec); persistDocs(); renderHome(); } }] });
+}
+function renderPermBanner() {
+  const b = $("#perm-banner"); b.textContent = ""; b.hidden = true;
+  if (S.fs || !S.desktop?.permissions) return;
+  if (S.perm !== "prompt" && S.perm !== "denied") return;
+  b.hidden = false;
+  b.append(icon("folder"),
+    el("p", {}, el("b", { text: "Mac 파일 접근을 허용하면 더 편해집니다. " }),
+      "PDF와 이미지를 마지막으로 연 폴더를 기억하고, 원본 옆에 바로 저장하며, Finder에서 파일이 옮겨지거나 바뀐 것을 알려 줍니다. 파일은 이 Mac 밖으로 나가지 않습니다."),
+    S.perm === "denied"
+      ? el("button", { class: "btn outline", type: "button", onclick: () => S.desktop.permissions.manage().catch(() => toast("앱 메뉴의 권한 설정에서 켤 수 있습니다.")) }, "권한 설정 열기")
+      : el("button", { class: "btn primary", type: "button", onclick: requestFullAccess }, "파일 접근 허용"));
+}
+function renderStoreInfo() {
+  const box = $("#store-info"); box.textContent = "";
+  box.append(el("div", { class: "sec-head", style: "margin:0" }, el("span", { class: "sec-title", text: "보관함 위치" })));
+  if (S.fs) {
+    box.append(el("p", { class: "hint", style: "margin:0" }, "보관함 사본, 작업 내용, 서명·도장은 이 Mac에 저장됩니다. Finder의 원본과 저장한 파일과는 따로 관리됩니다.", el("br"), el("span", { class: "mono path", text: Store.DIR })),
+      el("button", { class: "btn outline sm", type: "button", style: "justify-self:start", onclick: () => openPath(Store.DIR) }, icon("reveal"), "Finder에서 보기"));
+  } else {
+    box.append(el("p", { class: "hint", style: "margin:0", text: S.desktop?.window
+      ? "지금은 앱 안에만 저장됩니다. 파일 접근을 허용하면 Mac 폴더에 저장되어 앱을 업데이트해도 안전하게 남습니다."
+      : "지금은 이 화면의 브라우저 저장소에만 저장됩니다. 설치한 앱에서 파일 접근을 허용하면 Mac 폴더에 저장됩니다." }));
+  }
+}
+
+/* ================================================================
+   Document loading & page layout
+   ================================================================ */
+const stage = $("#stage"), pagesEl = $("#pages"), thumbsEl = $("#thumbs");
+let thumbObserver = null;
+
+function updateNear() {
+  const vh = stage.clientHeight || 800, top = stage.scrollTop;
+  const nearA = top - vh * 1.2, nearB = top + vh * 2.2, keepA = top - vh * 4, keepB = top + vh * 5;
+  for (const p of S.pages) {
+    const t = p.el.offsetTop, b = t + p.el.offsetHeight;
+    p.near = b >= nearA && t <= nearB;
+    if ((b < keepA || t > keepB) && (p.canvas || p.task)) releasePage(p);
+  }
+}
+
+async function openPdfBytes(bytes, name, { sample = false, path = null, recId = null, stat = null, quiet = false } = {}) {
+  if (!pdfjsLib) { toast("PDF 엔진을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 열어 주세요.", true); return false; }
+  let pdf;
+  try {
+    pdf = await pdfjsLib.getDocument({
+      data: bytes.slice(), isEvalSupported: false,
+      CMapReaderFactory: PackedCMapFactory, cMapUrl: "packed:", cMapPacked: true,
+      StandardFontDataFactory: PackedFontFactory, standardFontDataUrl: "packed:", useWorkerFetch: false,
+    }).promise;
+  } catch (e) {
+    toast(e?.name === "PasswordException" ? "암호로 보호된 PDF는 열 수 없습니다. 암호를 해제한 파일을 열어 주세요."
+      : "PDF를 열 수 없습니다. 파일이 손상되었거나 PDF가 아닐 수 있습니다.", true);
+    return false;
+  }
+  autosave.flush?.();
+  if (S.doc?.pdf) S.doc.pdf.destroy();
+  thumbObserver?.disconnect(); thumbQueue = [];
+  pagesEl.textContent = ""; thumbsEl.textContent = ""; overlayEls.clear();
+  S.doc = { name, bytes, size: bytes.byteLength, pdf, isSample: sample, path };
+  S.overlays = []; S.history = []; S.future = []; S.sel = null; S.cur = 0;
+
+  const pageObjs = await Promise.all(Array.from({ length: pdf.numPages }, (_, i) => pdf.getPage(i + 1)));
+  S.pages = pageObjs.map((pg, i) => {
+    const vp = pg.getViewport({ scale: 1 });
+    const p = { i, pg, vp, w: vp.width, h: vp.height, el: null, layer: null, canvas: null, scale: 0, task: null, near: false, thumb: null, thumbDone: false };
+    p.el = el("div", { class: "page loading", "data-i": i });
+    p.layer = el("div", { class: "layer" });
+    p.el.append(p.layer, el("span", { class: "pageno", text: `${i + 1}` }));
+    pagesEl.append(p.el);
+    const tc = el("canvas");
+    p.thumb = el("button", { class: "thumb", "data-i": i, title: `${i + 1}쪽으로 이동`, onclick: () => goToPage(i) },
+      el("div", { class: "thumb-box", style: `aspect-ratio:${p.w}/${p.h}` }, tc), el("span", { class: "thumb-num", text: `${i + 1}` }));
+    p.thumbCanvas = tc;
+    thumbsEl.append(p.thumb);
+    return p;
+  });
+  thumbObserver = new IntersectionObserver((ents) => {
+    for (const e of ents) if (e.isIntersecting) queueThumb(S.pages[+e.target.dataset.i]);
+  }, { root: $("#rail"), rootMargin: "200px 0px" });
+  for (const p of S.pages) thumbObserver.observe(p.thumb);
+
+  // 보관함 record: the app works on its own copy and restores the items placed last time
+  S.rec = null;
+  if (!sample) {
+    const hash = await hashBytes(bytes), now = Date.now();
+    let rec = recId ? S.docs.find((d) => d.id === recId) : null, earlier = null;
+    if (!rec && hash) rec = S.docs.find((d) => d.copyHash === hash || d.source?.hash === hash) || null; // same content, maybe moved or renamed
+    if (!rec && path) earlier = S.docs.find((d) => d.source?.path === path) || null;                  // same place, edited outside the app
+    if (!rec) {
+      rec = { id: uid(), name, pages: pdf.numPages, size: bytes.byteLength, addedAt: now, openedAt: now, editedAt: null,
+        overlays: [], source: null, copy: false, copyHash: hash, export: null, exportedOverlays: null, exportLog: [] };
+      S.docs.unshift(rec);
+      if (S.docs.length > MAX_DOCS) for (const old of S.docs.splice(MAX_DOCS)) Store.dropDoc(old.id);
+    }
+    if (path) rec.source = { path, size: stat?.size ?? bytes.byteLength, mtime: stat?.mtime ?? null, hash };
+    if (!rec.copy) {
+      Store.putCopy(rec.id, bytes).then(() => { rec.copy = true; rec.copyHash = hash; persistDocs(); })
+        .catch(() => toast("보관함에 사본을 넣지 못했습니다. 원본을 옮기면 이 문서를 다시 열 수 없습니다.", true));
+    }
+    Object.assign(rec, { name, size: bytes.byteLength, pages: pdf.numPages, openedAt: now });
+    S.overlays = (rec.overlays || []).filter((o) => S.assets.has(o.assetId) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
+    S.rec = rec; persistDocs();
+    setTimeout(() => makeThumb(rec, S.pages[0]), 400);
+    if (S.fs) checkRecordFiles(rec).then(() => { if (S.rec === rec) { syncDocBar(); syncDocTitle(); } });
+    if (!quiet && S.overlays.length) toast(`보관함에서 이어서 작업합니다. 놓아 둔 서명·도장 ${S.overlays.length}개를 불러왔습니다.`);
+    if (earlier?.overlays?.length && !S.overlays.length) {
+      toast(`같은 위치의 이전 버전 “${earlier.name}”에 서명·도장 ${earlier.overlays.length}개가 있습니다.`, { ms: 10000, actions: [{ label: "그대로 가져오기", fn: () => {
+        const items = earlier.overlays.filter((o) => S.assets.has(o.assetId) && o.page < S.pages.length).map((o) => ({ ...o, id: uid(), fx: { ...o.fx } }));
+        act(() => { S.overlays.push(...items); });
+      } }] });
+    }
+  }
+
+  $("#sample-bar").hidden = !sample;
+  S.fit = "width";
+  stage.scrollTop = 0; stage.scrollLeft = 0;
+  showEditor();
+  layoutPages(); syncOverlays(); syncInspector(); syncUndo();
+  return true;
+}
+async function openRecord(rec) {
+  if (S.rec?.id === rec.id && S.doc) { showEditor(); return; }
+  // the 보관함 copy first: Finder's original may have been moved, renamed or edited
+  let bytes = rec.copy ? await Store.getCopy(rec.id) : null;
+  if (!bytes && rec.source?.path && S.fs) {
+    try { bytes = await S.fs.readFile(rec.source.path); rec.source = await fingerprintPath(rec.source.path, bytes); } catch {}
+  }
+  if (!bytes) {
+    toast(rec.source?.path ? `보관함 사본이 없고, 원본도 원래 자리에 없습니다: ${prettyDir(rec.source.path)}` : "보관함 사본을 찾지 못했습니다. PDF를 다시 열어 주세요.",
+      { err: true, actions: S.fs ? [{ label: "원본 찾기…", fn: () => relinkSource(rec, true) }] : [{ label: "새 PDF 열기", fn: choosePdf }] });
+    return;
+  }
+  await openPdfBytes(new Uint8Array(bytes), rec.name, { recId: rec.id });
+}
+function layoutPages() {
+  const z = S.zoom;
+  for (const p of S.pages) { p.el.style.width = `${Math.round(p.w * z)}px`; p.el.style.height = `${Math.round(p.h * z)}px`; }
+  $("#zoom-val").textContent = `${Math.round(z * 100)}%`;
+}
+function fitZoom(mode) {
+  if (!S.pages.length || !stage.clientWidth) return S.zoom;
+  const cs = getComputedStyle(pagesEl);
+  const availW = stage.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - 2;
+  const maxW = Math.max(...S.pages.map((p) => p.w));
+  if (mode === "width") return clamp(availW / maxW, MIN_ZOOM, 2.2);
+  const p = S.pages[S.cur] || S.pages[0];
+  const availH = stage.clientHeight - parseFloat(cs.paddingTop) - 40;
+  return clamp(Math.min(availW / p.w, availH / p.h), MIN_ZOOM, MAX_ZOOM);
+}
+function applyFit() { if (S.fit && stage.clientWidth) setZoom(fitZoom(S.fit), null, true); }
+function setZoom(z, anchor = null, keepFit = false) {
+  z = clamp(Math.round(z * 1000) / 1000, MIN_ZOOM, MAX_ZOOM);
+  if (!keepFit) S.fit = null;
+  if (!S.pages.length) { S.zoom = z; return; }
+  const old = S.zoom;
+  const rect = stage.getBoundingClientRect();
+  const ax = anchor ? anchor.x - rect.left : stage.clientWidth / 2;
+  const ay = anchor ? anchor.y - rect.top : stage.clientHeight / 2;
+  const p = pageAtStageY(stage.scrollTop + ay);
+  const relY = p ? (stage.scrollTop + ay - p.el.offsetTop) / old : 0;
+  const relX = p ? (stage.scrollLeft + ax - p.el.offsetLeft) / old : 0;
+  S.zoom = z;
+  layoutPages(); syncOverlays(true);
+  if (p) { stage.scrollTop = p.el.offsetTop + relY * z - ay; stage.scrollLeft = p.el.offsetLeft + relX * z - ax; }
+  scheduleRender(140);
+}
+function pageAtStageY(y) {
+  let best = null;
+  for (const p of S.pages) { if (p.el.offsetTop <= y) best = p; else break; }
+  return best || S.pages[0];
+}
+
+/* ---------- rendering pipeline ---------- */
+let renderTimer = 0, rendering = 0;
+function scheduleRender(delay = 16) { clearTimeout(renderTimer); renderTimer = setTimeout(pumpRender, delay); }
+const targetScale = (p) => {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2.5);
+  let s = S.zoom * dpr;
+  const px = p.w * p.h * s * s; if (px > MAX_CANVAS_PX) s *= Math.sqrt(MAX_CANVAS_PX / px);
+  return Math.round(s * 1000) / 1000;
+};
+function pumpRender() {
+  if (!S.pages.length || S.view !== "editor") return;
+  updateNear();
+  const mid = stage.scrollTop + stage.clientHeight / 2;
+  const todo = S.pages.filter((p) => p.near && p.scale !== targetScale(p) && !p.task)
+    .sort((a, b) => Math.abs(a.el.offsetTop + a.el.offsetHeight / 2 - mid) - Math.abs(b.el.offsetTop + b.el.offsetHeight / 2 - mid));
+  while (rendering < 2 && todo.length) renderPage(todo.shift());
+}
+async function renderPage(p) {
+  const s = targetScale(p);
+  const vp = p.pg.getViewport({ scale: s });
+  const c = el("canvas", { class: "render" });
+  c.width = Math.ceil(vp.width); c.height = Math.ceil(vp.height);
+  rendering++;
+  p.task = p.pg.render({ canvasContext: c.getContext("2d", { alpha: false }), viewport: vp, annotationMode: pdfjsLib.AnnotationMode.ENABLE_FORMS });
+  try {
+    await p.task.promise;
+    if (p.canvas) { p.canvas.replaceWith(c); p.canvas.width = 0; p.canvas.height = 0; } else p.el.prepend(c);
+    p.canvas = c; p.scale = s; p.el.classList.remove("loading");
+  } catch (e) {
+    if (e?.name !== "RenderingCancelledException") console.warn("render failed", e);
+  } finally { p.task = null; rendering--; pumpRender(); }
+}
+function releasePage(p) {
+  if (p.task) p.task.cancel();
+  if (p.canvas) { p.canvas.width = 0; p.canvas.height = 0; p.canvas.remove(); p.canvas = null; }
+  p.scale = 0; p.el.classList.add("loading");
+}
+let thumbQueue = [], thumbBusy = false;
+function queueThumb(p) { if (!p.thumbDone && !thumbQueue.includes(p)) { thumbQueue.push(p); pumpThumbs(); } }
+async function pumpThumbs() {
+  if (thumbBusy) return; thumbBusy = true;
+  while (thumbQueue.length) {
+    if (rendering > 0) { await new Promise((r) => setTimeout(r, 120)); continue; }
+    const p = thumbQueue.shift(); if (p.thumbDone || !S.pages.includes(p)) continue;
+    const s = (104 * Math.min(window.devicePixelRatio || 1, 2)) / p.w;
+    const vp = p.pg.getViewport({ scale: s });
+    p.thumbCanvas.width = Math.ceil(vp.width); p.thumbCanvas.height = Math.ceil(vp.height);
+    try { await p.pg.render({ canvasContext: p.thumbCanvas.getContext("2d", { alpha: false }), viewport: vp }).promise; p.thumbDone = true; } catch {}
+  }
+  thumbBusy = false;
+}
+
+/* ---------- current page tracking ---------- */
+stage.addEventListener("scroll", () => { updateCurrentPage(); scheduleRender(50); }, { passive: true });
+function updateCurrentPage() {
+  if (S.view !== "editor") return;
+  if (!S.pages.length) { $("#st-page").textContent = ""; return; }
+  const p = pageAtStageY(stage.scrollTop + stage.clientHeight * 0.4);
+  if (p && p.i !== S.cur) { S.pages[S.cur]?.thumb.classList.remove("current"); S.cur = p.i; p.thumb.scrollIntoView({ block: "nearest" }); }
+  S.pages[S.cur]?.thumb.classList.add("current");
+  $("#st-page").textContent = `${S.cur + 1} / ${S.pages.length}쪽`;
+}
+function goToPage(i) {
+  const p = S.pages[clamp(i, 0, S.pages.length - 1)]; if (!p) return;
+  stage.scrollTo({ top: p.el.offsetTop - 16, behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth" });
+}
+
+/* ================================================================
+   Overlays: DOM sync & direct manipulation
+   ================================================================ */
+const overlayEls = new Map();
+const getOv = (id) => S.overlays.find((o) => o.id === id);
+function styleOverlay(o, n) {
+  if (!n) return;
+  const z = S.zoom;
+  n.style.left = `${o.x * z}px`; n.style.top = `${o.y * z}px`;
+  n.style.width = `${o.w * z}px`; n.style.height = `${o.h * z}px`;
+  n.style.transform = o.rot ? `rotate(${o.rot}deg)` : "";
+  n.style.opacity = o.opacity;
+}
+function syncOverlayCount() {
+  const counts = new Map(); for (const o of S.overlays) counts.set(o.page, (counts.get(o.page) || 0) + 1);
+  const n = S.overlays.length;
+  if (S.view === "editor") $("#st-items").textContent = n ? `서명·도장 ${n}개 · ${counts.size}쪽` : "";
+  return counts;
+}
+function syncOverlays(positionsOnly = false) {
+  const live = new Set(S.overlays.map((o) => o.id));
+  for (const [id, n] of overlayEls) if (!live.has(id)) { n.remove(); overlayEls.delete(id); }
+  for (const o of S.overlays) {
+    let n = overlayEls.get(o.id);
+    if (!n) {
+      n = el("div", { class: "ov", "data-id": o.id, "data-asset": o.assetId, role: "img", "aria-label": S.assets.get(o.assetId)?.name || "항목" }, el("img", { alt: "" }));
+      overlayEls.set(o.id, n); positionsOnly = false;
+    }
+    const layer = S.pages[o.page]?.layer;
+    if (layer && n.parentNode !== layer) layer.append(n);
+    styleOverlay(o, n);
+    if (!positionsOnly) {
+      const a = S.assets.get(o.assetId);
+      if (a) {
+        const key = fxKey(a, o.fx);
+        if (n.dataset.fx !== key) {
+          n.dataset.fx = key; const img = n.firstChild;
+          if (!img.src) img.src = a.src;
+          processed(a, o.fx).then((r) => { if (n.dataset.fx === key) img.src = r.url; });
+        }
+      }
+      const selected = o.id === S.sel;
+      n.classList.toggle("sel", selected);
+      if (selected && !n.querySelector(".h")) for (const k of ["tl", "tr", "bl", "br", "rot"]) n.append(el("div", { class: "h " + k, "data-h": k }));
+      if (!selected) n.querySelectorAll(".h").forEach((h) => h.remove());
+    }
+  }
+  if (!positionsOnly) {
+    const counts = syncOverlayCount();
+    for (const p of S.pages) {
+      const has = counts.has(p.i); const dot = p.thumb.querySelector(".dot");
+      if (has && !dot) p.thumb.firstChild.append(el("i", { class: "dot", title: "서명·도장 있음" }));
+      if (!has && dot) dot.remove();
+    }
+    $("#btn-export").disabled = !S.doc;
+  }
+}
+function select(id) { if (S.sel === id) return; S.sel = id; syncOverlays(); syncInspector(); }
+
+/* ---------- history (undo) + autosave ---------- */
+const snap = () => S.overlays.map((o) => ({ ...o, fx: { ...o.fx } }));
+const same = (a, b) => JSON.stringify(a) === JSON.stringify(b);
+function pushHistory(before) {
+  S.history.push(before); if (S.history.length > 150) S.history.shift();
+  S.future = []; syncUndo(); autosave();
+}
+function act(fn) {
+  const before = snap(); fn();
+  if (!same(before, S.overlays)) pushHistory(before);
+  syncOverlays(); syncInspector();
+}
+let gestureBefore = null;
+const beginGesture = () => { gestureBefore = snap(); };
+function endGesture() { if (gestureBefore && !same(gestureBefore, S.overlays)) pushHistory(gestureBefore); gestureBefore = null; }
+function undo() {
+  if (!S.history.length) return;
+  S.future.push(snap()); S.overlays = S.history.pop();
+  if (!getOv(S.sel)) S.sel = null;
+  syncOverlays(); syncInspector(); syncUndo(); autosave();
+}
+function redo() {
+  if (!S.future.length) return;
+  S.history.push(snap()); S.overlays = S.future.pop();
+  if (!getOv(S.sel)) S.sel = null;
+  syncOverlays(); syncInspector(); syncUndo(); autosave();
+}
+function syncUndo() { $("#btn-undo").disabled = !S.history.length; $("#btn-redo").disabled = !S.future.length; }
+
+/* ---------- placing ---------- */
+function defaultSize(a, page) {
+  const p = S.pages[page];
+  let w = a.lastW || (a.kind === "seal" ? 22 * PT_PER_MM : a.kind === "text" ? Math.min(p.w * 0.3, a.w * 0.22) : p.w * 0.24);
+  let h = (w * a.h) / a.w;
+  const maxH = p.h * 0.4, maxW = p.w * 0.9;
+  if (h > maxH) { h = maxH; w = (h * a.w) / a.h; }
+  if (w > maxW) { w = maxW; h = (w * a.h) / a.w; }
+  return { w, h };
+}
+function placeAsset(assetId, page = S.cur, at = null) {
+  let a = S.assets.get(assetId); const p = S.pages[page];
+  // example items are rebuilt on every launch; using one on a real document keeps a copy in the library
+  if (a?.sample && S.rec && p && S.view === "editor") {
+    const copy = { ...a, id: uid(), sample: false, created: Date.now() };
+    addToLibrary(copy); a = copy; assetId = copy.id;
+  }
+  if (!a || !p || S.view !== "editor") { if (!S.doc) toast("먼저 PDF를 열어 주세요."); return; }
+  const { w, h } = defaultSize(a, page);
+  let cx, cy;
+  if (at) { cx = at.x; cy = at.y; }
+  else {
+    const top = Math.max(stage.scrollTop, p.el.offsetTop), bottom = Math.min(stage.scrollTop + stage.clientHeight, p.el.offsetTop + p.el.offsetHeight);
+    cx = p.w / 2; cy = clamp(((top + bottom) / 2 - p.el.offsetTop) / S.zoom, h / 2, p.h - h / 2);
+  }
+  const o = { id: uid(), assetId, page, x: cx - w / 2, y: cy - h / 2, w, h, rot: 0, opacity: 1, fx: { removeBg: !!a.autoRemoveBg, ink: null } };
+  clampInside(o);
+  act(() => { S.overlays.push(o); S.sel = o.id; });
+  touchAsset(assetId, { lastUsed: Date.now() });
+  stage.focus({ preventScroll: true });
+}
+function clampInside(o) {
+  const p = S.pages[o.page]; if (!p) return;
+  const cx = clamp(o.x + o.w / 2, 0, p.w), cy = clamp(o.y + o.h / 2, 0, p.h);
+  o.x = cx - o.w / 2; o.y = cy - o.h / 2;
+}
+function pagePoint(p, clientX, clientY) {
+  const r = p.el.getBoundingClientRect();
+  return { x: (clientX - r.left) / S.zoom, y: (clientY - r.top) / S.zoom };
+}
+function pageUnderPointer(clientX, clientY) {
+  if (S.view !== "editor") return null;
+  for (const p of S.pages) {
+    const r = p.el.getBoundingClientRect();
+    if (clientY >= r.top - 11 && clientY <= r.bottom + 11 && clientX >= r.left - 40 && clientX <= r.right + 40) return p;
+  }
+  return null;
+}
+
+/* ---------- pointer interaction ---------- */
+let drag = null;
+const guides = { v: null, h: null, m: null };
+function showGuides(p, gx, gy) {
+  for (const [k, pos] of [["v", gx], ["h", gy]]) {
+    if (pos == null) { guides[k]?.remove(); guides[k] = null; continue; }
+    if (!guides[k]) guides[k] = el("div", { class: "guide " + k });
+    if (guides[k].parentNode !== p.layer) p.layer.append(guides[k]);
+    if (k === "v") guides[k].style.left = `${pos * S.zoom}px`; else guides[k].style.top = `${pos * S.zoom}px`;
+  }
+}
+function showMeasure(p, x, y, text) {
+  if (!guides.m) guides.m = el("div", { class: "measure" });
+  if (guides.m.parentNode !== p.layer) p.layer.append(guides.m);
+  guides.m.style.left = `${x * S.zoom}px`; guides.m.style.top = `${y * S.zoom}px`; guides.m.textContent = text;
+}
+const clearGuides = () => { for (const k of ["v", "h", "m"]) { guides[k]?.remove(); guides[k] = null; } };
+
+pagesEl.addEventListener("pointerdown", (e) => {
+  if (e.button !== 0) return;
+  const ovEl = e.target.closest(".ov");
+  if (!ovEl) { if (e.target.closest(".page")) select(null); return; }
+  const o = getOv(ovEl.dataset.id); if (!o) return;
+  e.preventDefault();
+  stage.focus({ preventScroll: true });
+  if (S.sel !== o.id) select(o.id);
+  const handle = e.target.dataset.h;
+  const pt = pagePoint(S.pages[o.page], e.clientX, e.clientY);
+  beginGesture();
+  drag = { id: o.id, mode: handle ? (handle === "rot" ? "rot" : "resize") : "move", handle, start: pt, o0: { ...o }, moved: false, pointerId: e.pointerId };
+  try { ovEl.setPointerCapture(e.pointerId); } catch {}
+  ovEl.classList.add("dragging");
+});
+pagesEl.addEventListener("pointermove", (e) => {
+  if (!drag || e.pointerId !== drag.pointerId) return;
+  const o = getOv(drag.id); if (!o) return;
+  let p = S.pages[o.page];
+  if (drag.mode === "move") {
+    const over = pageUnderPointer(e.clientX, e.clientY);
+    if (over && over.i !== o.page) {
+      const cur = pagePoint(p, e.clientX, e.clientY), np = pagePoint(over, e.clientX, e.clientY);
+      drag.start = { x: drag.start.x + (np.x - cur.x), y: drag.start.y + (np.y - cur.y) };
+      o.page = over.i; p = over; const n = overlayEls.get(o.id); if (n) p.layer.append(n);
+      drag.o0 = { ...drag.o0, page: o.page };
+    }
+    const pt = pagePoint(p, e.clientX, e.clientY);
+    let nx = drag.o0.x + (pt.x - drag.start.x), ny = drag.o0.y + (pt.y - drag.start.y);
+    if (!drag.moved && Math.hypot(pt.x - drag.start.x, pt.y - drag.start.y) * S.zoom < 2) return;
+    drag.moved = true;
+    let gx = null, gy = null;
+    if (!e.altKey && !o.rot) {
+      const tol = 6 / S.zoom;
+      let best = tol, sx = 0, sy = 0;
+      for (const line of [0, p.w / 2, p.w]) for (const f of [0, 0.5, 1]) { const d = line - (nx + o.w * f); if (Math.abs(d) < best) { best = Math.abs(d); gx = line; sx = d; } }
+      if (gx != null) nx += sx;
+      best = tol;
+      for (const line of [0, p.h / 2, p.h]) for (const f of [0, 0.5, 1]) { const d = line - (ny + o.h * f); if (Math.abs(d) < best) { best = Math.abs(d); gy = line; sy = d; } }
+      if (gy != null) ny += sy;
+    }
+    o.x = nx; o.y = ny; clampInside(o);
+    showGuides(p, gx, gy);
+    showMeasure(p, o.x + o.w / 2, o.y, `${fmtMM(o.x)} , ${fmtMM(o.y)} mm`);
+  } else if (drag.mode === "resize") {
+    const pt = pagePoint(p, e.clientX, e.clientY);
+    const t = (drag.o0.rot * Math.PI) / 180, c = Math.cos(t), s = Math.sin(t);
+    const sx = drag.handle.includes("r") ? 1 : -1, sy = drag.handle.includes("b") ? 1 : -1;
+    const o0 = drag.o0, cx0 = o0.x + o0.w / 2, cy0 = o0.y + o0.h / 2;
+    const ax = cx0 - sx * (o0.w / 2) * c + sy * (o0.h / 2) * s;
+    const ay = cy0 - sx * (o0.w / 2) * s - sy * (o0.h / 2) * c;
+    const dx = pt.x - ax, dy = pt.y - ay;
+    let lw = (dx * c + dy * s) * sx, lh = (-dx * s + dy * c) * sy;
+    if (!e.shiftKey) { const k = Math.max(lw / o0.w, lh / o0.h); lw = o0.w * k; lh = o0.h * k; }
+    lw = Math.max(MIN_PT, lw); lh = Math.max(MIN_PT, lh);
+    const ncx = ax + sx * (lw / 2) * c - sy * (lh / 2) * s, ncy = ay + sx * (lw / 2) * s + sy * (lh / 2) * c;
+    o.w = lw; o.h = lh; o.x = ncx - lw / 2; o.y = ncy - lh / 2;
+    drag.moved = true;
+    showMeasure(p, o.x + o.w / 2, o.y, `${fmtMM(o.w)} × ${fmtMM(o.h)} mm`);
+  } else if (drag.mode === "rot") {
+    const pt = pagePoint(p, e.clientX, e.clientY);
+    const cx = o.x + o.w / 2, cy = o.y + o.h / 2;
+    let deg = (Math.atan2(pt.y - cy, pt.x - cx) * 180) / Math.PI + 90;
+    if (e.shiftKey) deg = Math.round(deg / 15) * 15;
+    else for (const sd of [0, 90, 180, 270, 360, -90]) if (Math.abs(deg - sd) < 4) deg = sd;
+    deg = ((Math.round(deg) % 360) + 360) % 360;
+    o.rot = deg; drag.moved = true;
+    showMeasure(p, cx, o.y, `${deg}°`);
+  }
+  styleOverlay(o, overlayEls.get(o.id));
+});
+const endDrag = (e) => {
+  if (!drag || (e && e.pointerId !== drag.pointerId)) return;
+  overlayEls.get(drag.id)?.classList.remove("dragging");
+  const o = getOv(drag.id);
+  if (o && drag.mode === "resize" && drag.moved) touchAsset(o.assetId, { lastW: o.w });
+  drag = null; clearGuides(); endGesture();
+  syncOverlays(); syncInspector();
+};
+pagesEl.addEventListener("pointerup", endDrag);
+pagesEl.addEventListener("pointercancel", endDrag);
+
+/* ---------- zoom gestures ---------- */
+stage.addEventListener("wheel", (e) => {
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  setZoom(S.zoom * Math.exp(-e.deltaY * (e.deltaMode ? 0.05 : 0.0085)), { x: e.clientX, y: e.clientY });
+}, { passive: false });
+let resizeT = 0;
+new ResizeObserver(() => { clearTimeout(resizeT); resizeT = setTimeout(() => { if (S.view !== "editor" || !stage.clientWidth) return; if (S.fit) applyFit(); else scheduleRender(); }, 80); }).observe(stage);
+
+/* ================================================================
+   Library UI (editor side panel + home)
+   ================================================================ */
+function syncLibrary() {
+  const ids = libraryIds();
+  for (const lib of [$("#lib"), $("#home-lib")]) {
+    const onHome = lib.id === "home-lib";
+    lib.textContent = "";
+    for (const id of ids) {
+      const a = S.assets.get(id); if (!a) continue;
+      const nameSpan = el("span", { text: a.name, title: onHome && !a.sample ? "눌러서 이름 바꾸기" : a.name });
+      const tile = el(onHome ? "div" : "button", {
+        class: "tile", draggable: onHome ? null : "true", "data-id": id, tabindex: onHome ? "0" : null,
+        title: onHome ? a.name : `${a.name} — 눌러서 놓기, 끌어서 원하는 위치에 놓기`,
+        onclick: (e) => { if (!onHome && !e.target.closest(".tile-acts")) placeAsset(id); },
+        ondragstart: onHome ? null : (e) => { e.dataTransfer.setData("text/x-pdfe-asset", id); e.dataTransfer.effectAllowed = "copy"; },
+      },
+        el("div", { class: "art" }, el("img", { src: a.src, alt: "" })),
+        el("div", { class: "meta" }, nameSpan,
+          el("i", { class: "tag" + (a.kind === "seal" ? " seal" : "") + (a.sample ? " sample" : ""), text: a.sample ? "예시" : KIND_LABEL[a.kind] })),
+        a.sample ? null : el("div", { class: "tile-acts" },
+          el("span", { role: "button", tabindex: "0", title: "이름 바꾸기", "aria-label": `${a.name} 이름 바꾸기`, onclick: (e) => { e.stopPropagation(); startRename(nameSpan, id); } }, svgIcon(ICONS.pen)),
+          el("span", { class: "x", role: "button", tabindex: "0", title: "보관함에서 지우기", "aria-label": `${a.name} 지우기`, onclick: (e) => { e.stopPropagation(); hideFromLibrary(id); } }, "×")));
+      if (onHome && !a.sample) nameSpan.addEventListener("click", () => startRename(nameSpan, id));
+      lib.append(tile);
+    }
+  }
+  const mine = userAssets().filter((a) => !a.hidden).length;
+  for (const c of $$(".lib-count")) c.textContent = mine ? `${mine}개` : "예시";
+  for (const h of $$(".lib-hint")) h.hidden = !ids.length;
+}
+function startRename(span, id) {
+  const a = S.assets.get(id); if (!a) return;
+  const input = el("input", { value: a.name, maxlength: "40", "aria-label": "새 이름", style: "width:100%;min-width:0;border:1px solid var(--accent);border-radius:5px;padding:1px 4px;background:var(--surface)" });
+  span.replaceWith(input); input.focus(); input.select();
+  const done = (ok) => { if (ok) renameAsset(id, input.value); syncLibrary(); };
+  input.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") done(true); if (e.key === "Escape") done(false); });
+  input.addEventListener("blur", () => done(true), { once: true });
+  input.addEventListener("click", (e) => e.stopPropagation());
+}
+
+async function importImageSources(items, at = null) {
+  let first = null;
+  for (const it of items) {
+    try {
+      const a = await makeAssetFromSource(it.src, { kind: "image", name: stem(it.name || "이미지") || "이미지" });
+      await addToLibrary(a); first ??= a;
+    } catch { toast(`${it.name || "이미지"}를 읽을 수 없습니다.`, true); }
+  }
+  if (!first) return;
+  if (S.view === "editor" && S.pages.length) placeAsset(first.id, at ? at.page : S.cur, at);
+  else toast(`보관함에 ${items.length > 1 ? `${items.length}개를 ` : ""}추가했습니다. 문서를 열면 쪽 위에 놓을 수 있습니다.`);
+}
+async function importImageFiles(files, at = null) {
+  const items = [];
+  for (const f of files) {
+    if (!/^image\//.test(f.type)) continue;
+    if (f.size > 25 * 1048576) { toast(`${f.name}: 25MB보다 큰 이미지는 가져올 수 없습니다.`, true); continue; }
+    items.push({ name: f.name || "붙여넣은 이미지", src: await readFile(f, "url") });
+  }
+  return importImageSources(items, at);
+}
+
+/* ================================================================
+   Inspector
+   ================================================================ */
+function syncInspector() {
+  const box = $("#inspector"); box.textContent = "";
+  const o = getOv(S.sel);
+  if (!o) {
+    box.append(
+      el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: "선택 항목" })),
+      el("div", { class: "insp-empty" },
+        el("p", { class: "hint", style: "margin:0", text: S.overlays.length ? "문서 위의 서명이나 도장을 누르면 위치·크기·색을 다듬을 수 있습니다." : "보관함에서 서명이나 도장을 골라 문서에 놓아 보세요." }),
+        el("div", { class: "shortcuts" },
+          el("span", { class: "kbd", text: "⌘V" }), el("span", { text: "복사한 이미지 붙여넣기" }),
+          el("span", { class: "kbd", text: "⌘C ⌘V" }), el("span", { text: "고른 항목을 다른 쪽에 복사" }),
+          el("span", { class: "kbd", text: "⇧ 끌기" }), el("span", { text: "비율 무시하고 크기 조절" }),
+          el("span", { class: "kbd", text: "⌥ 끌기" }), el("span", { text: "맞춤선 끄고 옮기기" }),
+          el("span", { class: "kbd", text: "← →" }), el("span", { text: "이전 · 다음 쪽" }))));
+    return;
+  }
+  const a = S.assets.get(o.assetId);
+  const num = (key, label, unit, get, set) => {
+    const input = el("input", { id: "f-" + key, inputmode: "decimal", value: get(), "aria-label": label });
+    const commit = () => {
+      const v = parseFloat(input.value);
+      if (!Number.isFinite(v)) { input.value = get(); return; }
+      act(() => set(v));
+      if (key === "w" || key === "h") touchAsset(o.assetId, { lastW: o.w });
+    };
+    input.addEventListener("change", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { commit(); input.blur(); } if (e.key === "Escape") { input.value = get(); input.blur(); } e.stopPropagation(); });
+    return el("div", { class: "field" }, el("label", { for: "f-" + key, text: label }), input, el("span", { class: "unit", text: unit }));
+  };
+  const ratio = o.h / o.w;
+  const range = (id, label, min, max, val, fmt, onInput) => {
+    const input = el("input", { type: "range", id, min, max, value: val, "aria-label": label });
+    const out = el("span", { class: "val", text: fmt(val) });
+    input.addEventListener("pointerdown", beginGesture);
+    input.addEventListener("input", () => { out.textContent = fmt(+input.value); onInput(+input.value); });
+    input.addEventListener("change", () => { if (!gestureBefore) beginGesture(); endGesture(); syncInspector(); });
+    return el("div", { class: "row" }, el("span", { class: "lbl", text: label }), input, out);
+  };
+  const inkOk = canInk(a, o.fx);
+  const nameInput = a?.sample ? el("strong", { text: a.name }) : el("input", { id: "f-name", value: a?.name || "", maxlength: "40", "aria-label": "보관함 이름", title: "이름을 바꾸면 보관함에도 반영됩니다" });
+  if (nameInput.tagName === "INPUT") {
+    nameInput.addEventListener("change", () => renameAsset(o.assetId, nameInput.value));
+    nameInput.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") nameInput.blur(); });
+  }
+  box.append(...[
+    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: "선택 항목" }), el("span", { class: "hint", text: `${o.page + 1}쪽` })),
+    el("div", { class: "sel-head" },
+      el("div", { class: "art" }, el("img", { id: "insp-thumb", src: a?.src || "", alt: "" })),
+      el("div", { class: "nm" }, nameInput, el("span", { text: `${KIND_LABEL[a?.kind] || ""} · 원본 ${a?.w}×${a?.h}px` }))),
+    el("div", { class: "fields" },
+      num("x", "X", "mm", () => fmtMM(o.x), (v) => { o.x = v * PT_PER_MM; }),
+      num("y", "Y", "mm", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
+      num("w", "W", "mm", () => fmtMM(o.w), (v) => { const w = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.w = w; o.h = w * ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; }),
+      num("h", "H", "mm", () => fmtMM(o.h), (v) => { const h = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.h = h; o.w = h / ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; })),
+    range("f-rot", "회전", 0, 359, o.rot, (v) => `${v}°`, (v) => { o.rot = v; styleOverlay(o, overlayEls.get(o.id)); }),
+    range("f-op", "불투명도", 10, 100, Math.round(o.opacity * 100), (v) => `${v}%`, (v) => { o.opacity = v / 100; styleOverlay(o, overlayEls.get(o.id)); }),
+    a?.kind === "image" && !a.hasAlpha ? el("div", { class: "row" }, el("span", { class: "lbl", text: "배경" }),
+      el("label", { class: "toggle" }, el("input", { type: "checkbox", id: "f-bg", checked: o.fx.removeBg, onchange: (e) => act(() => { o.fx.removeBg = e.target.checked; if (!canInk(a, o.fx)) o.fx.ink = null; }) }), "흰 종이 배경 지우기")) : null,
+    el("div", { class: "row" }, el("span", { class: "lbl", text: "잉크 색" }),
+      el("div", { class: "swatches" }, ...INKS.map((ink) => el("button", {
+        class: "sw", type: "button", "aria-pressed": String((o.fx.ink || null) === ink.key), disabled: !inkOk && ink.key ? true : null,
+        title: !inkOk && ink.key ? "배경을 지운 뒤에 색을 바꿀 수 있습니다" : `${ink.name} 잉크`,
+        onclick: () => act(() => { o.fx.ink = ink.key; }),
+      }, ink.color ? el("i", { style: `background:${ink.color}` }) : null, ink.name)))),
+    el("div", { class: "actions" },
+      el("button", { class: "btn", type: "button", onclick: duplicateSel, title: "⌘D" }, icon("copy"), "복제"),
+      el("button", { class: "btn", type: "button", onclick: () => centerSel(), title: "쪽 가운데로" }, icon("center"), "가운데로"),
+      el("button", { class: "btn wide", type: "button", onclick: applyToAllPages, disabled: S.pages.length < 2 }, icon("pages"), "모든 쪽의 같은 위치에 넣기"),
+      el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: "⌫" }, icon("trash"), "문서에서 지우기")),
+  ].filter(Boolean));
+  processed(a, o.fx).then((r) => { const t = $("#insp-thumb"); if (t && S.sel === o.id) t.src = r.url; });
+}
+
+/* ---------- commands on the selection ---------- */
+function duplicateSel() {
+  const o = getOv(S.sel); if (!o) return;
+  const n = { ...o, id: uid(), fx: { ...o.fx }, x: o.x + 10, y: o.y + 10 }; clampInside(n);
+  act(() => { S.overlays.push(n); S.sel = n.id; });
+}
+function deleteSel() { if (!S.sel) return; act(() => { S.overlays = S.overlays.filter((o) => o.id !== S.sel); S.sel = null; }); }
+function centerSel() { const o = getOv(S.sel); if (!o) return; const p = S.pages[o.page]; act(() => { o.x = (p.w - o.w) / 2; o.y = (p.h - o.h) / 2; }); }
+function applyToAllPages() {
+  const o = getOv(S.sel); if (!o) return; const p0 = S.pages[o.page];
+  let added = 0;
+  act(() => {
+    for (const p of S.pages) {
+      if (p.i === o.page) continue;
+      if (S.overlays.some((x) => x.page === p.i && x.assetId === o.assetId && Math.abs(x.x - o.x) < 1 && Math.abs(x.y - o.y) < 1)) continue;
+      const fx = (o.x + o.w / 2) / p0.w, fy = (o.y + o.h / 2) / p0.h;
+      S.overlays.push({ ...o, id: uid(), page: p.i, fx: { ...o.fx }, x: fx * p.w - o.w / 2, y: fy * p.h - o.h / 2 }); added++;
+    }
+  });
+  toast(added ? `${added}개 쪽에 같은 위치로 넣었습니다. ⌘Z로 되돌릴 수 있습니다.` : "모든 쪽에 이미 들어가 있습니다.");
+}
+function nudge(dx, dy) {
+  const o = getOv(S.sel); if (!o) return false;
+  if (!gestureBefore) beginGesture();
+  o.x += dx; o.y += dy; clampInside(o); styleOverlay(o, overlayEls.get(o.id));
+  clearTimeout(nudge.t); nudge.t = setTimeout(() => { endGesture(); syncInspector(); }, 400);
+  return true;
+}
+
+/* ================================================================
+   Building the signed PDF & the save dialog
+   ================================================================ */
+let downloadsApi;
+async function getDownloads() {
+  if (downloadsApi !== undefined) return downloadsApi;
+  try { downloadsApi = window.claude?.use ? await window.claude.use("downloads") : null; } catch { downloadsApi = null; }
+  return downloadsApi;
+}
+async function buildPdf() {
+  const { PDFDocument, degrees } = window.PDFLib;
+  let out;
+  try { out = await PDFDocument.load(S.doc.bytes, { updateMetadata: false }); }
+  catch (e) {
+    if (/encrypt/i.test(String(e?.message))) throw new Error("이 PDF는 편집이 제한(암호화)되어 있어 저장할 수 없습니다.");
+    throw new Error("이 PDF는 구조가 특이해서 저장할 수 없습니다.");
+  }
+  const embedded = new Map(); const pages = out.getPages();
+  for (const o of S.overlays) {
+    const a = S.assets.get(o.assetId); const p = S.pages[o.page]; if (!a || !p) continue;
+    const key = fxKey(a, o.fx);
+    if (!embedded.has(key)) {
+      const r = await processed(a, o.fx);
+      let img;
+      if (r.plain && a.mime === "image/jpeg") img = await out.embedJpg(dataURLBytes(a.src));
+      else if (r.plain) img = await out.embedPng(dataURLBytes(a.src));
+      else img = await out.embedPng(new Uint8Array(await r.blob.arrayBuffer()));
+      embedded.set(key, img);
+    }
+    // overlay box is in the page's displayed (rotated) space, y down; map its centre into PDF user space
+    const [pcx, pcy] = p.vp.convertToPdfPoint(o.x + o.w / 2, o.y + o.h / 2);
+    const theta = (((p.pg.rotate || 0) - o.rot) * Math.PI) / 180;
+    const c = Math.cos(theta), s = Math.sin(theta);
+    pages[o.page].drawImage(embedded.get(key), {
+      x: pcx + (-o.w / 2) * c - (-o.h / 2) * s, y: pcy + (-o.w / 2) * s + (-o.h / 2) * c,
+      width: o.w, height: o.h, rotate: degrees((theta * 180) / Math.PI), opacity: o.opacity,
+    });
+  }
+  return out.save({ useObjectStreams: true });
+}
+const cleanName = (s) => s.replace(/[\/\\:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/\.pdf$/i, "").slice(0, 180);
+const saveState = { dir: null };
+let saveCheckToken = 0;
+async function checkSaveTarget() {
+  const msg = $("#save-msg"), ok = $("#save-ok");
+  const name = cleanName($("#save-name").value);
+  msg.className = "save-msg"; msg.textContent = ""; ok.textContent = "저장"; ok.disabled = !name;
+  if (!name || !S.fs || !saveState.dir) return;
+  const target = joinPath(saveState.dir, name + ".pdf"); const token = ++saveCheckToken;
+  if (S.rec?.source?.path && target === S.rec.source.path) { msg.className = "save-msg warn"; msg.textContent = "원본과 같은 이름입니다. 원본을 지키려면 다른 이름을 쓰세요."; ok.disabled = true; return; }
+  let exists = false; try { exists = await S.fs.exists(target); } catch {}
+  if (token !== saveCheckToken || !exists) return;
+  msg.className = "save-msg warn"; ok.textContent = "덮어쓰기";
+  const mine = S.rec?.export?.path === target;
+  const state = mine ? await fileStateOf(S.rec.export) : null;
+  if (token !== saveCheckToken) return;
+  msg.textContent = state === "changed" ? "이 파일은 마지막으로 저장한 뒤 앱 밖에서 수정되었습니다. 덮어쓰면 그 수정 내용이 사라집니다. 다른 이름을 권합니다."
+    : mine ? "지난번에 저장한 파일입니다. 저장하면 지금 작업 내용으로 바뀝니다."
+    : "앱이 만들지 않은 같은 이름의 파일이 있습니다. 저장하면 그 파일을 덮어씁니다.";
+}
+const checkSaveTargetSoon = debounce(checkSaveTarget, 200);
+function openSaveDialog() {
+  if (!S.doc || S.view !== "editor") return;
+  if (!S.overlays.length) { toast("아직 놓은 서명·도장이 없습니다. 오른쪽 서명·도장 패널에서 골라 문서에 놓아 주세요."); return; }
+  const base = S.doc.isSample ? "예시_용역계약서" : stem(S.doc.name);
+  $("#save-name").value = S.rec?.export?.name ? stem(S.rec.export.name) : `${base}_서명`;
+  saveState.dir = !S.fs ? null : S.rec?.export?.path ? dirname(S.rec.export.path) : S.rec?.source?.path ? dirname(S.rec.source.path) : S.prefs.lastDir.save || "~/Downloads";
+  $("#save-dir-wrap").hidden = !S.fs;
+  $("#save-dir").textContent = saveState.dir ? prettyDir(saveState.dir) : "";
+  $("#save-dir").title = saveState.dir || "";
+  $("#save-open").checked = !!S.prefs.openAfterSave;
+  $("#dlg-save").showModal();
+  const inp = $("#save-name"); inp.focus(); inp.select();
+  checkSaveTarget();
+}
+$("#save-name").addEventListener("input", checkSaveTargetSoon);
+$("#save-dir-btn").addEventListener("click", async () => {
+  const picked = await browse({ kind: "folder", title: "저장할 폴더 고르기", start: saveState.dir });
+  if (!picked?.length) return;
+  saveState.dir = picked[0]; $("#save-dir").textContent = prettyDir(saveState.dir); $("#save-dir").title = saveState.dir;
+  S.prefs.lastDir.save = saveState.dir; persistPrefs(); checkSaveTarget();
+});
+$("#save-form").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = cleanName($("#save-name").value); if (!name) return;
+  const fileName = name + ".pdf";
+  if (S.fs) { S.prefs.openAfterSave = $("#save-open").checked; persistPrefs(); }
+  $("#dlg-save").close();
+  await performSave(fileName, saveState.dir, S.fs && $("#save-open").checked);
+});
+let saving = false;
+async function performSave(fileName, dir, openAfter) {
+  if (saving) return; saving = true;
+  const btn = $("#btn-export"); const label = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="spinner"></span><span>저장 중…</span>';
+  try {
+    const bytes = await buildPdf();
+    window.__pdfeLastExport = bytes;
+    let savedPath = null, fp = null;
+    if (S.fs && dir) {
+      savedPath = joinPath(dir, fileName);
+      await S.fs.writeFile(savedPath, bytes);
+      fp = await fingerprintPath(savedPath, bytes);
+      S.prefs.lastDir.save = dir; persistPrefs();
+      toast(`저장했습니다: ${fileName}`, { actions: [{ label: "열기", fn: () => openPath(savedPath) }, { label: "Finder에서 보기", fn: () => revealPath(savedPath) }] });
+      if (openAfter) openPath(savedPath);
+    } else {
+      const dl = await getDownloads();
+      if (dl) await dl.save({ filename: fileName, data: new Blob([bytes], { type: "application/pdf" }) });
+      else {
+        const a = el("a", { href: URL.createObjectURL(new Blob([bytes], { type: "application/pdf" })), download: fileName });
+        document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+      }
+      toast(`저장했습니다: ${fileName}`);
+    }
+    if (S.rec) {
+      // the saved file is an output only: the app keeps a fingerprint to notice later edits in Finder, never reads it back
+      autosave.flush();
+      const at = Date.now();
+      S.rec.overlays = snap();
+      S.rec.export = fp ? { ...fp, name: fileName, at } : { path: null, name: fileName, at, size: bytes.length, hash: await hashBytes(bytes) };
+      S.rec.exportedOverlays = snap();
+      S.rec.exportLog = [...(S.rec.exportLog || []), { name: fileName, path: savedPath, at }].slice(-20);
+      fileChecks.set(S.rec.id, { ...(fileChecks.get(S.rec.id) || {}), file: fp ? "same" : "unknown" });
+      persistDocs();
+    }
+    syncDocTitle(); syncDocBar();
+  } catch (e) {
+    const code = e?.code;
+    if (code === "declined") toast("저장을 취소했습니다.");
+    else if (code === "rate_limited") toast("저장 창이 이미 열려 있습니다. 잠시 뒤 다시 시도해 주세요.");
+    else if (/^EACCES|^EPERM/.test(String(e?.message))) toast("이 폴더에는 저장할 수 없습니다. 다른 폴더를 골라 주세요.", true);
+    else toast(e?.message && !code ? e.message : "저장하지 못했습니다. 다시 시도해 주세요.", true);
+  } finally { saving = false; btn.innerHTML = label; btn.disabled = !S.doc; }
+}
+const openPath = (p) => S.shell?.openPath(p).catch(() => toast("파일을 열지 못했습니다.", true));
+const revealPath = (p) => S.shell?.showItemInFolder(p).catch(() => toast("Finder에서 보여 주지 못했습니다.", true));
+
+/* ================================================================
+   In-app file browser (installed app with file access): remembers folders per kind
+   ================================================================ */
+const FB = { kind: "pdf", dir: "~", items: [], sel: new Set(), cursor: -1, anchor: -1, resolve: null, filter: "", previewUrl: null, loadToken: 0, places: null };
+// Finder hides ~/Library and shows the standard home folders under their Korean names
+const HIDDEN_AT_HOME = new Set(["Library", "Applications", "Public"]);
+const KO_FOLDER = { Desktop: "데스크탑", Documents: "문서", Downloads: "다운로드", Pictures: "사진", Movies: "동영상", Music: "음악" };
+const folderLabel = (dir, name) => (dir === "~" && KO_FOLDER[name]) || name;
+const FB_TEXT = { pdf: ["새 PDF 열기", "열기"], image: ["이미지 가져오기", "가져오기"], folder: ["폴더 고르기", "이 폴더 선택"] };
+async function basePlaces() {
+  if (FB.places) return FB.places;
+  const list = [
+    { label: "홈", path: "~", ic: "home" }, { label: "데스크탑", path: "~/Desktop", ic: "desktop" },
+    { label: "문서", path: "~/Documents", ic: "doc" }, { label: "다운로드", path: "~/Downloads", ic: "download" },
+    { label: "iCloud Drive", path: "~/Library/Mobile Documents/com~apple~CloudDocs", ic: "cloud", check: true },
+    { label: "외장 디스크", path: "/Volumes", ic: "drive", check: true },
+  ];
+  FB.places = [];
+  for (const p of list) { if (p.check && !(await S.fs.exists(p.path).catch(() => false))) continue; FB.places.push(p); }
+  return FB.places;
+}
+async function browse({ kind, title, start = null, multiple = false }) {
+  if (!S.fs) return null;
+  if (S.desktop?.dialog) return nativeBrowse({ kind, title, start, multiple });
+  FB.kind = kind; FB.multiple = multiple; FB.filter = ""; $("#fb-filter").value = "";
+  const [t, okLabel] = FB_TEXT[kind];
+  $("#fb-title").textContent = title || t; $("#fb-ok").textContent = okLabel;
+  $("#fb").classList.toggle("with-preview", kind === "image"); $("#fb-preview").hidden = kind !== "image";
+  let dir = start || S.prefs.lastDir[kind] || (kind === "image" ? "~/Desktop" : kind === "folder" ? S.prefs.lastDir.save || "~/Documents" : "~/Documents");
+  if (!(await S.fs.exists(dir).catch(() => false))) dir = "~";
+  await basePlaces();
+  const dlg = $("#dlg-files");
+  if (!dlg.open) dlg.showModal();
+  await fbLoad(dir);
+  $("#fb-list").focus();
+  return new Promise((res) => { FB.resolve = res; });
+}
+// the standalone app (Mac and Windows) uses the system's own open panel instead of the in-app browser
+async function nativeBrowse({ kind, title, start, multiple }) {
+  const fallback = kind === "image" ? "~/Desktop" : kind === "folder" ? S.prefs.lastDir.save || "~/Documents" : "~/Documents";
+  let from = start || S.prefs.lastDir[kind] || fallback;
+  if (!(await S.fs.exists(from).catch(() => false))) from = "~";
+  let picked = null;
+  try { picked = await S.desktop.dialog.open({ kind, title: title || FB_TEXT[kind][0], start: from, multiple }); } catch { picked = null; }
+  if (!picked?.length) return null;
+  const dir = kind === "folder" ? picked[0] : dirname(picked[0]);
+  S.prefs.lastDir[kind] = dir;
+  S.prefs.recentDirs = [dir, ...S.prefs.recentDirs.filter((d) => d !== dir)].slice(0, 6); persistPrefs();
+  return picked;
+}
+$("#dlg-files").addEventListener("close", () => { const r = FB.resolve; FB.resolve = null; r?.(null); fbPreview(null); });
+function fbFinish(paths) {
+  const r = FB.resolve; FB.resolve = null;
+  S.prefs.lastDir[FB.kind] = FB.dir;
+  S.prefs.recentDirs = [FB.dir, ...S.prefs.recentDirs.filter((d) => d !== FB.dir)].slice(0, 6); persistPrefs();
+  $("#dlg-files").close(); r?.(paths);
+}
+const matchKind = (name) => FB.kind === "pdf" ? RE_PDF.test(name) : FB.kind === "image" ? RE_IMG.test(name) : false;
+async function fbLoad(dir) {
+  const token = ++FB.loadToken;
+  FB.dir = dir; FB.sel.clear(); FB.cursor = -1; FB.anchor = -1; FB.items = [];
+  const list = $("#fb-list"); list.textContent = ""; list.append(el("div", { class: "fb-note", text: "불러오는 중…" }));
+  fbRenderChrome();
+  let ents;
+  try { ents = await S.fs.readdir(dir); }
+  catch (e) { if (token !== FB.loadToken) return; list.textContent = ""; list.append(el("div", { class: "fb-note", text: /EACCES|EPERM/.test(String(e?.message)) ? "이 폴더는 열어 볼 권한이 없습니다." : "이 폴더를 열 수 없습니다." })); return; }
+  if (token !== FB.loadToken) return;
+  ents = ents.filter((e) => !e.name.startsWith(".") && !/\.(app|photoslibrary|pkg)$/i.test(e.name) && !(dir === "~" && HIDDEN_AT_HOME.has(e.name)));
+  const folders = ents.filter((e) => e.isDirectory || (e.isSymbolicLink && !/\.[a-z0-9]{2,5}$/i.test(e.name))).map((e) => ({ name: e.name, folder: true }));
+  for (const f of folders) f.label = folderLabel(dir, f.name);
+  folders.sort((a, b) => a.label.localeCompare(b.label, "ko"));
+  const files = FB.kind === "folder" ? [] : ents.filter((e) => (e.isFile || e.isSymbolicLink) && matchKind(e.name)).map((e) => ({ name: e.name, folder: false }));
+  await mapLimit(files.slice(0, 600), 16, async (f) => { const st = await S.fs.stat(joinPath(dir, f.name)); f.size = st.size; f.mtime = st.mtimeMs; });
+  if (token !== FB.loadToken) return;
+  files.sort((a, b) => (b.mtime || 0) - (a.mtime || 0));
+  FB.items = [...folders, ...files];
+  fbRenderList();
+}
+function fbRenderChrome() {
+  const places = $("#fb-places"); places.textContent = "";
+  places.append(el("div", { class: "cap", text: "위치" }));
+  const placeBtn = (label, path, ic) => el("button", { type: "button", title: path, "aria-current": String(FB.dir === path), onclick: () => fbLoad(path) }, icon(ic), el("span", { text: label }));
+  for (const p of FB.places || []) places.append(placeBtn(p.label, p.path, p.ic));
+  const fixed = new Set((FB.places || []).map((p) => p.path));
+  const recent = (S.prefs.recentDirs || []).filter((d) => !fixed.has(d));
+  if (recent.length) { places.append(el("div", { class: "cap", text: "최근 폴더" })); for (const d of recent) places.append(placeBtn(basename(d) || d, d, "clock")); }
+  const crumbs = $("#fb-crumbs"); crumbs.textContent = "";
+  const parts = FB.dir === "~" ? ["~"] : FB.dir.startsWith("~/") ? ["~", ...FB.dir.slice(2).split("/")] : ["/", ...FB.dir.slice(1).split("/").filter(Boolean)];
+  parts.forEach((seg, i) => {
+    const path = parts[0] === "~" ? (i === 0 ? "~" : "~/" + parts.slice(1, i + 1).join("/")) : (i === 0 ? "/" : "/" + parts.slice(1, i + 1).join("/"));
+    if (i) crumbs.append(el("i", { text: "›" }));
+    crumbs.append(el("button", { type: "button", text: seg === "~" ? "홈" : seg === "/" ? "컴퓨터" : i === 1 && parts[0] === "~" ? folderLabel("~", seg) : seg, onclick: () => fbLoad(path) }));
+  });
+  requestAnimationFrame(() => { crumbs.scrollLeft = crumbs.scrollWidth; });
+  $("#fb-up").disabled = FB.dir === "~" || FB.dir === "/";
+}
+// a file in the image picker previews on selection; avoid re-reading it on every keypress
+let lastPreviewPath = null;
+const fbVisible = () => FB.items.map((it, i) => ({ it, i })).filter(({ it }) => !FB.filter || it.name.toLowerCase().includes(FB.filter));
+function fbRenderList() {
+  const list = $("#fb-list"); list.textContent = "";
+  const vis = fbVisible();
+  if (!vis.length) list.append(el("div", { class: "fb-note", text: FB.filter ? "찾는 이름이 없습니다." : FB.kind === "folder" ? "하위 폴더가 없습니다. 이 폴더를 그대로 고를 수 있습니다." : FB.kind === "pdf" ? "이 폴더에는 PDF가 없습니다." : "이 폴더에는 이미지가 없습니다." }));
+  for (const { it, i } of vis) {
+    const row = el("div", { class: "fb-row " + (it.folder ? "folder" : "file") + (i === FB.cursor ? " cursor" : ""), role: "option", "aria-selected": String(FB.sel.has(i)), "data-i": i, title: it.name },
+      icon(it.folder ? "folder" : FB.kind === "image" ? "image" : "file"),
+      el("span", { class: "nm", text: it.label || it.name }),
+      el("span", { class: "dt", text: it.folder ? "" : relTime(it.mtime) }),
+      el("span", { class: "sz", text: it.folder ? "폴더" : fmtBytes(it.size) }));
+    list.append(row);
+  }
+  fbSyncFooter();
+}
+// selection changes restyle the existing rows: rebuilding them would swallow double-clicks
+function fbUpdateSelection() {
+  for (const row of $$("#fb-list .fb-row")) {
+    const i = +row.dataset.i;
+    row.setAttribute("aria-selected", String(FB.sel.has(i)));
+    row.classList.toggle("cursor", i === FB.cursor);
+  }
+  fbSyncFooter();
+}
+function fbSyncFooter() {
+  const files = [...FB.sel].map((i) => FB.items[i]).filter((it) => it && !it.folder);
+  $("#fb-ok").disabled = FB.kind === "folder" ? false : files.length === 0;
+  const nFiles = FB.items.filter((it) => !it.folder).length;
+  $("#fb-status").textContent = FB.kind === "folder" ? `선택: ${prettyDir(FB.dir)}`
+    : files.length > 1 ? `${files.length}개 선택` : files.length === 1 ? files[0].name : `${FB.kind === "pdf" ? "PDF" : "이미지"} ${nFiles}개`;
+  if (FB.kind === "image") { const p = files.length === 1 ? joinPath(FB.dir, files[0].name) : null; if (p !== lastPreviewPath) fbPreview(p); }
+}
+async function fbPreview(path) {
+  lastPreviewPath = path;
+  if (FB.previewUrl) { URL.revokeObjectURL(FB.previewUrl); FB.previewUrl = null; }
+  const img = $("#fb-preview-img"); img.removeAttribute("src"); $("#fb-preview-name").textContent = path ? basename(path) : "이미지를 고르면 여기에 미리 보입니다.";
+  if (!path) return;
+  try { const bytes = await S.fs.readFile(path); FB.previewUrl = URL.createObjectURL(new Blob([bytes], { type: mimeOf(path) })); img.src = FB.previewUrl; } catch {}
+}
+function fbActivate(i) {
+  const it = FB.items[i]; if (!it) return;
+  if (it.folder) { fbLoad(joinPath(FB.dir, it.name)); return; }
+  if (!FB.sel.has(i)) { FB.sel = new Set([i]); FB.cursor = i; }
+  fbChoose();
+}
+function fbChoose() {
+  if (FB.kind === "folder") {
+    const sel = [...FB.sel].map((i) => FB.items[i]).find((it) => it?.folder);
+    fbFinish([sel ? joinPath(FB.dir, sel.name) : FB.dir]); return;
+  }
+  const files = [...FB.sel].sort((a, b) => a - b).map((i) => FB.items[i]).filter((it) => it && !it.folder);
+  if (files.length) fbFinish(files.map((f) => joinPath(FB.dir, f.name)));
+}
+$("#fb-list").addEventListener("click", (e) => {
+  const row = e.target.closest(".fb-row"); if (!row) return;
+  const i = +row.dataset.i;
+  if (FB.multiple && (e.metaKey || e.ctrlKey)) { FB.sel.has(i) ? FB.sel.delete(i) : FB.sel.add(i); FB.anchor = i; }
+  else if (FB.multiple && e.shiftKey && FB.anchor >= 0) { const vis = fbVisible().map((v) => v.i); const a = vis.indexOf(FB.anchor), b = vis.indexOf(i); FB.sel = new Set(vis.slice(Math.min(a, b), Math.max(a, b) + 1)); }
+  else { FB.sel = new Set([i]); FB.anchor = i; }
+  FB.cursor = i; fbUpdateSelection();
+});
+$("#fb-list").addEventListener("dblclick", (e) => { const row = e.target.closest(".fb-row"); if (row) fbActivate(+row.dataset.i); });
+$("#fb-list").addEventListener("keydown", (e) => {
+  const vis = fbVisible().map((v) => v.i);
+  if (e.key === "ArrowDown" || e.key === "ArrowUp") {
+    if (e.metaKey && e.key === "ArrowUp") { e.preventDefault(); if (!$("#fb-up").disabled) fbLoad(dirname(FB.dir)); return; }
+    if (e.metaKey && e.key === "ArrowDown") { e.preventDefault(); if (FB.cursor >= 0) fbActivate(FB.cursor); return; }
+    e.preventDefault(); if (!vis.length) return;
+    let k = vis.indexOf(FB.cursor); k = clamp(k + (e.key === "ArrowDown" ? 1 : -1), 0, vis.length - 1);
+    FB.cursor = vis[k]; if (!(FB.multiple && e.shiftKey)) { FB.sel = new Set([FB.cursor]); FB.anchor = FB.cursor; } else FB.sel.add(FB.cursor);
+    fbUpdateSelection(); $(`.fb-row[data-i="${FB.cursor}"]`)?.scrollIntoView({ block: "nearest" });
+  } else if (e.key === "Enter") { e.preventDefault(); if (FB.cursor >= 0) fbActivate(FB.cursor); else if (FB.kind === "folder") fbChoose(); }
+  else if (e.key === "Backspace") { e.preventDefault(); if (!$("#fb-up").disabled) fbLoad(dirname(FB.dir)); }
+  else if (e.key.length === 1 && !e.metaKey && !e.ctrlKey) { $("#fb-filter").focus(); }
+});
+$("#fb-filter").addEventListener("input", (e) => { FB.filter = e.target.value.trim().toLowerCase(); FB.sel.clear(); FB.cursor = fbVisible()[0]?.i ?? -1; if (FB.cursor >= 0 && !FB.items[FB.cursor].folder) FB.sel.add(FB.cursor); fbRenderList(); });
+$("#fb-filter").addEventListener("keydown", (e) => { if (e.key === "ArrowDown") { e.preventDefault(); $("#fb-list").focus(); } if (e.key === "Enter") { e.preventDefault(); if (FB.cursor >= 0) fbActivate(FB.cursor); } });
+$("#fb-up").addEventListener("click", () => fbLoad(dirname(FB.dir)));
+$("#fb-ok").addEventListener("click", fbChoose);
+
+/* ================================================================
+   Opening files: in-app browser with file access, system picker otherwise
+   ================================================================ */
+async function openPdfPath(path) {
+  try {
+    const st = await S.fs.stat(path).catch(() => null);
+    if (st?.size > 300 * 1048576) { toast("300MB보다 큰 PDF는 열 수 없습니다.", true); return; }
+    const bytes = await S.fs.readFile(path);
+    await openPdfBytes(new Uint8Array(bytes), basename(path), { path, stat: st ? { size: st.size, mtime: st.mtimeMs } : null });
+  } catch { toast(`${basename(path)}을 읽지 못했습니다.`, true); }
+}
+async function choosePdf() {
+  if (S.fs) {
+    const picked = await browse({ kind: "pdf" });
+    if (picked?.length) await openPdfPath(picked[0]);
+    return;
+  }
+  const inp = $("#file-pdf"); inp.value = ""; inp.click();
+  if (S.desktop?.window && !navigator.userActivation?.isActive) toast("‘새 PDF 열기’ 버튼을 눌러 파일을 고르세요.");
+}
+async function chooseImages() {
+  if (S.fs) {
+    const picked = await browse({ kind: "image", multiple: true });
+    if (!picked?.length) return;
+    const items = [];
+    for (const p of picked) { try { items.push({ name: basename(p), src: await bytesToDataURL(await S.fs.readFile(p), mimeOf(p)) }); } catch { toast(`${basename(p)}을 읽지 못했습니다.`, true); } }
+    return importImageSources(items);
+  }
+  const i = $("#file-img"); i.value = ""; i.click();
+}
+async function openPdfFile(f) {
+  if (!f) return;
+  if (f.size > 300 * 1048576) { toast("300MB보다 큰 PDF는 열 수 없습니다.", true); return; }
+  await openPdfBytes(new Uint8Array(await readFile(f, "buffer")), f.name || "문서.pdf");
+}
+$("#file-pdf").addEventListener("change", (e) => openPdfFile(e.target.files[0]));
+$("#file-img").addEventListener("change", (e) => importImageFiles([...e.target.files]));
+
+let dragDepth = 0;
+const hasFiles = (e) => [...(e.dataTransfer?.types || [])].includes("Files");
+const isAssetDrag = (e) => [...(e.dataTransfer?.types || [])].includes("text/x-pdfe-asset");
+window.addEventListener("dragenter", (e) => {
+  if (!hasFiles(e) && !isAssetDrag(e)) return;
+  e.preventDefault(); dragDepth++;
+  if (hasFiles(e)) { $("#drop-msg").textContent = S.view === "editor" ? "PDF는 열고, 이미지는 놓은 자리에 붙입니다" : "PDF는 열고, 이미지는 보관함에 넣습니다"; $("#drop-veil").hidden = false; }
+});
+window.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("#drop-veil").hidden = true; } });
+window.addEventListener("dragover", (e) => { if (hasFiles(e) || isAssetDrag(e)) { e.preventDefault(); e.dataTransfer.dropEffect = "copy"; } });
+window.addEventListener("drop", async (e) => {
+  if (!hasFiles(e) && !isAssetDrag(e)) return;
+  e.preventDefault(); dragDepth = 0; $("#drop-veil").hidden = true;
+  const p = pageUnderPointer(e.clientX, e.clientY);
+  const at = p ? { page: p.i, ...pagePoint(p, e.clientX, e.clientY) } : null;
+  const assetId = e.dataTransfer.getData("text/x-pdfe-asset");
+  if (assetId) { if (at) placeAsset(assetId, at.page, at); else placeAsset(assetId); return; }
+  const files = [...e.dataTransfer.files];
+  const pdf = files.find((f) => f.type === "application/pdf" || RE_PDF.test(f.name));
+  // the standalone app knows where a dropped file lives, so it is tracked like a picked one
+  let pdfPath = null; if (pdf && S.fs && S.desktop?.pathForFile) { try { pdfPath = S.desktop.pathForFile(pdf); } catch {} }
+  if (pdfPath) await openPdfPath(pdfPath); else if (pdf) await openPdfFile(pdf);
+  const imgs = files.filter((f) => /^image\//.test(f.type));
+  if (imgs.length) await importImageFiles(imgs, pdf ? null : at);
+});
+window.addEventListener("paste", (e) => {
+  if (e.target.closest?.("input, textarea") || document.querySelector("dialog[open]")) return;
+  const files = [...(e.clipboardData?.files || [])].filter((f) => /^image\//.test(f.type));
+  if (files.length) { e.preventDefault(); importImageFiles(files); return; }
+  if (S.clip && S.pages.length && S.view === "editor") {
+    e.preventDefault();
+    const n = { ...S.clip, id: uid(), fx: { ...S.clip.fx }, page: S.cur };
+    if (S.overlays.some((x) => x.page === n.page && Math.abs(x.x - n.x) < 1 && Math.abs(x.y - n.y) < 1)) { n.x += 10; n.y += 10; }
+    clampInside(n); act(() => { S.overlays.push(n); S.sel = n.id; }); S.clip = { ...n };
+  }
+});
+window.addEventListener("copy", (e) => {
+  if (e.target.closest?.("input, textarea") || !S.sel || S.view !== "editor") return;
+  S.clip = { ...getOv(S.sel) }; e.preventDefault(); toast("복사했습니다. 다른 쪽으로 가서 ⌘V로 붙여넣으세요.", { ms: 2200 });
+});
+
+/* ================================================================
+   Keyboard
+   ================================================================ */
+const COMMANDS = {
+  home: showHome, open: choosePdf, addImage: chooseImages, export: openSaveDialog, undo, redo,
+  zoomIn: () => setZoom(S.zoom * 1.2), zoomOut: () => setZoom(S.zoom / 1.2), actual: () => setZoom(1),
+  fitWidth: () => { S.fit = "width"; applyFit(); }, fitPage: () => { S.fit = "page"; applyFit(); },
+  toggleRail: () => { S.prefs.railHidden = !S.prefs.railHidden; $("#main").classList.toggle("no-rail", S.prefs.railHidden); persistPrefs(); setTimeout(() => S.fit && applyFit(), 0); },
+  duplicate: duplicateSel, delete: deleteSel, toggleSide: () => toggleSide(),
+};
+const EDITOR_ONLY = new Set(["export", "undo", "redo", "zoomIn", "zoomOut", "actual", "fitWidth", "fitPage", "toggleRail", "duplicate", "delete"]);
+function runCommand(cmd) { if (EDITOR_ONLY.has(cmd) && S.view !== "editor") return; COMMANDS[cmd](); }
+window.addEventListener("keydown", (e) => {
+  if (document.querySelector("dialog[open]")) return;
+  const typing = e.target.matches?.("input, textarea, select");
+  const mod = e.metaKey || e.ctrlKey;
+  const k = e.key.toLowerCase();
+  let cmd = null;
+  if (mod && e.shiftKey && k === "h") cmd = "home";
+  else if (mod && e.shiftKey && k === "i") cmd = "addImage";
+  else if (mod && k === "o") cmd = "open";
+  else if (mod && k === "s") cmd = "export";
+  else if (mod && k === "z" && !typing) cmd = e.shiftKey ? "redo" : "undo";
+  else if (mod && k === "y" && !typing) cmd = "redo";
+  else if (mod && (k === "=" || k === "+")) cmd = "zoomIn";
+  else if (mod && k === "-") cmd = "zoomOut";
+  else if (mod && k === "0") cmd = "actual";
+  else if (mod && k === "9") cmd = "fitWidth";
+  else if (mod && k === "8") cmd = "fitPage";
+  else if (mod && e.code === "Backslash") cmd = e.altKey ? "toggleSide" : "toggleRail";
+  else if (mod && k === "d" && !typing) cmd = "duplicate";
+  if (cmd) { e.preventDefault(); runCommand(cmd); return; }
+  if (typing || mod || S.view !== "editor") return;
+  if ((k === "backspace" || k === "delete") && S.sel) { e.preventDefault(); deleteSel(); return; }
+  if (k === "escape" && S.sel) { select(null); return; }
+  const step = e.shiftKey ? 10 : 1;
+  const arrows = { arrowleft: [-step, 0], arrowright: [step, 0], arrowup: [0, -step], arrowdown: [0, step] };
+  if (arrows[k] && S.sel) { e.preventDefault(); nudge(...arrows[k]); return; }
+  if (!S.pages.length) return;
+  if (k === "arrowleft" || k === "pageup") { e.preventDefault(); goToPage(S.cur - 1); }
+  if (k === "arrowright" || k === "pagedown") { e.preventDefault(); goToPage(S.cur + 1); }
+});
+
+/* ================================================================
+   Signature pad
+   ================================================================ */
+const pad = { strokes: [], cur: null, color: "#1d3fb8", width: 2.6 };
+const padCanvas = $("#pad");
+function padResize() {
+  const r = padCanvas.getBoundingClientRect(); const dpr = window.devicePixelRatio || 1;
+  padCanvas.width = Math.round(r.width * dpr); padCanvas.height = Math.round(r.height * dpr); padDraw();
+}
+function strokePath(g, pts, scale, color, base) {
+  g.strokeStyle = color; g.lineCap = "round"; g.lineJoin = "round";
+  if (pts.length === 1) { g.fillStyle = color; g.beginPath(); g.arc(pts[0].x * scale, pts[0].y * scale, base * scale * 0.6, 0, Math.PI * 2); g.fill(); return; }
+  for (let i = 1; i < pts.length; i++) {
+    const a = pts[i - 1], b = pts[i];
+    const v = Math.hypot(b.x - a.x, b.y - a.y) / Math.max(1, b.t - a.t);
+    const w = base * clamp(1.35 - v * 0.35, 0.55, 1.35);
+    const m0 = i > 1 ? { x: (pts[i - 2].x + a.x) / 2, y: (pts[i - 2].y + a.y) / 2 } : a;
+    const m1 = { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
+    g.lineWidth = w * scale; g.beginPath(); g.moveTo(m0.x * scale, m0.y * scale); g.quadraticCurveTo(a.x * scale, a.y * scale, m1.x * scale, m1.y * scale); g.stroke();
+  }
+}
+function padDraw() {
+  const g = padCanvas.getContext("2d"); const dpr = padCanvas.width / (padCanvas.getBoundingClientRect().width || 1);
+  g.clearRect(0, 0, padCanvas.width, padCanvas.height);
+  for (const s of [...pad.strokes, pad.cur].filter(Boolean)) strokePath(g, s.pts, dpr, s.color, s.width);
+  $("#pad-hint").hidden = pad.strokes.length > 0 || !!pad.cur;
+  $("#pad-save").disabled = pad.strokes.length === 0;
+}
+padCanvas.addEventListener("pointerdown", (e) => {
+  try { padCanvas.setPointerCapture(e.pointerId); } catch {}
+  const r = padCanvas.getBoundingClientRect();
+  pad.cur = { color: pad.color, width: pad.width, pts: [{ x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp }] }; padDraw();
+});
+padCanvas.addEventListener("pointermove", (e) => {
+  if (!pad.cur) return; const r = padCanvas.getBoundingClientRect();
+  const list = e.getCoalescedEvents?.();
+  for (const ev of list?.length ? list : [e]) pad.cur.pts.push({ x: ev.clientX - r.left, y: ev.clientY - r.top, t: ev.timeStamp });
+  padDraw();
+});
+const padUp = () => { if (pad.cur) { pad.strokes.push(pad.cur); pad.cur = null; padDraw(); } };
+padCanvas.addEventListener("pointerup", padUp); padCanvas.addEventListener("pointercancel", padUp);
+$("#pad-undo").onclick = () => { pad.strokes.pop(); padDraw(); };
+$("#pad-clear").onclick = () => { pad.strokes = []; padDraw(); };
+$("#pad-width").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return; pad.width = +b.dataset.w;
+  for (const x of $("#pad-width").children) x.setAttribute("aria-pressed", String(x === b));
+});
+function swatchRow(container, colors, getter, setter) {
+  container.textContent = "";
+  for (const c of colors) container.append(el("button", { type: "button", class: "sw", "aria-pressed": String(getter() === c.color), onclick: (e) => {
+    setter(c.color); for (const x of container.children) x.setAttribute("aria-pressed", String(x === e.currentTarget));
+  } }, el("i", { style: `background:${c.color}` }), c.name));
+}
+swatchRow($("#pad-colors"), INKS.slice(1), () => pad.color, (c) => { pad.color = c; for (const s of pad.strokes) s.color = c; padDraw(); });
+$("#pad-save").onclick = async () => {
+  const pts = pad.strokes.flatMap((s) => s.pts); if (!pts.length) return;
+  const m = 8, scale = 3;
+  const minX = Math.min(...pts.map((p) => p.x)) - m, minY = Math.min(...pts.map((p) => p.y)) - m;
+  const maxX = Math.max(...pts.map((p) => p.x)) + m, maxY = Math.max(...pts.map((p) => p.y)) + m;
+  const c = canvasOf(Math.ceil((maxX - minX) * scale), Math.ceil((maxY - minY) * scale));
+  const g = c.getContext("2d"); g.translate(-minX * scale, -minY * scale);
+  for (const s of pad.strokes) strokePath(g, s.pts, scale, s.color, s.width);
+  const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "draw", name: `서명 ${new Date().toLocaleDateString("ko-KR", { month: "numeric", day: "numeric" })}` });
+  $("#dlg-draw").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast("보관함에 서명을 추가했습니다.");
+};
+function openDraw() { pad.strokes = []; pad.cur = null; $("#dlg-draw").showModal(); requestAnimationFrame(padResize); }
+
+/* ================================================================
+   Text / date stamp
+   ================================================================ */
+const txt = { font: "sans", color: "#111318" };
+const FONTS = { sans: '600 120px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif', pen: '120px "Nanum Pen Script", cursive', serif: '800 120px "Nanum Myeongjo", serif' };
+async function renderText(text) {
+  try { await document.fonts.load(FONTS[txt.font], text); } catch {}
+  const m = canvasOf(4, 4).getContext("2d"); m.font = FONTS[txt.font];
+  const mt = m.measureText(text);
+  const asc = Math.ceil(mt.actualBoundingBoxAscent || 100), desc = Math.ceil(mt.actualBoundingBoxDescent || 30);
+  const p = 14, w = Math.ceil(mt.width) + p * 2, h = asc + desc + p * 2;
+  const c = canvasOf(w, h); const g = c.getContext("2d");
+  g.font = FONTS[txt.font]; g.fillStyle = txt.color; g.textBaseline = "alphabetic"; g.fillText(text, p, p + asc);
+  return c;
+}
+async function syncTextPreview() {
+  const v = $("#txt-input").value.trim(); $("#txt-save").disabled = !v;
+  const pv = $("#txt-preview");
+  if (!v) { pv.width = pv.height = 1; return; }
+  const c = await renderText(v); pv.width = c.width; pv.height = c.height; pv.getContext("2d").drawImage(c, 0, 0);
+}
+$("#txt-input").addEventListener("input", syncTextPreview);
+$("#txt-input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing && $("#txt-input").value.trim()) { e.preventDefault(); $("#txt-save").click(); } });
+$("#txt-font").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return; txt.font = b.dataset.f;
+  for (const x of $("#txt-font").children) x.setAttribute("aria-pressed", String(x === b)); syncTextPreview();
+});
+swatchRow($("#txt-colors"), INKS.slice(1), () => txt.color, (c) => { txt.color = c; syncTextPreview(); });
+$("#txt-save").onclick = async () => {
+  const v = $("#txt-input").value.trim(); if (!v) return;
+  const c = await renderText(v);
+  const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "text", name: v });
+  $("#dlg-text").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast("보관함에 글자 도장을 추가했습니다.");
+};
+function openText() {
+  const presets = $("#txt-presets"); presets.textContent = "";
+  for (const [label, val] of [["오늘 날짜", today()], ["(인)", "(인)"], ["확인", "확인"], ["사본", "사본"]])
+    presets.append(el("button", { type: "button", class: "sw", onclick: () => { $("#txt-input").value = val; syncTextPreview(); $("#txt-input").focus(); } }, label));
+  $("#txt-input").value = ""; syncTextPreview(); $("#dlg-text").showModal(); $("#txt-input").focus();
+}
+for (const b of $$("[data-add]")) b.addEventListener("click", () => ({ image: chooseImages, draw: openDraw, text: openText })[b.dataset.add]());
+for (const d of $$("dialog")) d.addEventListener("click", (e) => { if (e.target.closest("[data-close]") || e.target === d) d.close(); });
+
+/* ================================================================
+   Example content (on request): a two-page contract, a signature and a seal
+   ================================================================ */
+async function makeSampleAssets() {
+  if (S.samples.length) return { sig: S.assets.get(S.samples[0]), seal: S.assets.get(S.samples[1]) };
+  await Promise.allSettled([document.fonts.load('120px "Nanum Pen Script"', "홍길동"), document.fonts.load('800 80px "Nanum Myeongjo"', "홍길동인")]);
+  const sig = canvasOf(560, 200); let g = sig.getContext("2d");
+  g.font = '150px "Nanum Pen Script", cursive'; g.fillStyle = "#1d3fb8"; g.fillText("홍길동", 40, 150);
+  g.strokeStyle = "#1d3fb8"; g.lineWidth = 5; g.lineCap = "round"; g.beginPath(); g.moveTo(30, 168); g.bezierCurveTo(190, 150, 360, 196, 520, 140); g.stroke();
+  const N = 360, seal = canvasOf(N, N); g = seal.getContext("2d");
+  g.strokeStyle = g.fillStyle = "#c62a22"; g.lineWidth = 16; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 14, 0, Math.PI * 2); g.stroke();
+  g.font = '800 116px "Nanum Myeongjo", serif'; g.textAlign = "center"; g.textBaseline = "middle";
+  // read right column first, top to bottom: 홍길 | 동인
+  for (const [ch, dx, dy] of [["홍", 62, -58], ["길", 62, 62], ["동", -62, -58], ["인", -62, 62]]) g.fillText(ch, N / 2 + dx, N / 2 + dy);
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 900; i++) { g.globalAlpha = Math.random() * 0.5; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 3 + 0.5, 0, Math.PI * 2); g.fill(); }
+  const a1 = await makeAssetFromSource(sig.toDataURL("image/png"), { kind: "draw", name: "서명", sample: true });
+  const a2 = await makeAssetFromSource(seal.toDataURL("image/png"), { kind: "seal", name: "도장", sample: true });
+  for (const a of [a1, a2]) { S.assets.set(a.id, a); S.samples.push(a.id); }
+  return { sig: a1, seal: a2 };
+}
+async function makeSamplePdf() {
+  await Promise.allSettled([document.fonts.load('600 40px "IBM Plex Sans KR"', "용역계약서"), document.fonts.load('400 24px "IBM Plex Sans KR"', "가나다")]);
+  const { PDFDocument } = window.PDFLib;
+  const doc = await PDFDocument.create();
+  const W = 1240, H = 1754, ff = '"IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif';
+  const pagesText = [
+    { title: "용역 계약서", lines: [
+      "발주자 주식회사 한빛상사(이하 “갑”)와 수급자 주식회사 새솔디자인(이하 “을”)은",
+      "다음과 같이 용역 계약을 체결한다.", "",
+      "제1조 (목적)  이 계약은 “갑”의 신규 브랜드 소개서 제작 용역에 관한 사항을 정한다.", "",
+      "제2조 (계약 기간)  2026년 12월 1일부터 2027년 2월 28일까지로 한다.", "",
+      "제3조 (계약 금액)  금 일천이백만 원정(₩12,000,000, 부가가치세 별도)",
+      "  · 선금 30%: 계약 체결 후 7일 이내", "  · 잔금 70%: 최종 결과물 검수 완료 후 14일 이내", "",
+      "제4조 (결과물)  “을”은 소개서 원본 파일과 인쇄용 PDF를 “갑”에게 넘긴다.", "",
+      "제5조 (비밀 유지)  양 당사자는 계약 이행 중 알게 된 상대방의 정보를",
+      "제3자에게 누설하지 않는다.",
+    ] },
+    { title: "", lines: [
+      "제6조 (계약의 해지)  어느 한쪽이 계약을 위반하고 14일 이내에 바로잡지 않으면",
+      "상대방은 서면으로 계약을 해지할 수 있다.", "",
+      "제7조 (분쟁 해결)  이 계약에 관한 분쟁은 서울중앙지방법원을 관할 법원으로 한다.", "",
+      "이 계약을 증명하기 위해 계약서 2부를 작성하여 각자 서명 날인 후 1부씩 보관한다.", "", "",
+      "2026년 11월 25일",
+    ] },
+  ];
+  for (let pi = 0; pi < pagesText.length; pi++) {
+    const c = canvasOf(W, H); const g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, W, H); g.fillStyle = "#1a1d24";
+    let y = 190;
+    if (pagesText[pi].title) { g.font = `600 58px ${ff}`; g.textAlign = "center"; g.fillText(pagesText[pi].title, W / 2, y); g.textAlign = "left"; y += 120; }
+    g.font = `400 27px ${ff}`;
+    for (const line of pagesText[pi].lines) { g.fillText(line, 140, y); y += line ? 50 : 26; }
+    if (pi === pagesText.length - 1) {
+      y += 70;
+      for (const [who, co, rep] of [["갑", "주식회사 한빛상사", "대표이사  김 하 늘"], ["을", "주식회사 새솔디자인", "대표이사  홍 길 동"]]) {
+        g.font = `600 28px ${ff}`; g.fillText(`“${who}”`, 140, y);
+        g.font = `400 27px ${ff}`; g.fillText(co, 240, y); g.fillText(rep, 240, y + 50);
+        g.fillText("(인)", 900, y + 50); g.strokeStyle = "#9aa1b1"; g.lineWidth = 2; g.beginPath(); g.moveTo(600, y + 60); g.lineTo(880, y + 60); g.stroke();
+        y += 190;
+      }
+    }
+    g.font = `400 20px ${ff}`; g.fillStyle = "#8a91a1"; g.textAlign = "center"; g.fillText(`- ${pi + 1} / ${pagesText.length} -`, W / 2, H - 90);
+    const jpg = await doc.embedJpg(dataURLBytes(c.toDataURL("image/jpeg", 0.9)));
+    doc.addPage([595.28, 841.89]).drawImage(jpg, { x: 0, y: 0, width: 595.28, height: 841.89 });
+  }
+  return new Uint8Array(await doc.save());
+}
+async function loadSample() {
+  const btn = $("#btn-sample"); btn.disabled = true;
+  try {
+    const [{ sig, seal }, bytes] = await Promise.all([makeSampleAssets(), makeSamplePdf()]);
+    syncLibrary();
+    if (!(await openPdfBytes(bytes, "예시_용역계약서.pdf", { sample: true }))) return;
+    // signature on the “을” line of page 2, seal over “(인)” (drawing px → pt is ×595.28/1240)
+    const k = 595.28 / 1240, last = S.pages.length - 1, sw = 118, sh = (sw * sig.h) / sig.w;
+    S.overlays.push(
+      { id: uid(), assetId: sig.id, page: last, x: 612 * k, y: 872 * k - sh, w: sw, h: sh, rot: 0, opacity: 1, fx: { removeBg: false, ink: null } },
+      { id: uid(), assetId: seal.id, page: last, x: 925 * k - 30, y: 842 * k - 30, w: 60, h: 60, rot: 354, opacity: 0.92, fx: { removeBg: false, ink: null } });
+    S.sel = S.overlays[1].id;
+    syncOverlays(); syncInspector();
+    requestAnimationFrame(() => { const p = S.pages[last]; stage.scrollTop = p.el.offsetTop + p.el.offsetHeight * 0.55 - stage.clientHeight / 2; });
+  } finally { btn.disabled = false; }
+}
+
+/* ================================================================
+   Desktop app integration (Install as app, file access, menus)
+   ================================================================ */
+function drawAppIcon() {
+  const N = 256, c = canvasOf(N, N), g = c.getContext("2d"), r = 56;
+  g.fillStyle = "#2446c7"; g.beginPath(); g.roundRect(8, 8, N - 16, N - 16, r); g.fill();
+  const grd = g.createLinearGradient(0, 8, 0, N); grd.addColorStop(0, "rgba(255,255,255,.16)"); grd.addColorStop(1, "rgba(0,0,0,.12)");
+  g.fillStyle = grd; g.beginPath(); g.roundRect(8, 8, N - 16, N - 16, r); g.fill();
+  g.fillStyle = "#fff"; g.beginPath(); g.moveTo(66, 44); g.lineTo(162, 44); g.lineTo(196, 78); g.lineTo(196, 214); g.lineTo(66, 214); g.closePath(); g.fill();
+  g.fillStyle = "#d7ddf2"; g.beginPath(); g.moveTo(162, 44); g.lineTo(162, 78); g.lineTo(196, 78); g.closePath(); g.fill();
+  g.strokeStyle = "#c9d0e6"; g.lineWidth = 7; g.lineCap = "round";
+  for (const y of [96, 118, 140]) { g.beginPath(); g.moveTo(88, y); g.lineTo(y === 140 ? 140 : 174, y); g.stroke(); }
+  g.strokeStyle = "#1d3fb8"; g.lineWidth = 7; g.beginPath(); g.moveTo(84, 186); g.bezierCurveTo(104, 150, 116, 196, 130, 172); g.bezierCurveTo(142, 152, 150, 190, 170, 170); g.stroke();
+  g.strokeStyle = "#d33a2f"; g.lineWidth = 9; g.beginPath(); g.arc(186, 190, 30, 0, Math.PI * 2); g.stroke();
+  g.fillStyle = "#d33a2f"; g.font = "800 30px 'Nanum Myeongjo', serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("印", 186, 192);
+  return c.toDataURL("image/png");
+}
+const WINDOW_OPTIONS = { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 18, y: 19 }, dragHeight: 8, minWidth: 880, minHeight: 600 };
+async function enableDisk() {
+  const d = S.desktop;
+  try {
+    await Store.useDisk(d.fs);
+    S.fs = d.fs; S.shell = d.shell; FB.places = null;
+    const moved = await Store.migrateFromBrowser().catch(() => false);
+    await loadStoredState();
+    renderHome(); syncLibrary(); refreshFileChecks();
+    if (moved) toast("지금까지의 보관함과 서명·도장을 Mac 폴더로 옮겼습니다.");
+    return true;
+  } catch (e) {
+    console.warn("disk storage failed", e);
+    toast("Mac 폴더에 저장소를 만들지 못했습니다. 이번에는 앱 안에만 저장합니다.", true);
+    return false;
+  }
+}
+async function requestFullAccess() {
+  const d = S.desktop; if (!d?.permissions) return;
+  let st = "unavailable";
+  try { st = (await d.permissions.request(["full-access"]))["full-access"]; } catch {}
+  S.perm = st;
+  if (st === "granted") { if (await enableDisk()) toast("파일 접근을 켰습니다. 이제 마지막 폴더를 기억하고 원본 옆에 바로 저장합니다."); }
+  else if (st === "denied") toast("파일 접근을 허용하지 않았습니다. 지금처럼 쓸 수 있고, 나중에 권한 설정에서 켤 수 있습니다.");
+  else toast("이 창에서는 파일 접근을 쓸 수 없습니다.");
+  renderHome();
+}
+async function setupDesktop() {
+  let desktop = null;
+  const status = (text) => { const s = $("#st-install"); s.textContent = text; s.hidden = !text; };
+  try { desktop = window.claude?.use ? await window.claude.use("desktop") : null; } catch { desktop = null; }
+  if (!desktop) { if (window.claude?.use) status("앱 설치: 이 계정이나 화면에서는 꺼져 있음"); return; }
+  S.desktop = desktop;
+  const platform = desktop.platform || (await desktop.os?.platform?.().catch(() => "")) || "";
+  if (platform === "win32") { OS.win = true; document.documentElement.classList.add("is-win"); localizeStatic(); }
+  if (desktop.window) {
+    document.documentElement.classList.add("is-desktop");
+    if (!desktop.standalone) desktop.app?.dock?.setIcon(drawAppIcon()).catch(() => {});
+    const overlay = desktop.standalone && platform !== "darwin";
+    if (overlay) document.documentElement.classList.add("is-overlay");
+    const barColors = () => { const cs = getComputedStyle(document.documentElement); return { color: cs.getPropertyValue("--surface").trim(), symbolColor: cs.getPropertyValue("--fg").trim(), height: 52 }; };
+    desktop.window.setOptions(overlay ? { ...WINDOW_OPTIONS, titleBarOverlay: barColors() } : WINDOW_OPTIONS).catch(() => document.documentElement.classList.remove("is-desktop", "is-overlay"));
+    if (overlay) matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => desktop.window.setOptions({ titleBarOverlay: barColors() }).catch(() => {}));
+    desktop.Menu?.setApplicationMenu([
+      { label: "파일", submenu: [
+        { label: "보관함으로 돌아가기", accelerator: "CmdOrCtrl+Shift+H", click: () => runCommand("home") },
+        { label: "새 PDF 열기…", accelerator: "CmdOrCtrl+O", click: () => runCommand("open") },
+        { label: "서명·도장 이미지 가져오기…", accelerator: "CmdOrCtrl+Shift+I", click: () => runCommand("addImage") },
+        { type: "separator" },
+        { label: "파일로 저장…", accelerator: "CmdOrCtrl+S", click: () => runCommand("export") },
+      ] },
+      { role: "editMenu" },
+      { label: "보기", submenu: [
+        { label: "확대", accelerator: "CmdOrCtrl+=", click: () => runCommand("zoomIn") },
+        { label: "축소", accelerator: "CmdOrCtrl+-", click: () => runCommand("zoomOut") },
+        { label: "실제 크기", accelerator: "CmdOrCtrl+0", click: () => runCommand("actual") },
+        { label: "폭 맞춤", accelerator: "CmdOrCtrl+9", click: () => runCommand("fitWidth") },
+        { label: "쪽 맞춤", accelerator: "CmdOrCtrl+8", click: () => runCommand("fitPage") },
+        { type: "separator" },
+        { label: "왼쪽 쪽 목록 보기/숨기기", accelerator: "CmdOrCtrl+\\", click: () => runCommand("toggleRail") },
+        { label: "오른쪽 서명·도장 패널 보기/숨기기", accelerator: "CmdOrCtrl+Alt+\\", click: () => runCommand("toggleSide") },
+      ] },
+    ]).catch(() => {});
+    if (desktop.permissions) {
+      let st = await desktop.permissions.state("full-access").catch(() => "unavailable");
+      if (st === "unavailable") { await new Promise((r) => setTimeout(r, 2500)); st = await desktop.permissions.state("full-access").catch(() => "unavailable"); }
+      S.perm = st;
+      if (st === "granted") await enableDisk();
+      renderHome();
+    }
+    // PDFs opened from Finder / 파일 탐색기 (double-click, Open With, drop on the Dock icon)
+    desktop.onOpenFile?.((path) => { if (S.fs) openPdfPath(path); else toast("파일 접근이 꺼져 있어 이 PDF를 열 수 없습니다.", true); });
+  } else if (desktop.install) {
+    try {
+      const st = await desktop.install.state();
+      status({ available: "앱 설치: 가능", installed: "앱 설치: 이 Mac에 설치됨", unavailable: "앱 설치: 이 화면에서는 지원 안 됨" }[st] || `앱 설치: ${st}`);
+      if (st === "available") {
+        const b = $("#btn-install"); b.hidden = false;
+        b.onclick = async () => {
+          const r = await desktop.install.request().catch(() => "failed");
+          if (r === "installed") { b.hidden = true; toast("설치를 시작했습니다. 잠시 뒤 Dock이나 Spotlight에서 PDF Editor를 열 수 있습니다."); }
+          else if (r === "failed") toast("설치하지 못했습니다. Claude 앱을 업데이트한 뒤 다시 시도해 주세요.", true);
+        };
+      }
+    } catch {}
+  }
+}
+
+/* ================================================================
+   Wiring & boot
+   ================================================================ */
+$("#btn-back").onclick = showHome; $("#btn-side").onclick = toggleSide;
+$("#btn-open").onclick = choosePdf; $("#btn-open-2").onclick = choosePdf; $("#btn-open-empty").onclick = choosePdf;
+$("#btn-sample").onclick = loadSample;
+$("#btn-export").onclick = openSaveDialog;
+$("#btn-undo").onclick = undo; $("#btn-redo").onclick = redo;
+$("#btn-zoom-in").onclick = COMMANDS.zoomIn; $("#btn-zoom-out").onclick = COMMANDS.zoomOut;
+$("#zoom-val").onclick = COMMANDS.actual;
+$("#btn-fit-w").onclick = COMMANDS.fitWidth; $("#btn-fit-p").onclick = COMMANDS.fitPage;
+$("#btn-rail").onclick = COMMANDS.toggleRail;
+$("#doc-search").addEventListener("input", (e) => { S.homeQuery = e.target.value; renderHome(); });
+$("#doc-filter").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return; S.homeFilter = b.dataset.f;
+  for (const x of $("#doc-filter").children) x.setAttribute("aria-pressed", String(x === b)); renderHome();
+});
+window.addEventListener("resize", () => { if ($("#dlg-draw").open) padResize(); });
+const flushAll = () => { persistAssets.flush(); autosave.flush(); persistDocs.flush(); persistPrefs.flush(); };
+window.addEventListener("pagehide", flushAll);
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushAll(); else refreshFileChecks(); });
+// coming back from Finder: files may have been moved, renamed, deleted or edited meanwhile
+window.addEventListener("focus", () => refreshFileChecks());
+
+async function boot() {
+  syncInspector(); syncUndo();
+  await loadStoredState();
+  applySide();
+  renderHome(); syncStatus();
+  if (!window.PDFLib || !pdfjsLib) toast("PDF 엔진을 불러오지 못했습니다. 인터넷 연결을 확인한 뒤 다시 열어 주세요.", true);
+  setupDesktop().then(syncStatus);
+  // example items show in the library until the first real signature is added
+  if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {});
+}
+window.__pdfe = { S, Store, openPdfBytes, openRecord, placeAsset, buildPdf, importImageFiles, makeAssetFromSource, addToLibrary, undo, redo, setZoom, select, act, getOv, showHome, showEditor, browse, openSaveDialog, performSave, loadSample, requestFullAccess, enableDisk };
+boot();
+})();
+</script>

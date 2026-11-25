@@ -1,0 +1,148 @@
+{
+  "name": "pdf-editor-desktop",
+  "productName": "PDF Editor",
+  "version": "1.0.0",
+  "description": "PDF Editor: place signatures, stamps and images onto PDFs",
+  "author": "falcons-eyes",
+  "license": "MIT",
+  "homepage": "https://github.com/falcons-eyes/pdf-editor",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/falcons-eyes/pdf-editor.git"
+  },
+  "private": true,
+  "main": "src/main.js",
+  "scripts": {
+    "build:page": "node scripts/build-page.mjs",
+    "icon": "npm run build:page && electron scripts/make-icon.cjs",
+    "start": "npm run build:page && electron .",
+    "pack": "npm run build:page && electron-builder --dir --publish never",
+    "dist:mac": "npm run build:page && electron-builder --mac dmg --arm64 --x64 --publish never",
+    "dist:win": "npm run build:page && electron-builder --win nsis portable --x64 --publish never",
+    "test": "node test/smoke.mjs"
+  },
+  "devDependencies": {
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans-kr": "5.3.0",
+    "@fontsource/nanum-myeongjo": "5.3.0",
+    "@fontsource/nanum-pen-script": "5.3.0",
+    "electron": "45.5.0",
+    "electron-builder": "26.18.0",
+    "pdf-lib": "1.17.1",
+    "pdfjs-dist": "3.11.174",
+    "playwright": "1.65.1"
+  },
+  "build": {
+    "appId": "io.github.falcons-eyes.pdf-editor",
+    "productName": "PDF Editor",
+    "copyright": "Copyright © 2026 falcons-eyes. MIT License.",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "src/**/*",
+      "app/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "asar": true,
+    "electronLanguages": [
+      "en",
+      "en-US",
+      "ko"
+    ],
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.icns",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false,
+      "artifactName": "PDF-Editor-${version}-${arch}.${ext}",
+      "extendInfo": {
+        "CFBundleDocumentTypes": [
+          {
+            "CFBundleTypeName": "PDF Document",
+            "CFBundleTypeRole": "Editor",
+            "LSHandlerRank": "Alternate",
+            "LSItemContentTypes": [
+              "com.adobe.pdf"
+            ],
+            "CFBundleTypeExtensions": [
+              "pdf"
+            ]
+          }
+        ],
+        "NSHumanReadableCopyright": "MIT License"
+      }
+    },
+    "dmg": {
+      "sign": false,
+      "title": "PDF Editor ${version}",
+      "artifactName": "PDF-Editor-${version}-${arch}.${ext}",
+      "window": {
+        "width": 540,
+        "height": 380
+      },
+      "contents": [
+        {
+          "x": 140,
+          "y": 190
+        },
+        {
+          "x": 400,
+          "y": 190,
+          "type": "link",
+          "path": "/Applications"
+        }
+      ],
+      "format": "ULFO",
+      "writeUpdateInfo": false
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerLanguages": [
+        "ko_KR",
+        "en_US"
+      ],
+      "multiLanguageInstaller": true,
+      "shortcutName": "PDF Editor",
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh",
+      "artifactName": "PDF-Editor-${version}-setup-${arch}.${ext}",
+      "differentialPackage": false
+    },
+    "portable": {
+      "artifactName": "PDF-Editor-${version}-portable-${arch}.${ext}"
+    },
+    "publish": null
+  }
+}

@@ -8,3 +8,11 @@ app_icon.iconset/
 .DS_Store
 .claude/settings.local.json
 *.spec
+web/.devhome/
+
+# desktop app (Electron)
+desktop/node_modules/
+desktop/app/
+desktop/dist/
+desktop/test/out/
+!desktop/build/

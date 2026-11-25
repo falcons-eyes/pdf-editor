@@ -1,0 +1,14 @@
+{
+  "name": "pdf-editor-readme-images",
+  "version": "1.0.0",
+  "description": "Generates the README images from the real app UI",
+  "scripts": {
+    "render": "./render.sh",
+    "compose": "./render.sh compose"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.1",
+    "sharp": "^0.35.5"
+  },
+  "private": true
+}
