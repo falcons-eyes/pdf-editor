@@ -51,10 +51,10 @@ public static class PkgLaunch {
   [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
   static extern int GetPackageFullName(IntPtr hProcess, ref uint length, StringBuilder name);
 
-  public static uint Launch(string aumid) {
+  public static uint Launch(string aumid, string args) {
     var m = (IApplicationActivationManager)new ApplicationActivationManager();
     uint pid;
-    int hr = m.ActivateApplication(aumid, "", 0, out pid);
+    int hr = m.ActivateApplication(aumid, args, 0, out pid);
     if (hr != 0) throw new COMException("ActivateApplication failed: 0x" + hr.ToString("X8"), hr);
     return pid;
   }
@@ -152,7 +152,7 @@ function Open-With([string] $file) {
 }
 # Start menu: ActivateApplication, else shell:AppsFolder\<AUMID> through Explorer
 function Launch-App {
-  try { [void] [PkgLaunch]::Launch($aumid); return "ActivateApplication" }
+  try { [void] [PkgLaunch]::Launch($aumid, ""); return "ActivateApplication" }
   catch { Write-Host "note: $($_.Exception.InnerException.Message ?? $_.Exception.Message); using shell:AppsFolder" }
   Start-Process explorer.exe "shell:AppsFolder\$aumid"; return "shell:AppsFolder"
 }
@@ -205,6 +205,8 @@ Check "Open with: the page opened the PDF (its record is written)" ((Docs).Conta
 Shot "msstore-open-with-first"
 $before = @(Sealworks-Processes | ForEach-Object Id)
 [void] $w.Handle # keep a handle so the exit code can be read if it ends
+$trace = Join-Path $store ".electron\lifecycle-trace"
+New-Item -ItemType File -Force $trace | Out-Null
 $how = Open-With $second
 Start-Sleep -Seconds 8
 $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
@@ -212,6 +214,7 @@ $alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
 Check "second Open with: the running window opened it (single instance)" ($mains.Count -eq 1 -and $alive -and ((Docs).Contains("opened-with-second.pdf"))) "$how, windows: $($mains.Count) (pid $($mains.Id -join ',')), first main pid $($w.Id) alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" }), processes before: $($before -join ','), now: $((Sealworks-Processes | ForEach-Object Id) -join ',')"
 Shot "msstore-open-with-second"
 $clean = Close-App
+Write-Host "---- lifecycle trace (second Open with) ----"; Get-Content $trace -ErrorAction SilentlyContinue; Write-Host "----"
 Check "closes cleanly (window close -> quit)" $clean
 
 Check "data store in the package's LocalState" ((Test-Path $docsFile) -and (Test-Path (Join-Path $store ".electron"))) ((Get-ChildItem $store -Force -ErrorAction SilentlyContinue | ForEach-Object Name) -join " ")
@@ -232,6 +235,13 @@ Start-Sleep -Seconds 6
 $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
 $alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
 Check "Start while running: same window (single instance)" ($mains.Count -eq 1 -and $alive) "$how, windows: $($mains.Count), first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" })"
+$third = Join-Path $work "opened-with-third.pdf"; Copy-Item $src.FullName $third -Force
+Set-Content $trace "" -NoNewline
+try { [void] [PkgLaunch]::Launch($aumid, "`"$third`"") } catch { Write-Host "note: ActivateApplication with a file: $($_.Exception.InnerException.Message)" }
+Start-Sleep -Seconds 8
+$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
+Check "activation with a PDF argument while running: same window gets it" ($alive -and ((Docs).Contains("opened-with-third.pdf"))) "first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" })"
+Write-Host "---- lifecycle trace (ActivateApplication with a file) ----"; Get-Content $trace -ErrorAction SilentlyContinue; Write-Host "----"
 [void] (Close-App)
 Check "relaunch: documents.json kept" ((Docs).Contains("opened-with-second.pdf"))
 
