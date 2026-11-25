@@ -238,6 +238,28 @@ async function main() {
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(OUT, `editor-${process.platform}.png`) });
 
+    // ---- licenses: About › License / Third-party licenses open the bundled texts in the app ----
+    const lic = await page.evaluate(async () => {
+      window.__pdfe.openAbout();
+      // About links keep a fixed order: privacy, support, repo, license, notices
+      const licLink = () => document.querySelectorAll("#about-body .about-links a")[3];
+      for (let i = 0; i < 50 && licLink()?.getAttribute("href") !== "#"; i++) await new Promise((r) => setTimeout(r, 100));
+      if (licLink()?.getAttribute("href") !== "#") return { open: false, own: "license link not in-app: " + [...document.querySelectorAll("#about-body .about-links a")].map((a) => a.getAttribute("href")).join(" "), options: [], forge: false };
+      licLink().click();
+      const pre = document.querySelector("#lic-text");
+      for (let i = 0; i < 50 && !pre.textContent; i++) await new Promise((r) => setTimeout(r, 100));
+      const own = pre.textContent;
+      const options = [...document.querySelectorAll("#lic-select option")].map((o) => o.value);
+      const sel = document.querySelector("#lic-select"); sel.value = "node-forge"; sel.dispatchEvent(new Event("change"));
+      for (let i = 0; i < 50 && !/Digital Bazaar/.test(pre.textContent); i++) await new Promise((r) => setTimeout(r, 100));
+      const forge = pre.textContent;
+      const open = document.querySelector("#dlg-licenses").open;
+      document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+      return { open, own: own.slice(0, 200), polyform: /PolyForm Strict License 1\.0\.0/.test(own), options, forge: /Digital Bazaar/.test(forge) };
+    });
+    check("About › License opens the bundled Sealworks license in the app", lic.open && lic.polyform, lic.own.slice(0, 80));
+    check("Licenses dialog lists every bundled component (incl. Electron) and shows their texts", lic.options.length >= 21 && ["third-party-notices", "pdfjs-dist", "node-forge", "electron", "tslib"].every((id) => lic.options.includes(id)) && lic.forge, `${lic.options.length} documents`);
+
     // ---- seal: identity, sign, verify statuses, backup, key folder guard ----
     const sealed = await page.evaluate(async () => {
       const d = await window.claude.use("desktop");

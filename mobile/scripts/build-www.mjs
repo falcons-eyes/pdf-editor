@@ -11,6 +11,7 @@
 //   node scripts/build-www.mjs --seal-only  only www/seal/seal-core.js (for test/seal.mjs)
 import fs from "node:fs";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { pathToFileURL, fileURLToPath } from "node:url";
 import * as esbuild from "esbuild";
 
@@ -82,6 +83,36 @@ async function buildSeal() {
   console.log(`seal: www/seal/seal-core.js (${(fs.statSync(path.join(WWW, "seal", "seal-core.js")).size / 1024).toFixed(0)} KB)`);
 }
 
+// Android-only components (THIRD_PARTY_NOTICES.md, "Android app only"). Cordova and AndroidX come
+// from Maven, not npm: their Apache-2.0 text is taken from pdfjs-dist (the same license, verbatim).
+async function addAndroidLicenses() {
+  const { addLicenses } = await import(pathToFileURL(path.join(DESKTOP, "scripts", "licenses.mjs")).href);
+  const require = createRequire(path.join(MOBILE, "package.json"));
+  const apache = fs.readFileSync(path.join(path.dirname(require.resolve("pdfjs-dist/package.json")), "LICENSE"), "utf8");
+  if (!/Apache License\s+Version 2\.0/.test(apache)) fail("pdfjs-dist/LICENSE is no longer the Apache-2.0 text");
+  const gradle = fs.readFileSync(path.join(MOBILE, "android", "variables.gradle"), "utf8");
+  const v = (k) => gradle.match(new RegExp(`${k}\\s*=\\s*'([^']+)'`))?.[1] || fail(`${k} missing in android/variables.gradle`);
+  const androidx = [["activity", "androidxActivityVersion"], ["appcompat", "androidxAppCompatVersion"], ["coordinatorlayout", "androidxCoordinatorLayoutVersion"],
+    ["core", "androidxCoreVersion"], ["core-splashscreen", "coreSplashScreenVersion"], ["fragment", "androidxFragmentVersion"], ["webkit", "androidxWebkitVersion"]]
+    .map(([lib, key]) => `androidx.${lib} ${v(key)}`).join(", ");
+  const cordovaNotice = "Apache Cordova\nCopyright 2015-2020 The Apache Software Foundation\n\nThis product includes software developed at\nThe Apache Software Foundation (http://www.apache.org/).\n";
+  const n = addLicenses({ out: path.join(WWW, "licenses"), require, entries: [
+    { pkg: "@capacitor/core", name: "Capacitor (@capacitor/core)", license: "MIT" },
+    { pkg: "@capacitor/android", name: "Capacitor (@capacitor/android)", license: "MIT" },
+    { id: "apache-cordova-android", name: "Apache Cordova Android framework", version: v("cordovaAndroidVersion"), license: "Apache-2.0",
+      text: `NOTICE\n------\n${cordovaNotice}\n\n${apache}` },
+    { id: "androidx", name: "AndroidX libraries", license: "Apache-2.0",
+      text: `Copyright The Android Open Source Project.\nLibraries: ${androidx}.\n\n${apache}` },
+    { pkg: "@noble/curves", name: "@noble/curves", license: "MIT" },
+    { pkg: "@noble/hashes", name: "@noble/hashes", license: "MIT" },
+    { pkg: "buffer", name: "buffer", license: "MIT" },
+    { pkg: "base64-js", from: "buffer", name: "base64-js", license: "MIT" },
+    { pkg: "ieee754", from: "buffer", name: "ieee754", license: "BSD-3-Clause" },
+    { pkg: "path-browserify", name: "path-browserify", license: "MIT" },
+  ] });
+  console.log(`licenses: ${n} documents (with Android components)`);
+}
+
 async function buildPage() {
   // 1. desktop's page assembly, retargeted
   const src = fs.readFileSync(path.join(DESKTOP, "scripts", "build-page.mjs"), "utf8");
@@ -119,6 +150,9 @@ async function buildPage() {
     outfile: path.join(WWW, "android-desktop.js"),
     bundle: true, format: "iife", platform: "browser", target: "es2022", minify: false, logLevel: "warning",
   });
+
+  // 3. licenses/: build-page wrote Sealworks' files and the shared components; add the Android-only ones
+  await addAndroidLicenses();
 
   // nothing in www/ may point at the network (the page check is build-page's; this covers our files)
   for (const f of ["index.html", "android-desktop.js"]) {

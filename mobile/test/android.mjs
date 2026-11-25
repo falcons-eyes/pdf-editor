@@ -211,6 +211,24 @@ async function main() {
   check("fs: ENOENT for missing store files; exists() false outside", fsr.missing === "ENOENT" && fsr.statMissing === "ENOENT" && fsr.noParent === "ENOENT" && fsr.exists.join() === "true,false,false");
   check("fs: EPERM outside the store, for the seal folder and unknown documents; EINVAL for ..", fsr.outside === "EPERM" && fsr.outsideWrite === "EPERM" && fsr.root === "EPERM" && fsr.sealDir === "EPERM" && fsr.unknownDoc === "EPERM" && fsr.traversal === "EINVAL", JSON.stringify(fsr));
 
+  // ---- licenses: About › Third-party licenses opens the texts bundled in the APK ----
+  const lic = await c.eval(async () => {
+    window.__pdfe.openAbout();
+    const link = () => document.querySelectorAll("#about-body .about-links a")[4]; // privacy, support, repo, license, notices
+    for (let i = 0; i < 50 && link()?.getAttribute("href") !== "#"; i++) await new Promise((r) => setTimeout(r, 100));
+    if (link()?.getAttribute("href") !== "#") return { inApp: false };
+    link().click();
+    const pre = document.querySelector("#lic-text");
+    for (let i = 0; i < 50 && !/Third-party notices/.test(pre.textContent); i++) await new Promise((r) => setTimeout(r, 100));
+    const ids = [...document.querySelectorAll("#lic-select option")].map((o) => o.value);
+    const sel = document.querySelector("#lic-select"); sel.value = "apache-cordova-android"; sel.dispatchEvent(new Event("change"));
+    for (let i = 0; i < 50 && !/Apache Cordova/.test(pre.textContent); i++) await new Promise((r) => setTimeout(r, 100));
+    const cordova = /The Apache Software Foundation/.test(pre.textContent) && /Apache License\s+Version 2\.0/.test(pre.textContent);
+    document.querySelectorAll("dialog[open]").forEach((d) => d.close());
+    return { inApp: true, ids, cordova };
+  });
+  check("licenses: bundled in the APK, open in-app (Sealworks + Android components, Cordova NOTICE)", lic.inApp && lic.cordova && ["sealworks-license", "third-party-notices", "capacitor-android", "androidx", "noble-curves"].every((id) => lic.ids.includes(id)) && !lic.ids.includes("electron"), `${lic.ids?.length} documents`);
+
   // ---- test hook (debug build): panels answer themselves ----
   const hook = await c.eval(async () => (await window.__sealworksTest.Files.testHook({ enable: true })));
   check("debug test hook on", !!hook?.dir, hook?.dir);

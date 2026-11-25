@@ -5,7 +5,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { createRequire } from "node:module";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const require = createRequire(import.meta.url);
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -99,6 +99,12 @@ for (const f of fs.readdirSync(path.join(WEB, "vendor", "pdfjs"))) copy(path.joi
 const worker = path.join(OUT, "vendor", "pdfjs", "pdf.worker.min.js");
 if (!fs.existsSync(worker)) fail("web/vendor/pdfjs/pdf.worker.min.js missing");
 if (sri(worker) !== sri(path.join(pkgDir("pdfjs-dist"), "build", "pdf.worker.min.js"))) console.warn("build-page: vendor worker differs from pdfjs-dist build/pdf.worker.min.js");
+
+// ---- licenses/: Sealworks' license files + every bundled component's license text (About › Licenses) ----
+// loaded by path so the copy mobile/scripts/build-www.mjs runs (HERE = desktop/scripts) finds it too
+const { writeLicenses } = await import(pathToFileURL(path.join(HERE, "licenses.mjs")).href);
+const nLic = writeLicenses({ out: path.join(OUT, "licenses"), root: path.resolve(DESKTOP, ".."), require, vendorDir: path.join(WEB, "vendor", "pdfjs") });
+console.log(`licenses: ${nLic} documents`);
 
 // window icon for Linux
 if (fs.existsSync(path.join(DESKTOP, "build", "icon.png"))) copy(path.join(DESKTOP, "build", "icon.png"), path.join(OUT, "icon.png"));

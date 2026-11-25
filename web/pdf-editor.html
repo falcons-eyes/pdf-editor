@@ -331,6 +331,11 @@ div.tile-main { cursor: default; }
 .about-links a { display: flex; align-items: center; gap: 8px; color: var(--accent); text-decoration: none; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); }
 .about-links a:hover { border-color: var(--accent); }
 .about-links a svg { width: 14px; height: 14px; flex: none; }
+.lic-pick { display: grid; gap: 4px; font-size: 12px; color: var(--muted); }
+.lic-pick select { font: inherit; font-size: 13px; color: var(--text); padding: 6px 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); width: 100%; min-width: 0; }
+.lic-text { margin: 0; padding: 10px 12px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); color: var(--text); font: 12px/1.5 "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace; white-space: pre-wrap; overflow-wrap: anywhere; max-height: min(55vh, 520px); overflow: auto; }
+#dlg-licenses .dlg-body { grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 700px) { #dlg-licenses { width: min(720px, calc(100vw - 32px)); } }
 .side-links { display: flex; flex-wrap: wrap; gap: 4px 12px; font-size: 12px; }
 .side-links a { color: var(--accent); text-decoration: none; }
 .side-links a:hover { text-decoration: underline; }
@@ -962,6 +967,16 @@ html:not(.has-seal) .seal-only { display: none !important; }
   <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close data-i18n="dlg.close"></button></div>
 </dialog>
 
+<dialog id="dlg-licenses" aria-labelledby="dlg-licenses-title">
+  <div class="dlg-head"><h2 id="dlg-licenses-title" data-i18n="lic.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body">
+    <label class="lic-pick"><span data-i18n="lic.pick"></span><select id="lic-select"></select></label>
+    <p class="hint" id="lic-intro" data-i18n="lic.intro"></p>
+    <pre class="lic-text" id="lic-text" tabindex="0" aria-live="polite"></pre>
+  </div>
+  <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close data-i18n="dlg.close"></button></div>
+</dialog>
+
 <div class="toasts" id="toasts" aria-live="polite"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" integrity="sha384-/1qUCSGwTur9vjf/z9lmu/eCUYbpOTgSjmpbMQZ1/CtX2v/WcAIKqRv+U1DUCG6e" crossorigin="anonymous"></script>
@@ -1396,6 +1411,10 @@ const STR = {
   "about.external": ["(브라우저에서 열림)", "(opens in your browser)"],
   "about.license": ["라이선스: 누구나 무료로 사용 · 소스 공개", "License: free for everyone · source-available"],
   "about.notices": ["제3자 라이선스", "Third-party licenses"],
+  "lic.title": ["라이선스", "Licenses"], "lic.pick": ["문서", "Document"],
+  "lic.intro": ["이 앱에 함께 들어 있는 라이선스 원문입니다. 제3자 구성 요소는 각자의 라이선스를 따릅니다.", "The license texts that ship with this app. Each third-party component keeps its own license."],
+  "lic.ours": ["Sealworks", "Sealworks"], "lic.third": ["제3자 구성 요소", "Third-party components"],
+  "lic.fail": ["라이선스 문서를 열지 못했습니다.", "Couldn't open the license text."],
   "about.copyright": ["© 2026 주식회사 팔콘아이즈", "© 2026 Falcon Eyes Inc."],
   "link.fail": ["링크를 열지 못했습니다.", "Couldn't open the link."],
   "access.fail": ["파일 접근을 허용받지 못했습니다.", "Couldn't get access to the file."],
@@ -2278,11 +2297,50 @@ function extLink(url, label, cls) {
     label, el("span", { class: "sr-only", text: " " + t("about.external") }));
 }
 const LINK_ITEMS = [["privacy", "about.privacy", "lock"], ["support", "about.support", "doc"], ["repo", "about.repo", "link"], ["license", "about.license", "key"], ["notices", "about.notices", "doc"]];
+// The apps ship the license texts (licenses/index.json, written by desktop/scripts/licenses.mjs);
+// there "License" and "Third-party licenses" open them in a dialog instead of a web page.
+let LIC = null; // null: not checked yet; false: not bundled (the web page); array: the index
+const LIC_START = { license: "sealworks-license", notices: "third-party-notices" };
+async function loadLicenses() {
+  if (LIC !== null || !S.desktop?.standalone) return;
+  try {
+    const r = await fetch("licenses/index.json", { cache: "no-store" });
+    const idx = r.ok ? await r.json() : null;
+    LIC = Array.isArray(idx) && idx.length ? idx : false;
+  } catch { LIC = false; }
+  if (LIC) { renderAboutSide(); if ($("#dlg-about").open) renderAbout(); }
+}
+const licTitle = (e) => typeof e.title === "string" ? e.title : (e.title[LANG] || e.title.en);
+async function showLicense(id) {
+  const e = LIC.find((x) => x.id === id) || LIC[0], pre = $("#lic-text");
+  $("#lic-select").value = e.id; pre.textContent = "";
+  try {
+    const r = await fetch("licenses/" + e.file, { cache: "no-store" });
+    if (!r.ok) throw new Error(String(r.status));
+    if ($("#lic-select").value === e.id) { pre.textContent = await r.text(); pre.scrollTop = 0; }
+  } catch { pre.textContent = t("lic.fail"); }
+}
+function openLicenses(key) {
+  const sel = $("#lic-select"); sel.textContent = "";
+  for (const [group, label] of [["sealworks", "lic.ours"], ["third", "lic.third"]]) {
+    const items = LIC.filter((e) => e.group === group);
+    if (items.length) sel.append(el("optgroup", { label: t(label) }, ...items.map((e) => el("option", { value: e.id, text: licTitle(e) }))));
+  }
+  const dlg = $("#dlg-licenses");
+  if (!dlg.open) dlg.showModal();
+  showLicense(LIC_START[key] || key);
+}
+$("#lic-select").onchange = (e) => showLicense(e.target.value);
+// an About entry: bundled license texts open in-app; everything else is an external link
+function aboutLink(k, url, label) {
+  if (LIC && LIC_START[k]) return el("a", { href: "#", onclick: (e) => { e.preventDefault(); openLicenses(k); } }, label);
+  return extLink(url, label);
+}
 function renderAboutSide() {
   const box = $("#about-side"); box.textContent = "";
   const L = appLinks();
   box.append(el("div", { class: "sec-head", style: "margin:0 0 8px" }, el("span", { class: "sec-title", text: t("about.title") })),
-    el("div", { class: "side-links" }, ...LINK_ITEMS.map(([k, label]) => extLink(L[k], t(label)))));
+    el("div", { class: "side-links" }, ...LINK_ITEMS.map(([k, label]) => aboutLink(k, L[k], t(label)))));
 }
 function renderAbout() {
   const box = $("#about-body"); box.textContent = "";
@@ -2292,7 +2350,7 @@ function renderAbout() {
       el("div", { class: "nm" }, el("strong", { text: APP_NAME, style: "font-size:15px" }), v ? el("span", { text: t("about.version", { v }) }) : null)),
     el("p", { class: "hint", style: "margin:0", text: t("about.tagline") }),
     S.seal ? el("p", { class: "hint", style: "margin:0", text: t("about.seal") }) : null,
-    el("div", { class: "about-links" }, ...LINK_ITEMS.map(([k, label, ic]) => { const a = extLink(L[k], t(label)); a.prepend(icon(ic)); return a; })),
+    el("div", { class: "about-links" }, ...LINK_ITEMS.map(([k, label, ic]) => { const a = aboutLink(k, L[k], t(label)); a.prepend(icon(ic)); return a; })),
     el("p", { class: "hint", style: "margin:0", text: t("about.copyright") }));
 }
 function openAbout() { renderAbout(); if (!$("#dlg-about").open) $("#dlg-about").showModal(); }
@@ -4432,7 +4490,7 @@ async function setupDesktop() {
   if (S.mobile) { document.documentElement.classList.add("is-mobile"); syncTouch(); rerenderAll(); }
   // tamper-evident seal: only the standalone app has it; without it every seal control stays hidden
   // the Mac App Store build: a sandbox decides which files the app may read; the page says so instead of "missing"
-  if (desktop.standalone) { S.sandboxed = desktop.sandboxed === true; document.documentElement.classList.toggle("is-sandboxed", S.sandboxed); syncSandboxUi(); }
+  if (desktop.standalone) { S.sandboxed = desktop.sandboxed === true; document.documentElement.classList.toggle("is-sandboxed", S.sandboxed); syncSandboxUi(); loadLicenses(); }
   if (desktop.standalone && desktop.seal) {
     S.seal = desktop.seal; document.documentElement.classList.add("has-seal");
     loadSealIdentity();
@@ -4514,6 +4572,7 @@ function rerenderAll() {
   for (const [id, n] of overlayEls) n.setAttribute("aria-label", ovLabel(getOv(id)));
   syncZoomLabel(); syncInspector();
   if ($("#dlg-about").open) renderAbout();
+  if ($("#dlg-licenses").open && LIC) openLicenses($("#lic-select").value);
   if ($("#dlg-save").open) { renderSaveSeal(); checkSaveTarget(); }
   if ($("#dlg-text").open) textPresets();
   if ($("#dlg-files").open) { fbRenderChrome(); fbRenderList(); const [ttl, ok] = fbText(FB.kind); $("#fb-ok").textContent = ok; if (!FB.title) $("#fb-title").textContent = ttl; }
