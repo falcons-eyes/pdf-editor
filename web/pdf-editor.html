@@ -499,11 +499,11 @@ html:not(.has-seal) .seal-only { display: none !important; }
 .chip-row { display: flex; gap: 4px; flex-wrap: wrap; min-width: 0; }
 .chip.sealed { background: transparent; box-shadow: inset 0 0 0 1px var(--line-strong); color: var(--fg); }
 .chip svg { width: 11px; height: 11px; }
-.seal-opt { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
+.seal-opt { display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); }
 .seal-opt .toggle { align-items: flex-start; font-size: 13px; }
 .seal-opt .toggle input { margin-top: 2px; }
 .seal-opt .toggle small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
-.seal-opt .who { display: flex; align-items: center; gap: 8px; font-size: 12px; color: var(--muted); min-width: 0; }
+.seal-opt .who { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 8px; font-size: 12px; color: var(--muted); min-width: 0; }
 .seal-opt .who svg { width: 14px; height: 14px; flex: none; }
 .seal-opt .who span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
 .form-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; }
@@ -705,7 +705,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
     transform: translateY(calc(100% + 40px)); visibility: hidden;
     transition: transform .24s cubic-bezier(.2, .8, .2, 1), height .24s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .24s;
   }
-  .side.open { transform: none; visibility: visible; transition: transform .24s cubic-bezier(.2, .8, .2, 1), height .24s cubic-bezier(.2, .8, .2, 1); }
+  .side.open, .home.no-side > .side.open, .main.no-side > .side.open { transform: none; visibility: visible; transition: transform .24s cubic-bezier(.2, .8, .2, 1), height .24s cubic-bezier(.2, .8, .2, 1); }
   .side.dragging { transition: none; }
   .sheet-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; flex: none; padding: 0 6px 2px 16px; border-bottom: 1px solid var(--line); touch-action: none; cursor: grab; }
   .sheet-grip { grid-column: 1 / -1; height: 28px; margin: 0 -6px 0 -16px; border: none; background: none; display: grid; place-items: center; cursor: grab; padding: 0; }
@@ -725,6 +725,8 @@ html:not(.has-seal) .seal-only { display: none !important; }
     border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(10, 14, 30, .18); max-width: calc(100% - 24px);
   }
   .sel-bar .btn { height: 44px; padding: 0 12px; }
+  .sel-bar.tight .btn:not(#sb-gan) span { display: none; }
+  .sel-bar.tight .btn:not(#sb-gan) { padding: 0 13px; }
   .page-pill {
     display: block; position: absolute; z-index: 5; right: 12px; bottom: 12px; pointer-events: none; padding: 4px 10px; border-radius: 12px;
     background: color-mix(in oklab, var(--fg) 72%, transparent); color: var(--bg); font-family: var(--font-num); font-size: 12px; font-variant-numeric: tabular-nums;
@@ -871,6 +873,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
     <div class="sel-bar" id="sel-bar" role="region" data-i18n-label="sel.bar" hidden>
       <button class="btn" id="sb-adjust" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/></svg><span data-i18n="sel.adjust"></span></button>
       <button class="btn" id="sb-dup" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.75A1.25 1.25 0 0 1 4.25 2.5H10.5"/></svg><span data-i18n="insp.dup"></span></button>
+      <button class="btn" id="sb-gan" type="button" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M8 2.5H2.5v11H8M8 2.5h5.5v11H8"/><circle cx="8" cy="8" r="2.75"/></svg><span data-i18n="sel.gan"></span></button>
       <button class="btn danger" id="sb-del" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4"/></svg><span data-i18n="sel.remove"></span></button>
     </div>
     <div class="page-pill" id="page-pill" aria-hidden="true"></div>
@@ -1537,7 +1540,7 @@ const STR = {
   "bb.label": ["작업", "Actions"],
   "open.short": ["PDF 열기", "Open PDF"],
   "sheet.expand": ["패널 크게 보기", "Expand panel"], "sheet.shrink": ["패널 작게 보기", "Shrink panel"], "sheet.close": ["패널 닫기", "Close panel"],
-  "sel.bar": ["고른 항목", "Selected item"], "sel.adjust": ["조정", "Adjust"], "sel.remove": ["지우기", "Remove"],
+  "sel.bar": ["고른 항목", "Selected item"], "sel.adjust": ["조정", "Adjust"], "sel.gan": ["간인", "Across pages"], "sel.remove": ["지우기", "Remove"],
   "home.more.aria": ["{name} 작업 더 보기", "More actions for {name}"],
 
   // Android app (docs/design/android.md): a key + "@a" replaces the key there
@@ -2665,9 +2668,18 @@ compactMQ.addEventListener("change", () => {
 coarseMQ.addEventListener("change", () => { syncTouch(); syncLibrary(); syncInspector(); });
 
 // the selected item's quick actions (compact layout), shown while the sheet is closed
-function syncSelBar() { const o = getOv(S.sel); $("#sel-bar").hidden = !(S.view === "editor" && o && !SHEET.side); $("#sb-dup").hidden = !!o?.gan; }
+function syncSelBar() { const o = getOv(S.sel); $("#sel-bar").hidden = !(S.view === "editor" && o && !SHEET.side); $("#sb-dup").hidden = !!o?.gan; $("#sb-gan").hidden = !canGanin(o); fitSelBar(); }
+// a narrow phone can't fit four labelled buttons: keep the 간인 label, show the familiar ones as icons only
+function fitSelBar() {
+  const bar = $("#sel-bar"); bar.classList.remove("tight");
+  for (const b of bar.querySelectorAll(".btn")) b.removeAttribute("aria-label");
+  if (bar.hidden || bar.scrollWidth <= bar.clientWidth + 1) return;
+  bar.classList.add("tight");
+  for (const b of bar.querySelectorAll(".btn:not(#sb-gan)")) b.setAttribute("aria-label", b.textContent.trim());
+}
 $("#sb-adjust").addEventListener("click", () => openSheet("editor", "insp"));
 $("#sb-dup").addEventListener("click", () => duplicateSel());
+$("#sb-gan").addEventListener("click", () => ganinSel());
 $("#sb-del").addEventListener("click", () => deleteSel());
 
 // the bottom toolbar (compact layout)
@@ -4838,7 +4850,7 @@ const EXAMPLES = {
         { fields: [["Date", "date", 300]] },
         { gap: 40 },
         { sign: ["Landlord", "Morgan Avery", "landlord", "", "12 Oak Lane, Springfield"] },
-        { sign: ["Tenant", "Jordan Lee", "tenant", "", "Current address: 9 Elm Court, Riverton"] },
+        { sign: ["Tenant", "Jordan Lee", "tenant", "", "9 Elm Court, Riverton"] },
         { ink: "landlord", text: "Morgan Avery" },
         { foot: ["Tenant's initials", "ini2"] },
       ]],
