@@ -60,5 +60,9 @@ build.appx = {
   artifactName: "Sealworks-${version}-${arch}.${ext}",
 };
 if (env.MSSTORE_BUILD_NUMBER) build.buildNumber = String(env.MSSTORE_BUILD_NUMBER);
+// CI test packages only: Playwright drives the installed app through --inspect, which the shipped
+// fuses turn off (package.json build.electronFuses). Never set for a Store upload.
+if (env.MSSTORE_TEST_INSPECT === "1" && env.MSSTORE_REQUIRE_IDENTITY === "1") throw new Error("MSSTORE_TEST_INSPECT is for CI test packages, not a Store build");
+if (env.MSSTORE_TEST_INSPECT === "1") build.electronFuses = { ...build.electronFuses, enableNodeCliInspectArguments: true };
 
 module.exports = build;

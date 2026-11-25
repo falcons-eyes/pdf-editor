@@ -54,9 +54,11 @@ jobs:
 
       # x64 + arm64 .appx in dist/msstore/, plus dist/msstore/win-unpacked. Test packages only: the
       # EnableNodeCliInspectArguments fuse stays on so Playwright can drive the installed app (the
-      # Store build, `npm run dist:msstore` without this flag, has it off; package.json build.electronFuses)
+      # Store build, `npm run dist:msstore` without MSSTORE_TEST_INSPECT, has it off; package.json build.electronFuses)
       - name: Build (npm run dist:msstore, test build with the inspector fuse on)
-        run: npm run dist:msstore -- -c.electronFuses.enableNodeCliInspectArguments=true
+        env:
+          MSSTORE_TEST_INSPECT: "1"
+        run: npm run dist:msstore
 
       # the same app as version x.y.z.1, to test an in-place update
       - name: Build an update package (4th version part 1)

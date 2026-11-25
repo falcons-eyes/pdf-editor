@@ -64,7 +64,7 @@ function resolveTarget() {
 // the app through the Node inspector (--inspect=0), which the EnableNodeCliInspectArguments fuse
 // switches off; then the test runs a copy of the build with only that fuse flipped back on (macOS:
 // re-signed ad hoc, entitlements kept). Builds that can't be copied (the installed MSIX package, the
-// sandboxed run) must be built with -c.electronFuses.enableNodeCliInspectArguments=true instead.
+// sandboxed run) must be built with the inspect fuse on instead (MSIX: MSSTORE_TEST_INSPECT=1; MAS-dev: -c.electronFuses.enableNodeCliInspectArguments=true).
 const FUSES_WANTED = {
   RunAsNode: false, EnableCookieEncryption: true, EnableNodeOptionsEnvironmentVariable: false, EnableNodeCliInspectArguments: false,
   EnableEmbeddedAsarIntegrityValidation: true, OnlyLoadAppFromAsar: true, LoadBrowserProcessSpecificV8Snapshot: false, GrantFileProtocolExtraPrivileges: false,
@@ -80,7 +80,7 @@ async function prepareTarget(t) {
   const off = Object.entries(FUSES_WANTED).filter(([k, v]) => k !== "EnableNodeCliInspectArguments" && now[k] !== v).map(([k]) => `${k}=${now[k]}`);
   check("Electron fuses of the packaged build (package.json build.electronFuses)", !off.length, off.length ? `unexpected: ${off.join(", ")}` : `ok; EnableNodeCliInspectArguments=${now.EnableNodeCliInspectArguments}${now.EnableNodeCliInspectArguments ? " (a test build)" : " (testing a copy with it on)"}`);
   if (now.EnableNodeCliInspectArguments) return t;
-  if (EXPECT_MSSTORE || EXPECT_MAS || EXPECT_SANDBOX) throw new Error("this build has the EnableNodeCliInspectArguments fuse off, so Playwright can't drive it; build the test package with -c.electronFuses.enableNodeCliInspectArguments=true");
+  if (EXPECT_MSSTORE || EXPECT_MAS || EXPECT_SANDBOX) throw new Error("this build has the EnableNodeCliInspectArguments fuse off, so Playwright can't drive it; build the test package with the inspect fuse on (MSIX: MSSTORE_TEST_INSPECT=1)");
   fuseCopyDir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "pdfe-fusetest-")));
   let exe;
   if (bundle) {
