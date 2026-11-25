@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 8–11 Auto Backup (cloud): like the cloud-backup section of data_extraction_rules.xml,
+     only the language setting; never the store, the seal key (no_backup/), WebView data. -->
+<full-backup-content>
+    <exclude domain="file" path="store/" />
+    <exclude domain="file" path="test-docs/" />
+    <exclude domain="root" path="no_backup/" />
+    <exclude domain="root" path="app_webview/" />
+</full-backup-content>

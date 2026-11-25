@@ -37,7 +37,13 @@
   --rail-w: 156px;
   --side-w: 300px;
   --traffic: 0px;
+  /* safe areas (phones: status bar, notch, gesture bar); 0 on desktops. The page pads its own bars,
+     so the skeleton's padding on :root is taken back below and backgrounds reach the screen edges */
+  --sat: env(safe-area-inset-top, var(--safe-area-inset-top, 0px)); --sab: env(safe-area-inset-bottom, var(--safe-area-inset-bottom, 0px));
+  --sal: env(safe-area-inset-left, var(--safe-area-inset-left, 0px)); --sar: env(safe-area-inset-right, var(--safe-area-inset-right, 0px));
+  --bb-h: 0px;            /* bottom toolbar (compact layout) */
 }
+:root { padding-top: 0; padding-bottom: 0; }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
     --bg: #111318; --surface: #1b1e25; --panel: #171a20; --line: #2a2f39; --line-strong: #3a404c;
@@ -72,12 +78,12 @@ button, input, select { font: inherit; color: inherit; }
 .is-overlay { --wctl: 138px; }
 .mono { font-family: var(--font-num); font-size: 12px; }
 
-#app { height: 100%; display: grid; grid-template-rows: var(--bar-h) minmax(0, 1fr) var(--status-h); }
+#app { height: 100%; display: grid; grid-template-rows: calc(var(--bar-h) + var(--sat)) minmax(0, 1fr) calc(var(--status-h) + var(--sab)); }
 
 /* ---------- title bar ---------- */
 .titlebar {
-  display: flex; align-items: center; gap: 12px; min-width: 0;
-  padding-left: max(16px, calc(var(--traffic) + 8px)); padding-right: calc(16px + var(--wctl, 0px));
+  display: flex; align-items: center; gap: 12px; min-width: 0; padding-top: var(--sat);
+  padding-left: max(calc(16px + var(--sal)), calc(var(--traffic) + 8px)); padding-right: calc(16px + var(--wctl, 0px) + var(--sar));
   background: var(--surface); border-bottom: 1px solid var(--line);
   app-region: drag; -webkit-app-region: drag;
 }
@@ -181,7 +187,8 @@ button, input, select { font: inherit; color: inherit; }
 .thumb.current .thumb-num { background: var(--accent); color: var(--accent-fg); }
 .thumb .dot { position: absolute; right: 4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px var(--paper); }
 
-.stage { position: relative; overflow: auto; min-width: 0; overscroll-behavior: contain; }
+/* one finger scrolls natively; two fingers are the page's own pinch-zoom and pan (no browser zoom) */
+.stage { position: relative; overflow: auto; min-width: 0; overscroll-behavior: contain; touch-action: pan-x pan-y; }
 .pages { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 28px 32px 64px; width: max-content; min-width: 100%; box-sizing: border-box; }
 .page { position: relative; background: var(--paper); box-shadow: var(--paper-shadow); flex: none; }
 .page canvas.render { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
@@ -202,7 +209,7 @@ button, input, select { font: inherit; color: inherit; }
 /* overlays */
 .ov { position: absolute; transform-origin: 50% 50%; cursor: grab; touch-action: none; }
 .ov img { display: block; width: 100%; height: 100%; pointer-events: none; user-select: none; -webkit-user-drag: none; }
-.ov:hover { outline: 1px dashed color-mix(in oklab, var(--accent) 60%, transparent); }
+@media (hover: hover) { .ov:hover { outline: 1px dashed color-mix(in oklab, var(--accent) 60%, transparent); } }
 .ov.sel { outline: 1.5px solid var(--accent); cursor: move; z-index: 3; }
 .ov.dragging { cursor: grabbing; }
 /* keyboard focus on a placed item: the paper is always white, so a fixed ink-blue ring keeps 3:1 in both themes */
@@ -308,7 +315,7 @@ div.tile-main { cursor: default; }
 
 /* ---------- status bar ---------- */
 .status {
-  display: flex; align-items: center; gap: 16px; padding-left: 16px; padding-right: 16px; min-width: 0;
+  display: flex; align-items: center; gap: 16px; padding-left: calc(16px + var(--sal)); padding-right: calc(16px + var(--sar)); padding-bottom: var(--sab); min-width: 0;
   background: var(--surface); border-top: 1px solid var(--line); color: var(--muted); font-size: 11.5px; white-space: nowrap; overflow: hidden;
 }
 .status .num { font-family: var(--font-num); font-variant-numeric: tabular-nums; }
@@ -502,20 +509,211 @@ html:not(.has-seal) .seal-only { display: none !important; }
   .doc-row, .doc-head { grid-template-columns: minmax(0, 1fr) 190px 92px; } .c-work { display: none !important; }
   .main.no-side, .main.no-side.no-rail { grid-template-columns: 0 minmax(0, 1fr) 0; }
 }
-@media (max-width: 760px) {
-  :root { --side-w: 0px; }
-  .main, .main.no-rail, .home { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
-  .rail { display: none; }
-  .side { border-left: none; border-top: 1px solid var(--line); max-height: 42vh; }
-  .hide-narrow, .doc-name, #btn-rail { display: none !important; }
-  .titlebar, .tb-editor { gap: 6px; }
-  .pages { padding: 16px 16px 48px; }
-  .home-wrap { padding: 0; }
-  .doc-row, .doc-head { grid-template-columns: minmax(0, 1fr) auto; } .c-file { display: none !important; } .explain { display: none; }
-  .main.no-side, .main.no-side.no-rail, .home.no-side { grid-template-columns: minmax(0, 1fr); }
-  .fb, .fb.with-preview { grid-template-columns: minmax(0, 1fr); } .fb-places, .fb-preview { display: none; }
-  .search { min-width: 0; flex: 1; }
+/* ---------- phones, tablets and the Android app ----------
+   .touch (primary pointer is a finger, or the Android app): bigger targets, no hover-only controls.
+   Compact layout (< 880 px wide, or a landscape phone): one column; a compact title bar (back, title, ⋮ menu)
+   and a bottom toolbar; "Signatures & stamps" and the inspector are a bottom sheet; dialogs are full-height
+   sheets on phones (< 700 px). At 880 px and wider with a mouse nothing here applies. */
+.bottombar, .sheet-head, #btn-more, .sel-bar, .page-pill, .doc-acts .more { display: none; }
+.menu-veil { position: fixed; inset: 0; z-index: 90; }
+.menu {
+  position: fixed; z-index: 91; min-width: 220px; max-width: min(320px, calc(100vw - 16px)); max-height: calc(100dvh - 16px); overflow-y: auto;
+  display: grid; padding: 6px; border-radius: 12px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 14px 40px rgba(10, 14, 30, .24);
+  animation: rise .14s ease-out;
 }
+.menu [role^="menuitem"] {
+  display: flex; align-items: center; gap: 12px; min-height: 40px; padding: 0 12px; border: none; border-radius: 8px; background: none;
+  text-align: left; cursor: pointer; color: var(--fg); width: 100%;
+}
+.menu [role^="menuitem"]:hover, .menu [role^="menuitem"]:focus { background: color-mix(in oklab, var(--fg) 8%, transparent); outline: none; }
+.menu [role^="menuitem"]:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.menu [role^="menuitem"][aria-disabled="true"] { opacity: .45; cursor: default; }
+.menu [role^="menuitem"] svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+.menu [role^="menuitem"] .chk { margin-left: auto; color: var(--accent); }
+.menu .danger, .menu .danger svg { color: var(--seal); }
+.menu [role="separator"] { border-top: 1px solid var(--line); margin: 4px 6px; }
+.menu [role="group"] { display: grid; }
+.menu .cap { font-size: 11px; font-weight: 600; letter-spacing: .04em; color: var(--muted); padding: 8px 12px 2px; }
+
+.touch body { -webkit-tap-highlight-color: transparent; }
+.touch .btn { height: 44px; }
+.touch .btn.icon { width: 44px; }
+.touch .btn.sm { height: 36px; }
+.touch .btn.icon.sm { width: 40px; }
+.touch .tb-group .btn.icon { width: 40px; height: 40px; }
+.touch .text-input { height: 46px; font-size: 16px; }
+.touch .form-grid .text-input { height: 44px; font-size: 16px; }
+.touch .seg button { height: 38px; padding: 0 14px; }
+.touch .sw { height: 36px; min-width: 36px; padding: 0 12px; }
+.touch .field { height: 42px; }
+.touch .field input { font-size: 15px; }
+.touch .row input[type=range] { height: 32px; }
+.touch .toggle input { width: 20px; height: 20px; }
+.touch .add-btn { padding: 12px 4px 10px; font-size: 13px; }
+.touch .tile .art { height: 76px; }
+.touch .tile .art img { max-height: 60px; }
+.touch .tile .meta { padding: 8px 10px; font-size: 12.5px; }
+/* rename/remove on a tile: always visible on touch (no hover), 44 px to hit */
+.touch .tile .tile-acts { opacity: 1; top: 6px; right: 6px; gap: 6px; }
+.touch .tile-acts button { position: relative; width: 32px; height: 32px; border-radius: 8px; }
+.touch .tile-acts button::before { content: ""; position: absolute; inset: -6px; }
+.touch .tile-acts svg { width: 14px; height: 14px; }
+.touch .doc-acts .btn.icon.sm { width: 44px; height: 44px; }
+.touch .lang-sw button, .touch .status .about-btn { height: 26px; padding: 0 6px; }
+/* handles: drawn a little larger, hit 44 px wide; the rotation knob sits further out */
+.touch .h { width: 18px; height: 18px; border-width: 2px; border-radius: 4px; }
+.touch .h::before { content: ""; position: absolute; inset: -13px; border-radius: 50%; }
+.touch .h.tl { left: -10px; top: -10px; } .touch .h.br { right: -10px; bottom: -10px; }
+.touch .h.tr { right: -10px; top: -10px; } .touch .h.bl { left: -10px; bottom: -10px; }
+.touch .h.rot { top: -52px; margin-left: -10px; width: 20px; height: 20px; border-radius: 50%; }
+.touch .h.rot::after { left: 7px; top: 18px; width: 2px; height: 32px; }
+/* an unselected item lets a finger scroll the page (a tap selects it); a selected one is dragged */
+.touch .ov { touch-action: pan-x pan-y; }
+.touch .ov.sel { touch-action: none; }
+.touch .pad-wrap canvas { cursor: default; }
+
+@media (max-width: 879px), (pointer: coarse) and (max-height: 520px) {
+  :root { --bar-h: 56px; --bb-h: 65px; }
+  #app { grid-template-rows: calc(var(--bar-h) + var(--sat)) minmax(0, 1fr) auto; }
+  .status { display: none; }
+  .toasts { bottom: calc(var(--bb-h) + 12px + var(--sab)); }
+
+  /* title bar: back · title · ⋮ (the actions move to the bottom toolbar and the ⋮ menu) */
+  .titlebar { gap: 4px; padding-left: calc(8px + var(--sal)); padding-right: calc(4px + var(--sar)); }
+  [data-view="home"] .titlebar { padding-left: calc(16px + var(--sal)); }
+  #btn-open, #btn-verify, #btn-side, #tb-editor, #btn-export, #btn-install, #btn-rail { display: none !important; }
+  #btn-more { display: inline-flex; }
+  .btn.back { width: 44px; height: 44px; padding: 0; justify-content: center; border-color: transparent; background: transparent; }
+  .btn.back svg { width: 20px; height: 20px; }
+  .btn.back .hide-narrow { display: none; }
+  [data-view="editor"] .brand-mark { display: none; }
+  .doc-name { display: flex; }
+  .doc-name strong { font-size: 15px; max-width: none; }
+  #doc-sub { display: none; }
+
+  /* bottom toolbar */
+  .bottombar:not([hidden]) {
+    grid-row: 3; display: flex; align-items: center; gap: 4px; min-width: 0;
+    padding: 8px calc(8px + var(--sar)) calc(8px + var(--sab)) calc(8px + var(--sal));
+    background: var(--surface); border-top: 1px solid var(--line);
+  }
+  .bottombar .btn { height: 48px; flex: none; }
+  .bottombar .btn.icon { width: 44px; }
+  #bb-lib { border-color: var(--line-strong); }
+  .bottombar .btn svg { width: 20px; height: 20px; }
+  .bottombar .btn:not(.icon) { padding: 0 12px; gap: 8px; }
+  .bottombar .grow { flex: 1 1 0; min-width: 0; }
+  /* on the narrowest phones the long label gives way first (its full text stays the button's name) */
+  #bb-lib { flex: 0 1 auto; min-width: 48px; }
+  #bb-lib span { overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+  [data-view="home"] .bottombar .bb-ed, [data-view="editor"] .bottombar .bb-home { display: none; }
+  .bottombar .btn[aria-expanded="true"] { background: var(--accent-soft); color: var(--accent); }
+
+  /* one column */
+  .home, .main, .main.no-rail, .home.no-side, .main.no-side, .main.no-side.no-rail { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr); }
+  .rail, #rail { display: none; }
+  .main { position: relative; }
+  .pages { padding: 12px 12px 88px; gap: 18px; }
+  .page .pageno { bottom: -16px; }
+  .sample-bar { position: sticky; top: 8px; margin: 8px auto 0; max-width: calc(100% - 24px); flex-wrap: wrap; row-gap: 6px; }
+  .sample-bar .btn { height: 40px; }
+
+  /* home: cards with the status chips */
+  .home-main { padding: 16px calc(16px + var(--sar)) 24px calc(16px + var(--sal)); }
+  .home-wrap { padding: 0; gap: 12px; }
+  .home-head { gap: 12px; }
+  .home-head h1 { font-size: 20px; }
+  .home-tools { width: 100%; }
+  .search { flex: 1 1 100%; min-width: 0; height: 44px; border-radius: 10px; }
+  .search input { font-size: 16px; }
+  #doc-filter { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  #doc-filter button { height: 38px; white-space: nowrap; }
+  .explain { display: none; }
+  .doc-list { background: none; border: none; border-radius: 0; overflow: visible; gap: 10px; }
+  .doc-head { display: none !important; }
+  .doc-row {
+    position: relative; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "open open acts" "work file file";
+    gap: 12px 12px; padding: 12px 8px 12px 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+  }
+  .doc-row:last-child { border-bottom: 1px solid var(--line); }
+  .doc-row.current { box-shadow: inset 3px 0 0 var(--accent); }
+  .doc-open { grid-area: open; position: static; }
+  .doc-open::after { content: ""; position: absolute; inset: 0; border-radius: 14px; }
+  .doc-open:focus-visible { outline: none; }
+  .doc-open:focus-visible::after { outline: 2px solid var(--focus); outline-offset: 2px; }
+  .doc-thumb { width: 44px; height: 58px; }
+  .doc-title strong { font-size: 15px; }
+  .doc-title span { font-size: 12px; }
+  .c-work { grid-area: work; display: grid !important; }
+  .c-file { grid-area: file; display: grid !important; }
+  .chip { height: 26px; padding: 0 10px; font-size: 12px; }
+  .doc-acts { grid-area: acts; align-self: start; position: relative; z-index: 1; margin: -4px 0 0; }
+  .doc-acts > .btn:not(.more) { display: none; }
+  .doc-acts .more { display: inline-flex; }
+  .no-match { border: 1px dashed var(--line-strong); border-radius: 14px; }
+
+  /* the side panel becomes a bottom sheet: dragged by its head, snaps to half and full height, closed by
+     the head's ✕, Escape, dragging it down, or the back button */
+  .side, .home.no-side > .side, .main.no-side > .side {
+    position: fixed; z-index: 40; left: 0; right: 0; bottom: 0; display: flex; flex-direction: column;
+    height: var(--sheet-h, 52dvh); max-height: calc(100dvh - var(--sat) - 24px); overflow: hidden;
+    border: 1px solid var(--line); border-bottom: none; border-radius: 18px 18px 0 0; box-shadow: 0 -10px 40px rgba(10, 14, 30, .22);
+    padding: 0 var(--sar) var(--sab) var(--sal);
+    transform: translateY(calc(100% + 40px)); visibility: hidden;
+    transition: transform .24s cubic-bezier(.2, .8, .2, 1), height .24s cubic-bezier(.2, .8, .2, 1), visibility 0s linear .24s;
+  }
+  .side.open { transform: none; visibility: visible; transition: transform .24s cubic-bezier(.2, .8, .2, 1), height .24s cubic-bezier(.2, .8, .2, 1); }
+  .side.dragging { transition: none; }
+  .sheet-head { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; flex: none; padding: 0 6px 2px 16px; border-bottom: 1px solid var(--line); touch-action: none; cursor: grab; }
+  .sheet-grip { grid-column: 1 / -1; height: 28px; margin: 0 -6px 0 -16px; border: none; background: none; display: grid; place-items: center; cursor: grab; padding: 0; }
+  .sheet-grip span { width: 40px; height: 5px; border-radius: 3px; background: var(--line-strong); }
+  .sheet-title { min-width: 0; margin: 0; font-size: 16px; font-weight: 600; outline: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .side .sec-lib .sec-head .sec-title, .side[data-mode="insp"] #inspector .sec-title { display: none; }
+  .side .sec-lib .sec-head { justify-content: flex-end; margin-bottom: 8px; }
+  .side[data-mode="lib"] #inspector, .side[data-mode="insp"] .sec-lib { display: none; }
+  .lib { grid-template-columns: repeat(auto-fill, minmax(132px, 1fr)); gap: 10px; }
+  .shortcuts { display: none; }
+  :lang(ko) .hint, :lang(ko) .home-empty p { word-break: keep-all; }
+
+  /* the selected item's quick actions, above the page; the page number when nothing is selected */
+  .sel-bar:not([hidden]) {
+    position: absolute; z-index: 6; left: 50%; bottom: 12px; transform: translateX(-50%); display: flex; gap: 2px; padding: 4px;
+    border-radius: 14px; background: var(--surface); border: 1px solid var(--line); box-shadow: 0 6px 22px rgba(10, 14, 30, .18); max-width: calc(100% - 24px);
+  }
+  .sel-bar .btn { height: 44px; padding: 0 12px; }
+  .page-pill {
+    display: block; position: absolute; z-index: 5; right: 12px; bottom: 12px; pointer-events: none; padding: 4px 10px; border-radius: 12px;
+    background: color-mix(in oklab, var(--fg) 72%, transparent); color: var(--bg); font-family: var(--font-num); font-size: 12px; font-variant-numeric: tabular-nums;
+  }
+  .page-pill:empty, .sel-bar:not([hidden]) ~ .page-pill { display: none; }
+
+  dialog { width: min(600px, calc(100vw - 32px)); }
+  .dlg-foot { flex-wrap: wrap; }
+  .fb, .fb.with-preview { grid-template-columns: minmax(0, 1fr); } .fb-places, .fb-preview { display: none; }
+}
+/* tablets in the compact layout: two cards a row */
+@media (min-width: 700px) and (max-width: 879px) {
+  .doc-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .doc-list .no-match { grid-column: 1 / -1; }
+  #doc-sub { display: block; }
+}
+/* phones: dialogs are full-height sheets */
+@media (max-width: 699px), (pointer: coarse) and (max-height: 520px) {
+  dialog { width: 100%; max-width: 100%; height: 100%; max-height: 100%; margin: 0; border: none; border-radius: 0; box-shadow: none; }
+  dialog[open] { display: flex; flex-direction: column; animation: sheet-up .22s cubic-bezier(.2, .8, .2, 1); }
+  dialog::backdrop { background: rgba(14, 18, 30, .5); }
+  .dlg-head { flex: none; padding: calc(6px + var(--sat)) calc(8px + var(--sar)) 6px calc(18px + var(--sal)); min-height: 56px; box-sizing: border-box; }
+  .dlg-head h2 { font-size: 17px; }
+  .dlg-body, #sealer-body { flex: 1; min-height: 0; overflow-y: auto; align-content: start; padding-left: calc(18px + var(--sal)); padding-right: calc(18px + var(--sar)); }
+  .dlg-foot { flex: none; padding: 10px calc(12px + var(--sar)) calc(10px + var(--sab)) calc(12px + var(--sal)); }
+  .pad-wrap canvas { height: clamp(200px, 42dvh, 380px); }
+  .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .opt-row .lbl { width: auto; min-width: 44px; }
+  .bottombar .bb-label-opt { display: none; }
+}
+@media (max-width: 429px) { #bb-save svg { display: none; } }
+@keyframes sheet-up { from { transform: translateY(24px); opacity: .4; } }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; scroll-behavior: auto !important; } }
 </style>
 
@@ -548,11 +746,12 @@ html:not(.has-seal) .seal-only { display: none !important; }
     <button class="btn icon outline" id="btn-side" data-i18n-tip="ed.side" data-k="⌥⌘\" data-i18n-label="ed.side"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M10.25 2.25v11.5"/></svg></button>
     <button class="btn outline" id="btn-install" data-i18n="install.btn" hidden></button>
     <button class="btn primary" id="btn-export" data-i18n-tip="export.tip" data-k="⌘S" hidden disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M8 2v8M4.75 6.75 8 10l3.25-3.25M2.5 11.5v2h11v-2"/></svg><span data-i18n="export.btn"></span></button>
+    <button class="btn icon" id="btn-more" type="button" aria-haspopup="menu" aria-expanded="false" data-i18n-label="more.label"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><circle cx="8" cy="3.25" r="1.35"/><circle cx="8" cy="8" r="1.35"/><circle cx="8" cy="12.75" r="1.35"/></svg></button>
   </header>
 
   <!-- HOME: document history + library -->
   <section class="home no-side" id="home">
-    <main class="home-main" id="home-main">
+    <main class="home-main" id="home-main" tabindex="-1">
       <div class="home-wrap">
         <div class="home-head">
           <div><h1 data-i18n="lib.name"></h1><p class="hint" id="home-sub" style="margin:0"></p></div>
@@ -578,8 +777,14 @@ html:not(.has-seal) .seal-only { display: none !important; }
         </div>
       </div>
     </main>
-    <aside class="side" data-i18n-label="lib.items">
-      <section class="sec">
+    <aside class="side" id="home-side" data-i18n-label="lib.items">
+      <div class="sheet-head">
+        <button class="sheet-grip" type="button" data-i18n-label="sheet.expand"><span></span></button>
+        <h2 class="sheet-title" tabindex="-1" data-i18n="lib.items"></h2>
+        <button class="btn icon sheet-close" type="button" data-i18n-label="sheet.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
+      </div>
+      <div class="side-body">
+      <section class="sec sec-lib">
         <div class="sec-head"><span class="sec-title" data-i18n="lib.items"></span><span class="hint lib-count"></span></div>
         <div class="add-row">
           <button class="add-btn" data-add="image" data-i18n-tip="add.image.tip"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2" y="3" width="14" height="12" rx="2"/><circle cx="6.5" cy="7" r="1.4"/><path d="m2.5 13 4-3.5 3 2.5 2.5-2 3.5 3"/></svg><span data-i18n="add.image"></span></button>
@@ -592,13 +797,14 @@ html:not(.has-seal) .seal-only { display: none !important; }
       <section class="sec seal-side seal-only" id="seal-info" data-i18n-label="sealer.title"></section>
       <section class="sec store-info" id="store-info" data-i18n-label="store.aria"></section>
       <section class="sec" id="about-side" data-i18n-label="about.title"></section>
+      </div>
     </aside>
   </section>
 
   <!-- EDITOR -->
   <div class="main" id="main" hidden>
     <nav class="rail" id="rail" data-i18n-label="ed.pages"><div class="thumbs" id="thumbs"></div></nav>
-    <main class="stage" id="stage" tabindex="-1" data-i18n-label="ed.document">
+    <main class="stage" id="stage" tabindex="0" data-i18n-label="ed.document">
       <h1 class="sr-only" id="ed-h1"></h1>
       <div class="sample-bar" id="sample-bar" hidden>
         <span data-i18n-rich="sample.bar"></span>
@@ -607,8 +813,20 @@ html:not(.has-seal) .seal-only { display: none !important; }
       <div class="sample-bar warnbar" id="doc-bar" hidden></div>
       <div class="pages" id="pages"></div>
     </main>
-    <aside class="side">
-      <section class="sec" data-i18n-label="lib.items">
+    <div class="sel-bar" id="sel-bar" role="region" data-i18n-label="sel.bar" hidden>
+      <button class="btn" id="sb-adjust" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/></svg><span data-i18n="sel.adjust"></span></button>
+      <button class="btn" id="sb-dup" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="5" y="5" width="8.5" height="8.5" rx="1.5"/><path d="M3 10.5V3.75A1.25 1.25 0 0 1 4.25 2.5H10.5"/></svg><span data-i18n="insp.dup"></span></button>
+      <button class="btn danger" id="sb-del" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M2.5 4h11M6 4V2.5h4V4M4 4l.75 9.5h6.5L12 4"/></svg><span data-i18n="sel.remove"></span></button>
+    </div>
+    <div class="page-pill" id="page-pill" aria-hidden="true"></div>
+    <aside class="side" id="ed-side" data-i18n-label="lib.items" data-mode="lib">
+      <div class="sheet-head">
+        <button class="sheet-grip" type="button" data-i18n-label="sheet.expand"><span></span></button>
+        <h2 class="sheet-title" tabindex="-1" id="ed-sheet-title"></h2>
+        <button class="btn icon sheet-close" type="button" data-i18n-label="sheet.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button>
+      </div>
+      <div class="side-body">
+      <section class="sec sec-lib" data-i18n-label="lib.items">
         <div class="sec-head"><span class="sec-title" data-i18n="lib.items"></span><span class="hint lib-count"></span></div>
         <div class="add-row">
           <button class="add-btn" data-add="image" data-i18n-tip="add.image.tip2"><svg viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="2" y="3" width="14" height="12" rx="2"/><circle cx="6.5" cy="7" r="1.4"/><path d="m2.5 13 4-3.5 3 2.5 2.5-2 3.5 3"/></svg><span data-i18n="add.image"></span></button>
@@ -619,6 +837,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
         <p class="hint lib-hint" style="margin:10px 0 0" data-i18n="lib.hint.editor"></p>
       </section>
       <section class="sec" id="inspector" data-i18n-label="insp.title"></section>
+      </div>
     </aside>
   </div>
 
@@ -631,6 +850,16 @@ html:not(.has-seal) .seal-only { display: none !important; }
     <button class="about-btn" id="btn-about" type="button" data-i18n="about.btn" aria-haspopup="dialog"></button>
     <span class="private" data-i18n-title="status.private.tip"><svg viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="2.5" y="6" width="9" height="6.5" rx="1.5"/><path d="M4.5 6V4.5a2.5 2.5 0 0 1 5 0V6"/></svg><span class="hide-narrow" data-i18n="status.private"></span></span>
   </footer>
+  <div class="bottombar" id="bottombar" role="region" data-i18n-label="bb.label">
+    <button class="btn" id="bb-lib" type="button" aria-expanded="false"><svg aria-hidden="true" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M2 14.5c2-3 3-6.5 4.5-6.5S7 12 9 12s2.2-4 3.6-4 1.4 3 3.4 3"/><path d="M2 16.5h14" opacity=".5"/></svg><span data-i18n="lib.items"></span></button>
+    <span class="grow"></span>
+    <button class="btn icon bb-ed" id="bb-undo" type="button" data-i18n-label="ed.undo" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 3.5 2.5 6.5l3 3"/><path d="M2.5 6.5h7a4 4 0 0 1 0 8h-2"/></svg></button>
+    <button class="btn icon bb-ed" id="bb-redo" type="button" data-i18n-label="ed.redo" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m10.5 3.5 3 3-3 3"/><path d="M13.5 6.5h-7a4 4 0 0 0 0 8h2"/></svg></button>
+    <button class="btn icon bb-ed" id="bb-fit" type="button" data-i18n-label="ed.fitP"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M1.5 3v10M14.5 3v10M4 8h8M6 6 4 8l2 2M10 6l2 2-2 2"/></svg></button>
+    <button class="btn primary bb-ed" id="bb-save" type="button" disabled><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 2v8M4.75 6.75 8 10l3.25-3.25M2.5 11.5v2h11v-2"/></svg><span data-i18n="save.save"></span></button>
+    <button class="btn outline bb-home seal-only" id="bb-verify" type="button" data-i18n-label="seal.verify"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="m5.5 8 1.75 1.75L10.75 6.5"/></svg><span class="bb-label-opt" data-i18n="seal.verify"></span></button>
+    <button class="btn primary bb-home" id="bb-open" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M1.75 4.25v8.5h11.5l1-6h-10l-1 6M1.75 4.25V3.25h4l1.25 1.5h5.25v2"/></svg><span data-i18n="open.short"></span></button>
+  </div>
 </div>
 <div class="drop-veil" id="drop-veil" hidden><div id="drop-msg"></div></div>
 <div class="sr-only" id="sr-live" aria-live="polite" aria-atomic="true"></div>
@@ -1165,6 +1394,8 @@ const STR = {
   "about.version": ["버전 {v}", "Version {v}"],
   "about.privacy": ["개인정보 처리방침", "Privacy policy"], "about.support": ["지원 · 문의", "Support"], "about.repo": ["GitHub 소스 코드", "Source code on GitHub"],
   "about.external": ["(브라우저에서 열림)", "(opens in your browser)"],
+  "about.license": ["라이선스: 누구나 무료로 사용 · 소스 공개", "License: free for everyone · source-available"],
+  "about.notices": ["제3자 라이선스", "Third-party licenses"],
   "about.copyright": ["© 2026 주식회사 팔콘아이즈", "© 2026 Falcon Eyes Inc."],
   "link.fail": ["링크를 열지 못했습니다.", "Couldn't open the link."],
   "access.fail": ["파일 접근을 허용받지 못했습니다.", "Couldn't get access to the file."],
@@ -1183,6 +1414,46 @@ const STR = {
   "draw.pad": ["서명 그리는 곳", "Signature drawing area"],
   "draw.pad.desc": ["마우스, 트랙패드나 펜으로 서명하세요. 그리기가 어렵다면 ‘글자·날짜’로 이름을 입력하거나 서명 이미지를 가져올 수 있습니다.", "Sign with a mouse, trackpad or pen. If drawing is hard, type your name with “Text & date” or import an image of your signature."],
   "draw.alt": ["그리기가 어렵다면", "Can't draw?"], "draw.alt.text": ["글자로 입력…", "Type it instead…"], "draw.alt.image": ["이미지 가져오기…", "Import an image…"],
+
+  // phones and tablets (compact layout, touch)
+  "more.label": ["메뉴 더 보기", "More options"],
+  "bb.label": ["작업", "Actions"],
+  "open.short": ["PDF 열기", "Open PDF"],
+  "sheet.expand": ["패널 크게 보기", "Expand panel"], "sheet.shrink": ["패널 작게 보기", "Shrink panel"], "sheet.close": ["패널 닫기", "Close panel"],
+  "sel.bar": ["고른 항목", "Selected item"], "sel.adjust": ["조정", "Adjust"], "sel.remove": ["지우기", "Remove"],
+  "home.more.aria": ["{name} 작업 더 보기", "More actions for {name}"],
+
+  // Android app (docs/design/android.md): a key + "@a" replaces the key there
+  "os.fmAndroid": ["파일 앱", "Files"],
+  "os.device": ["기기", "device"],
+  "home.search.ph@a": ["문서 이름으로 찾기", "Search by name"],
+  "store.title@a": ["저장 공간", "Storage"],
+  "store.mobile": ["보관함 사본, 작업 내용, 서명·도장은 이 기기의 앱 저장 공간에 있습니다. {fm}의 원본과 저장한 파일과는 따로 관리되고, 앱을 삭제하면 함께 지워집니다. 봉인 정보는 미리 백업해 두세요.", "Library copies, your work, and signatures & stamps are kept in this app's storage on this device, separately from the originals and saved files in {fm}. Uninstalling the app deletes them, so back up your sealer identity first."],
+  "lib.hint.home@a": ["등록한 서명과 도장은 계속 남아서 다른 문서에서도 바로 다시 쓸 수 있습니다. 이름을 누르면 바꿀 수 있습니다.", "Signatures and stamps you add stay here, ready for any document. Tap a name to rename it."],
+  "lib.hint.editor@a": ["항목을 누르면 지금 보이는 쪽에 놓입니다. 놓은 항목은 눌러서 고른 뒤 끌어서 옮기고, 두 손가락으로 크기와 각도를 바꿉니다. 길게 누르면 다른 작업이 나옵니다.", "Tap an item to place it on the page in view. Tap a placed item to select it, then drag to move it, or use two fingers to resize and rotate it. Touch and hold for more."],
+  "lib.tile@a": ["{name} — 눌러서 지금 보이는 쪽에 놓기", "{name} — tap to place it on the page in view"],
+  "lib.clickRename@a": ["눌러서 이름 바꾸기", "Tap to rename"],
+  "insp.hint.some@a": ["문서 위의 서명이나 도장을 누르면 위치·크기·색을 다듬을 수 있습니다.", "Tap a signature or stamp on the document to adjust its position, size and color."],
+  "insp.hint.none@a": ["‘서명 · 도장’에서 서명이나 도장을 골라 문서에 놓아 보세요.", "Pick a signature or stamp in “Signatures & stamps” and place it on the document."],
+  "save.nothing@a": ["아직 놓은 서명·도장이 없습니다. ‘서명 · 도장’에서 골라 문서에 놓아 주세요.", "Nothing placed yet. Pick a signature or stamp in “Signatures & stamps” and place it on the document."],
+  "save.hint@a": ["고른 폴더에, 폴더를 고르지 않았다면 저장할 때 고른 곳에 서명을 넣은 새 PDF가 만들어집니다. 원본 PDF와 보관함의 작업 내용은 그대로입니다.", "A new PDF with your signatures is created in the chosen folder or, if you haven't chosen one, where you pick when saving. The original PDF and your work in the Library stay as they are."],
+  "save.sandboxNote@a": ["폴더를 고르지 않았다면 저장할 때 위치를 묻습니다. ‘바꾸기…’로 폴더를 한 번 고르면 다음부터 그 폴더에 바로 저장합니다.", "If you haven't chosen a folder, you'll pick the place when you save. Choose a folder once with “Change…” and later saves go straight there."],
+  "add.draw.tip@a": ["손가락이나 펜으로 서명 그리기", "Draw a signature with your finger or a stylus"],
+  "add.image.tip2@a": ["PNG·JPG 이미지 가져오기", "Import a PNG or JPG image"],
+  "draw.pad.desc@a": ["손가락이나 펜으로 서명하세요. 그리기가 어렵다면 ‘글자·날짜’로 이름을 입력하거나 서명 이미지를 가져올 수 있습니다.", "Sign with your finger or a stylus. If drawing is hard, type your name with “Text & date” or import an image of your signature."],
+  "home.empty.p@a": ["PDF를 열거나 다른 앱에서 Sealworks로 공유하세요. 연 문서는 보관함에 사본으로 들어가고, 놓은 서명과 함께 언제든 이어서 작업할 수 있습니다.", "Open a PDF, or share one to Sealworks from another app. Each document goes into the Library as a copy, so you can pick up where you left off, signatures and all."],
+  "home.sub.tail@a": [". 문서를 누르면 놓아 둔 서명과 함께 이어서 작업합니다.", ". Tap a document to continue with the signatures you placed."],
+  "sample.bar@a": ["**예시 문서**로 둘러보는 중입니다. 보관함에 남지 않습니다.", "You're looking at an **example document**. It won't be kept in the Library."],
+  "src.unknown.tip@a": ["다른 앱에서 받은 PDF라 원본 위치를 모릅니다. 보관함 사본으로 작업합니다.", "This PDF came from another app, so its location is unknown. You're working on the Library copy."],
+  "save.seal.first@a": ["처음 봉인할 때 봉인하는 사람 정보를 이 기기에 만듭니다. 이 이름이 봉인에 들어갑니다.", "The first time you seal, a sealer identity is created on this device. This name goes into the seal."],
+  "sealer.warn@a": ["봉인 정보는 이 기기에만 있습니다. 백업 없이 기기를 잃어버리거나 초기화하거나 앱을 지우면 새로 만들어야 하고, 지문도 바뀝니다.", "Your sealer identity lives only on this device. If you lose or reset it, or uninstall the app, without a backup, you'll have to make a new one, with a new fingerprint."],
+  "sealer.backup.go@a": ["백업 파일 저장…", "Save backup file…"],
+  "insp.allDone@a": ["{n}개 쪽에 같은 위치로 넣었습니다. 실행 취소로 되돌릴 수 있습니다.", pl("Added to 1 more page at the same spot. Use Undo to take it back.", "Added to {n} more pages at the same spot. Use Undo to take it back.")],
+  "ov.removed@a": ["{label} 지움. 실행 취소로 되돌릴 수 있습니다.", "Removed {label}. Use Undo to bring it back."],
+  "verify.drop@a": ["확인할 PDF를 고르세요.", "Choose a PDF to check."],
+  "verify.dropAnother@a": ["다른 PDF도 확인할 수 있습니다.", "You can check another PDF too."],
+  "sandbox.firstRun@a": ["다른 앱에서 열거나 공유한 PDF는 앱을 쓰는 동안만 원본을 확인할 수 있습니다. ‘새 PDF 열기’로 고른 파일은 다음에도 계속 확인합니다.", "PDFs opened or shared from another app can be checked against their original only while Sealworks is open. Files you choose with “Open new PDF” stay checkable next time."],
+  "home.explain.sandbox@a": ["**권한** 다른 앱에서 열거나 공유한 원본은 앱을 쓰는 동안만 확인합니다. ‘새 PDF 열기’로 고르면 계속 확인합니다.", "**Permission** Originals opened or shared from another app are checked only while Sealworks is open. Choose them with “Open new PDF” to keep checking."],
 };
 
 const LANGS = ["ko", "en"];
@@ -1192,7 +1463,8 @@ const systemLang = () => (/^ko/i.test(navigator.language || "") ? "ko" : "en");
 let LANG = (() => { try { const v = localStorage.getItem("pdfe.lang"); if (LANGS.includes(v)) return v; } catch {} return systemLang(); })();
 const LOCALE = () => (LANG === "ko" ? "ko-KR" : "en-US");
 // wording follows the computer the app runs on: Finder and ⌘ on a Mac, 파일 탐색기 / File Explorer and Ctrl on Windows
-const OS = { win: false };
+// Android (docs/design/android.md): the Files app, "this device", and touch wording (STR keys ending in "@a")
+const OS = { win: false, android: false };
 const KEYS_WIN = [[/⇧⌘/g, "Ctrl+Shift+"], [/⌥⌘/g, "Ctrl+Alt+"], [/⌘/g, "Ctrl+"], [/⇧ /g, "Shift + "], [/⌥ /g, "Alt + "], [/⌫/g, "Delete"]];
 const kbd = (s) => (OS.win ? KEYS_WIN.reduce((v, [re, to]) => v.replace(re, to), s) : s);
 // Korean particles after a value the template doesn't know in advance (a file name, a search term)
@@ -1205,14 +1477,14 @@ function finalSound(word) { // 0 open syllable, 1 closed, 2 closed with ㄹ (tak
 }
 // templates are app phrases, so OS wording and key glyphs apply to them; params (user data) go in afterwards untouched
 function t(key, p = {}) {
-  const e = STR[key];
+  const e = (OS.android && STR[key + "@a"]) || STR[key];
   if (!e) { console.warn("i18n: missing", key); return key; }
   let s = e[LANG === "en" ? 1 : 0];
   if (typeof s === "function") s = s(p);
   let last = "";
   return kbd(s).replace(/\{([^{}]+)\}/g, (m, k) => {
-    if (k === "fm") return (last = OS.win ? t("os.fmWin") : "Finder");
-    if (k === "pc") return (last = OS.win ? "PC" : "Mac");
+    if (k === "fm") return (last = OS.android ? t("os.fmAndroid") : OS.win ? t("os.fmWin") : "Finder");
+    if (k === "pc") return (last = OS.android ? t("os.device") : OS.win ? "PC" : "Mac");
     if (PARTICLES[k]) { const f = finalSound(last), [a, b] = PARTICLES[k]; return k === "으로" ? (f === 1 ? a : b) : f ? a : b; }
     if (k in p) return (last = String(p[k] ?? ""));
     return m;
@@ -1283,6 +1555,14 @@ const ICONS = {
   shield: '<path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/>',
   shieldOk: '<path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="m5.5 8 1.75 1.75L10.75 6.5"/>',
   shieldWarn: '<path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="M8 5.25v3.5"/><circle cx="8" cy="10.9" r=".45" fill="currentColor"/>',
+  zoomIn: '<circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3M5 7h4M7 5v4"/>',
+  zoomOut: '<circle cx="7" cy="7" r="4.5"/><path d="m10.5 10.5 3 3M5 7h4"/>',
+  fitW: '<path d="M1.5 3v10M14.5 3v10M4 8h8M6 6 4 8l2 2M10 6l2 2-2 2"/>',
+  fitP: '<rect x="4" y="1.75" width="8" height="12.5" rx="1"/><path d="M1.5 5V2.5a1 1 0 0 1 1-1M14.5 5V2.5a1 1 0 0 0-1-1M1.5 11v2.5a1 1 0 0 0 1 1M14.5 11v2.5a1 1 0 0 1-1 1"/>',
+  actual: '<rect x="2" y="2" width="12" height="12" rx="1.5"/><path d="M5.5 6.5 7 5.5v5M9.5 6.5l1.5-1v5"/>',
+  info: '<circle cx="8" cy="8" r="6"/><path d="M8 7.25v4"/><circle cx="8" cy="5" r=".5" fill="currentColor"/>',
+  sliders: '<path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/>',
+  more: '<circle cx="8" cy="3.25" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/><circle cx="8" cy="12.75" r=".9" fill="currentColor"/>',
   shieldX: '<path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="m6.25 6.25 3.5 3.5M9.75 6.25l-3.5 3.5"/>',
 };
 const icon = (name) => svgIcon(ICONS[name]);
@@ -1327,7 +1607,7 @@ const joinPath = (dir, name) => (dir === "/" ? "/" + name : `${dir}/${name}`);
 // the standard home folders show under the names Finder uses in the UI language (데스크탑, 문서 … in Korean)
 const HOME_DIRS = new Set(["Desktop", "Documents", "Downloads", "Pictures", "Movies", "Music"]);
 const homeDirName = (name) => (HOME_DIRS.has(name) ? t("folder." + name) : name);
-const prettyDir = (p) => p == null ? "" : p === "~" ? t("folder.home") : /^\/[A-Za-z]:/.test(p) ? p.slice(1).replaceAll("/", "\\") : p.replace(/^~\/([^/]+)/, (_, top) => homeDirName(top));
+const prettyDir = (p) => p == null ? "" : /^\/android(\/|$)/.test(p) ? t("os.fmAndroid") : p === "~" ? t("folder.home") : /^\/[A-Za-z]:/.test(p) ? p.slice(1).replaceAll("/", "\\") : p.replace(/^~\/([^/]+)/, (_, top) => homeDirName(top));
 async function mapLimit(items, n, fn) {
   const out = new Array(items.length); let i = 0;
   await Promise.all(Array.from({ length: Math.min(n, items.length) }, async () => {
@@ -1360,7 +1640,7 @@ let tipTimer = 0, tipFor = null;
 function showTip(t) {
   if (!t.isConnected || !t.dataset.tip) return;
   tipEl.textContent = ""; tipEl.append(el("span", { text: t.dataset.tip }));
-  if (t.dataset.key) tipEl.append(el("kbd", { text: t.dataset.key }));
+  if (t.dataset.key && !OS.android) tipEl.append(el("kbd", { text: t.dataset.key }));
   const r = t.getBoundingClientRect(), tw = tipEl.offsetWidth, th = tipEl.offsetHeight;
   let y = r.bottom + 8; if (y + th > innerHeight - 8) y = r.top - th - 8;
   tipEl.style.left = `${clamp(r.left + r.width / 2 - tw / 2, 8, innerWidth - tw - 8)}px`; tipEl.style.top = `${y}px`;
@@ -1368,6 +1648,7 @@ function showTip(t) {
 }
 const hideTip = () => { clearTimeout(tipTimer); tipFor = null; tipEl.classList.remove("show"); };
 document.addEventListener("pointerover", (e) => {
+  if (e.pointerType === "touch") return; // fingers don't hover: touch and hold shows the tip (below)
   const t = e.target.closest?.("[data-tip]");
   if (t === tipFor) return;
   hideTip(); if (!t || t.closest("dialog")) return;
@@ -1377,6 +1658,25 @@ document.addEventListener("pointerdown", hideTip, true);
 document.addEventListener("keydown", hideTip, true);
 document.addEventListener("focusin", (e) => { const t = e.target.closest?.("[data-tip]"); if (t?.matches(":focus-visible") && !t.closest("dialog")) { tipFor = t; showTip(t); } });
 document.addEventListener("focusout", hideTip);
+// touch: holding a control with a tip shows it (like Android's own tooltips) and that touch doesn't activate it
+let tipHold = 0, tipSwallow = false;
+document.addEventListener("pointerdown", (e) => {
+  clearTimeout(tipHold); tipSwallow = false;
+  if (e.pointerType !== "touch") return;
+  const t = e.target.closest?.("[data-tip]");
+  if (!t || t.closest("dialog, .pages, .menu")) return;
+  const x = e.clientX, y = e.clientY;
+  const off = () => { clearTimeout(tipHold); for (const ev of ["pointerup", "pointercancel", "pointermove"]) document.removeEventListener(ev, stop, true); };
+  const stop = (ev) => { if (ev.type === "pointermove" && Math.hypot(ev.clientX - x, ev.clientY - y) < 10) return; off(); };
+  for (const ev of ["pointerup", "pointercancel", "pointermove"]) document.addEventListener(ev, stop, true);
+  tipHold = setTimeout(() => {
+    off(); tipSwallow = true; tipFor = t; showTip(t); navigator.vibrate?.(8);
+    setTimeout(() => { if (tipFor === t) hideTip(); }, 1800);
+  }, 550);
+}, true);
+document.addEventListener("click", (e) => { if (tipSwallow) { tipSwallow = false; e.preventDefault(); e.stopPropagation(); } }, true);
+// no browser long-press menus on a touch screen (text fields keep theirs)
+document.addEventListener("contextmenu", (e) => { if (document.documentElement.classList.contains("touch") && !e.target.closest?.("input, textarea")) e.preventDefault(); });
 
 /* ================================================================
    State
@@ -1397,8 +1697,17 @@ const S = {
   prefs: structuredClone(DEFAULT_PREFS),
   desktop: null, fs: null, shell: null, seal: null, perm: "unavailable",
   sandboxed: false, // Mac App Store build: files outside the container need the user's permission
+  mobile: false,    // the Android app (desktop.mobile): touch first, Android back button, Files app
   homeFilter: "all", homeQuery: "",
 };
+/* phones and tablets: the compact layout (CSS has the same query) and touch sizing */
+const compactMQ = matchMedia("(max-width: 879px), (pointer: coarse) and (max-height: 520px)");
+const coarseMQ = matchMedia("(pointer: coarse)");
+const isCompact = () => compactMQ.matches;
+const isTouch = () => document.documentElement.classList.contains("touch");
+function syncTouch() { document.documentElement.classList.toggle("touch", coarseMQ.matches || S.mobile); }
+syncTouch();
+document.documentElement.dataset.view = "home";
 
 /* ================================================================
    Storage: Mac folder when the installed app has file access, browser storage otherwise
@@ -1806,6 +2115,7 @@ function applySide() {
   $("#btn-side").setAttribute("aria-pressed", String(S.view === "home" ? showHomeSide : showEditorSide));
 }
 function toggleSide() {
+  if (isCompact()) { if (SHEET.side) closeSheet(); else openSheet(); return; } // phones and tablets: the bottom sheet
   if (S.view === "home") S.prefs.homeSide = !S.prefs.homeSide;
   else S.prefs.editorSide = S.prefs.editorSide === false;
   persistPrefs(); applySide();
@@ -1816,13 +2126,13 @@ function syncWindowTitle() { document.title = S.view === "editor" && S.doc && !S
 function showHome() {
   if (S.view === "home") { renderHome(); return; }
   autosave.flush();
-  S.view = "home";
+  S.view = "home"; document.documentElement.dataset.view = "home"; closeMenu(false); closeSheet(false); syncSelBar();
   $("#home").hidden = false; $("#main").hidden = true; $("#tb-editor").hidden = true; $("#btn-back").hidden = true; $("#btn-export").hidden = true; $("#btn-verify-text").hidden = false;
   syncWindowTitle();
   applySide(); syncDocTitle(); renderHome(); syncStatus(); refreshFileChecks();
 }
 function showEditor() {
-  S.view = "editor";
+  S.view = "editor"; document.documentElement.dataset.view = "editor"; closeMenu(false); closeSheet(false);
   $("#home").hidden = true; $("#main").hidden = false; $("#tb-editor").hidden = false; $("#btn-back").hidden = false; $("#btn-export").hidden = false; $("#btn-verify-text").hidden = true;
   syncWindowTitle();
   applySide(); syncDocTitle(); syncStatus(); syncDocBar();
@@ -1908,11 +2218,14 @@ function renderHome() {
     const c = fileChecks.get(d.id) || {};
     const acts = el("span", { class: "doc-acts" });
     if (S.fs && d.source?.path && c.source === "noaccess") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("access.grant.src.tip"), "aria-label": t("access.grant.src.aria", { name: d.name }), onclick: () => grantAccess(d, "source") }, icon("key")));
-    else if (S.shell && d.source?.path && c.source !== "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("home.reveal"), "aria-label": t("home.reveal.aria", { name: d.name }), onclick: () => revealPath(d.source.path) }, icon("reveal")));
+    else if (canReveal() && d.source?.path && c.source !== "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("home.reveal"), "aria-label": t("home.reveal.aria", { name: d.name }), onclick: () => revealPath(d.source.path) }, icon("reveal")));
     if (S.fs && d.source?.path && c.source === "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("home.relink"), "aria-label": t("home.relink.aria", { name: d.name }), onclick: () => relinkSource(d) }, icon("folder")));
     if (S.fs && d.export?.path && c.file === "noaccess") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("access.grant.file.tip"), "aria-label": t("access.grant.file.aria", { name: d.name }), onclick: () => grantAccess(d, "file") }, icon("key")));
     else if (S.shell && d.export?.path && c.file !== "missing") acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("home.openFile", { file: d.export.name }), "aria-label": t("home.openFile.aria", { name: d.name }), onclick: () => openPath(d.export.path) }, icon("openOut")));
     acts.append(el("button", { class: "btn icon sm", type: "button", "data-tip": t("home.remove"), "aria-label": t("home.remove.aria", { name: d.name }), onclick: () => removeRecord(d.id) }, icon("x")));
+    // compact layout: the card's actions, with their full names, behind one ⋮
+    acts.append(el("button", { class: "btn icon sm more", type: "button", "aria-haspopup": "menu", "aria-expanded": "false", "aria-label": t("home.more.aria", { name: d.name }),
+      onclick: (e) => openMenu($$(".btn:not(.more)", acts).map((b) => ({ label: b.dataset.tip, iconNode: b.querySelector("svg")?.cloneNode(true), fn: () => b.click() })), { anchor: e.currentTarget, label: d.name }) }, icon("more")));
     const exportsN = d.exportLog?.length || 0;
     // the saved file was sealed (and still matches what the app wrote, or was only edited further in the app)
     const sealedChip = f.sealed ? el("span", { class: "chip sealed", "data-tip": t("file.sealed.tip", { name: d.export.sealed.name || "", fp: shortFp(d.export.sealed.fingerprint) }) }, icon("lock"), t("seal.sealed")) : null;
@@ -1951,7 +2264,8 @@ function renderPermBanner() {
 // store build: what "needs permission" means and how to avoid it (hidden elsewhere)
 function syncSandboxUi() { for (const n of $$(".sandbox-only")) n.hidden = !S.sandboxed; }
 /* ---------- About Sealworks: privacy policy, support, source (desktop.links; https only) ---------- */
-const LINKS = { privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md", support: "https://github.com/falcons-eyes/pdf-editor/issues", repo: "https://github.com/falcons-eyes/pdf-editor" };
+const LINKS = { privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md", support: "https://github.com/falcons-eyes/pdf-editor/issues", repo: "https://github.com/falcons-eyes/pdf-editor",
+  license: "https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md", notices: "https://github.com/falcons-eyes/pdf-editor/blob/main/THIRD_PARTY_NOTICES.md" };
 function appLinks() {
   const out = { ...LINKS }, d = S.desktop?.links || {};
   for (const k of Object.keys(LINKS)) if (typeof d[k] === "string" && /^https:\/\//i.test(d[k])) out[k] = d[k];
@@ -1963,7 +2277,7 @@ function extLink(url, label, cls) {
     onclick: (e) => { if (!S.desktop?.openExternal) return; e.preventDefault(); S.desktop.openExternal(url).catch(() => toast(t("link.fail"), true)); } },
     label, el("span", { class: "sr-only", text: " " + t("about.external") }));
 }
-const LINK_ITEMS = [["privacy", "about.privacy", "lock"], ["support", "about.support", "doc"], ["repo", "about.repo", "link"]];
+const LINK_ITEMS = [["privacy", "about.privacy", "lock"], ["support", "about.support", "doc"], ["repo", "about.repo", "link"], ["license", "about.license", "key"], ["notices", "about.notices", "doc"]];
 function renderAboutSide() {
   const box = $("#about-side"); box.textContent = "";
   const L = appLinks();
@@ -1985,13 +2299,217 @@ function openAbout() { renderAbout(); if (!$("#dlg-about").open) $("#dlg-about")
 function renderStoreInfo() {
   const box = $("#store-info"); box.textContent = "";
   box.append(el("div", { class: "sec-head", style: "margin:0" }, el("span", { class: "sec-title", text: t("store.title") })));
-  if (S.fs) {
+  if (S.fs && OS.android) box.append(el("p", { class: "hint", style: "margin:0", text: t("store.mobile") }));
+  else if (S.fs) {
     box.append(el("p", { class: "hint", style: "margin:0" }, t("store.disk"), el("br"), el("span", { class: "mono path", text: Store.DIR })),
       el("button", { class: "btn outline sm", type: "button", style: "justify-self:start", onclick: () => openPath(Store.DIR) }, icon("reveal"), t("showIn")));
   } else {
     box.append(el("p", { class: "hint", style: "margin:0", text: t(S.desktop?.window ? "store.app" : "store.browser") }));
   }
 }
+
+/* ================================================================
+   Phones and tablets: pop-up menus (⋮, a placed item's actions), the bottom sheet, the Android back button
+   ================================================================ */
+// a menu: { label, fn, icon?, iconNode?, disabled?, danger? } | { sep: true } | { group, items: [{ label, fn, checked, lang }] }
+const MENU = { el: null, veil: null, anchor: null, opener: null };
+function openMenu(items, { anchor = null, at = null, label = "" } = {}) {
+  closeMenu(false); hideTip();
+  const box = el("div", { class: "menu", role: "menu", "aria-label": label || null });
+  // only a press that starts in the menu (or the keyboard) picks an item: the finger that opened it by holding
+  // an item may lift over the menu or its backdrop
+  let pressed = false;
+  box.addEventListener("pointerdown", () => { pressed = true; });
+  const item = (it, radio = false) => el("button", {
+    type: "button", role: radio ? "menuitemradio" : "menuitem", tabindex: "-1", class: it.danger ? "danger" : null, lang: it.lang || null,
+    "aria-checked": radio ? String(!!it.checked) : null, "aria-disabled": it.disabled ? "true" : null,
+    onclick: (e) => { if (it.disabled || (e.pointerType && !pressed)) return; closeMenu(!it.keepFocus); it.fn(); },
+  }, it.iconNode || (it.icon ? icon(it.icon) : null), el("span", { text: it.label }), radio && it.checked ? el("span", { class: "chk", "aria-hidden": "true", text: "✓" }) : null);
+  for (const it of items.filter(Boolean)) {
+    if (it.sep) box.append(el("div", { role: "separator" }));
+    else if (it.group) box.append(el("div", { role: "group", "aria-label": it.group }, el("div", { class: "cap", "aria-hidden": "true", text: it.group }), ...it.items.map((x) => item(x, true))));
+    else box.append(item(it));
+  }
+  let veilPressed = false;
+  const veil = el("div", { class: "menu-veil", onclick: () => { if (veilPressed) closeMenu(); } });
+  veil.addEventListener("pointerdown", (e) => { e.preventDefault(); veilPressed = true; });
+  veil.addEventListener("mousedown", (e) => e.preventDefault()); // focus stays in the menu
+  document.body.append(veil, box);
+  const W = innerWidth, H = innerHeight, w = box.offsetWidth, h = box.offsetHeight;
+  let x, y;
+  if (anchor) { const r = anchor.getBoundingClientRect(); x = r.right - w; y = r.bottom + 4; if (y + h > H - 8) y = r.top - h - 4; }
+  else { x = (at?.x ?? W / 2) - 8; y = (at?.y ?? H / 2) + 8; if (y + h > H - 8) y = (at?.y ?? H / 2) - h - 8; }
+  box.style.left = `${clamp(x, 8, W - w - 8)}px`; box.style.top = `${clamp(y, 8, H - h - 8)}px`;
+  Object.assign(MENU, { el: box, veil, anchor, opener: anchor || document.activeElement });
+  anchor?.setAttribute("aria-expanded", "true");
+  const focusable = () => $$('[role^="menuitem"]', box);
+  box.addEventListener("keydown", (e) => {
+    const list = focusable(), i = list.indexOf(document.activeElement);
+    const go = (k) => { e.preventDefault(); list[(k + list.length) % list.length]?.focus(); };
+    if (e.key === "ArrowDown") go(i + 1); else if (e.key === "ArrowUp") go(i - 1);
+    else if (e.key === "Home") go(0); else if (e.key === "End") go(list.length - 1);
+    else if (e.key === "Escape" || e.key === "Tab") { e.preventDefault(); closeMenu(); }
+    e.stopPropagation();
+  });
+  (focusable().find((b) => b.getAttribute("aria-disabled") !== "true") || box).focus({ preventScroll: true });
+  return box;
+}
+function closeMenu(restore = true) {
+  if (!MENU.el) return;
+  const { el: box, veil, anchor, opener } = MENU;
+  const had = box.contains(document.activeElement);
+  box.remove(); veil.remove(); anchor?.setAttribute("aria-expanded", "false");
+  Object.assign(MENU, { el: null, veil: null, anchor: null, opener: null });
+  if (restore && had && opener?.isConnected) opener.focus({ preventScroll: true });
+}
+// ⋮ in the compact title bar: what the hidden toolbar buttons, the status bar and the menu bar offer on a desktop
+function moreItems() {
+  const items = [];
+  if (S.view === "home") items.push({ label: t("lib.items"), icon: "pen", fn: () => openSheet("home") });
+  else {
+    items.push({ label: t("open.new"), icon: "folder", fn: choosePdf }, { sep: true },
+      { label: t("ed.zoomIn"), icon: "zoomIn", fn: COMMANDS.zoomIn, keepFocus: true }, { label: t("ed.zoomOut"), icon: "zoomOut", fn: COMMANDS.zoomOut, keepFocus: true },
+      { label: t("ed.fitW"), icon: "fitW", fn: COMMANDS.fitWidth }, { label: t("ed.fitP"), icon: "fitP", fn: COMMANDS.fitPage }, { label: t("ed.actual"), icon: "actual", fn: COMMANDS.actual });
+  }
+  if (S.seal) items.push({ sep: true }, { label: t("seal.verifyDots"), icon: "shield", fn: openVerify }, { label: t("sealer.open"), icon: "key", fn: openSealer });
+  items.push({ sep: true }, { group: t("lang.label"), items: LANGS.map((l) => ({ label: LANG_NAMES[l], lang: l, checked: l === LANG, fn: () => setLang(l) })) },
+    { sep: true }, { label: t("about.btn"), icon: "info", fn: openAbout });
+  return items;
+}
+$("#btn-more").addEventListener("click", (e) => openMenu(moreItems(), { anchor: e.currentTarget, label: t("more.label") }));
+// touch and hold a placed item: everything the inspector's buttons do
+function openItemMenu(o, at) {
+  openMenu([
+    { label: t("sel.adjust"), icon: "sliders", fn: () => openSheet("editor", "insp") },
+    { label: t("insp.dup"), icon: "copy", fn: duplicateSel },
+    { label: t("insp.center"), icon: "center", fn: centerSel },
+    { label: t("insp.all"), icon: "pages", fn: applyToAllPages, disabled: S.pages.length < 2 },
+    { sep: true },
+    { label: t("insp.delete"), icon: "trash", danger: true, fn: deleteSel },
+  ], { at, label: ovLabel(o) });
+}
+
+/* ---------- bottom sheet: the side panel on phones and tablets ---------- */
+const SHEET = { side: null, opener: null, dragged: false };
+const sideOf = (view) => (view === "home" ? $("#home-side") : $("#ed-side"));
+const sheetMax = (side) => parseFloat(getComputedStyle(side).maxHeight) || innerHeight * 0.9;
+const sheetHalf = (side) => Math.min(sheetMax(side), Math.round(innerHeight * 0.52));
+function setSheetH(side, px) {
+  side.style.setProperty("--sheet-h", `${Math.round(px)}px`);
+  const full = px >= sheetMax(side) - 2, grip = $(".sheet-grip", side);
+  grip.setAttribute("aria-label", t(full ? "sheet.shrink" : "sheet.expand"));
+}
+function syncSheetTitle() {
+  const side = $("#ed-side"), insp = side.dataset.mode === "insp";
+  $("#ed-sheet-title").textContent = t(insp ? "insp.title" : "lib.items");
+  side.setAttribute("aria-label", t(insp ? "insp.title" : "lib.items"));
+}
+// mode: "lib" (signatures & stamps) or "insp" (the selected item); a desktop window shows its side panel instead
+function openSheet(view = S.view, mode = "lib") {
+  if (!isCompact()) {
+    if (view === "home" ? !S.prefs.homeSide : S.prefs.editorSide === false) toggleSide();
+    if (mode === "insp") $("#inspector").scrollIntoView({ block: "nearest" });
+    return;
+  }
+  closeMenu(false); hideTip();
+  const side = sideOf(view);
+  if (SHEET.side && SHEET.side !== side) closeSheet(false);
+  if (!SHEET.side) SHEET.opener = document.activeElement;
+  SHEET.side = side;
+  if (view === "editor") { side.dataset.mode = mode; syncSheetTitle(); }
+  setSheetH(side, sheetHalf(side));
+  side.classList.add("open");
+  $("#bb-lib").setAttribute("aria-expanded", String(mode === "lib"));
+  $(".side-body", side).scrollTop = 0;
+  syncSelBar();
+  requestAnimationFrame(() => $(".sheet-title", side).focus({ preventScroll: true }));
+}
+function closeSheet(restore = true) {
+  const side = SHEET.side; if (!side) return;
+  const had = side.contains(document.activeElement), opener = SHEET.opener;
+  side.classList.remove("open", "dragging");
+  SHEET.side = null; SHEET.opener = null;
+  $("#bb-lib").setAttribute("aria-expanded", "false");
+  syncSelBar();
+  // focus never stays in a hidden sheet: back to what opened it, else the page
+  if (had) {
+    const back = restore && opener?.isConnected && opener.getClientRects().length && !side.contains(opener) ? opener : S.view === "editor" ? stage : $("#home-main");
+    back.focus({ preventScroll: true });
+  }
+}
+for (const side of $$(".side")) {
+  const head = $(".sheet-head", side), grip = $(".sheet-grip", side);
+  $(".sheet-close", side).addEventListener("click", () => closeSheet());
+  grip.addEventListener("click", () => {
+    if (SHEET.dragged) { SHEET.dragged = false; return; }
+    const full = side.getBoundingClientRect().height >= sheetMax(side) - 2;
+    setSheetH(side, full ? sheetHalf(side) : sheetMax(side));
+  });
+  side.addEventListener("keydown", (e) => { if (e.key === "Escape" && SHEET.side === side) { e.stopPropagation(); closeSheet(); } });
+  // drag the head: follows the finger, then snaps to half or full height, or closes when pulled down
+  head.addEventListener("pointerdown", (e) => {
+    if (SHEET.side !== side || e.target.closest(".sheet-close") || e.button !== 0) return;
+    const h0 = side.getBoundingClientRect().height, y0 = e.clientY;
+    let moved = false, lastY = y0, lastT = e.timeStamp, v = 0;
+    try { head.setPointerCapture(e.pointerId); } catch {}
+    side.classList.add("dragging");
+    const move = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      if (Math.abs(ev.clientY - y0) > 6) moved = true;
+      if (!moved) return;
+      setSheetH(side, clamp(h0 - (ev.clientY - y0), 60, sheetMax(side)));
+      const dt = ev.timeStamp - lastT; if (dt > 0) v = 0.6 * v + 0.4 * ((ev.clientY - lastY) / dt);
+      lastY = ev.clientY; lastT = ev.timeStamp;
+    };
+    const up = (ev) => {
+      if (ev.pointerId !== e.pointerId) return;
+      head.removeEventListener("pointermove", move); head.removeEventListener("pointerup", up); head.removeEventListener("pointercancel", up);
+      side.classList.remove("dragging");
+      if (!moved) return;
+      SHEET.dragged = true; setTimeout(() => { SHEET.dragged = false; }, 0);
+      const h = side.getBoundingClientRect().height, half = sheetHalf(side), full = sheetMax(side);
+      if (v > 0.6 || h < half * 0.6) closeSheet();
+      else if (v < -0.6 || h > (half + full) / 2) setSheetH(side, full);
+      else setSheetH(side, half);
+    };
+    head.addEventListener("pointermove", move); head.addEventListener("pointerup", up); head.addEventListener("pointercancel", up);
+  });
+}
+// leaving the compact layout (a wider window, a rotated tablet): the side panel is a panel again
+compactMQ.addEventListener("change", () => {
+  closeMenu(false);
+  if (!isCompact()) { closeSheet(false); for (const s of $$(".side")) s.style.removeProperty("--sheet-h"); }
+  syncSelBar();
+  if (S.view === "editor") setTimeout(() => (S.fit ? applyFit() : scheduleRender()), 0);
+});
+coarseMQ.addEventListener("change", () => { syncTouch(); syncLibrary(); syncInspector(); });
+
+// the selected item's quick actions (compact layout), shown while the sheet is closed
+function syncSelBar() { $("#sel-bar").hidden = !(S.view === "editor" && S.sel && getOv(S.sel) && !SHEET.side); }
+$("#sb-adjust").addEventListener("click", () => openSheet("editor", "insp"));
+$("#sb-dup").addEventListener("click", () => duplicateSel());
+$("#sb-del").addEventListener("click", () => deleteSel());
+
+// the bottom toolbar (compact layout)
+$("#bb-lib").addEventListener("click", () => { if (SHEET.side && (S.view === "home" || $("#ed-side").dataset.mode === "lib")) closeSheet(); else openSheet(S.view, "lib"); });
+function syncFitBtn() { $("#bb-fit").setAttribute("aria-label", t(S.fit === "width" ? "ed.fitP" : "ed.fitW")); }
+$("#bb-fit").addEventListener("click", () => { if (S.fit === "width") COMMANDS.fitPage(); else COMMANDS.fitWidth(); syncFitBtn(); });
+
+/* ---------- Android back button (desktop.onBack): the top-most thing closes; false lets Android leave the app ---------- */
+function handleBack() {
+  hideTip();
+  if (MENU.el) { closeMenu(); return true; }
+  const dlg = $$("dialog[open]").pop();
+  if (dlg) {
+    if (dlg.id === "dlg-sealer" && SEAL.id && SEALER.mode !== "main" && !SEALER.busy) { sealerMode("main"); return true; }
+    dlg.close(); return true;
+  }
+  if (SHEET.side) { closeSheet(); return true; }
+  if (S.view === "editor") { showHome(); $("#home-main").focus?.({ preventScroll: true }); return true; }
+  return false;
+}
+// what can be shown in Finder / File Explorer (Android's Files app can't be pointed at a document)
+const canReveal = () => !!S.shell && !OS.android;
 
 /* ================================================================
    Document loading & page layout
@@ -2064,12 +2582,12 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, pa
     }
     if (path) rec.source = { path, size: stat?.size ?? bytes.byteLength, mtime: stat?.mtime ?? null, hash };
     if (!rec.copy) {
-      Store.putCopy(rec.id, bytes).then(() => { rec.copy = true; rec.copyHash = hash; persistDocs(); })
+      Store.putCopy(rec.id, bytes).then(() => { rec.copy = true; rec.copyHash = hash; persistDocs(); persistDocs.flush(); })
         .catch(() => toast(t("open.copyFail"), true));
     }
     Object.assign(rec, { name, size: bytes.byteLength, pages: pdf.numPages, openedAt: now });
     S.overlays = (rec.overlays || []).filter((o) => S.assets.has(o.assetId) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
-    S.rec = rec; persistDocs();
+    S.rec = rec; persistDocs(); persistDocs.flush();
     setTimeout(() => makeThumb(rec, S.pages[0]), 400);
     if (S.fs) checkRecordFiles(rec).then(() => { if (S.rec === rec) { syncDocBar(); syncDocTitle(); } });
     if (!quiet && S.overlays.length) toast(t("open.restored", { n: S.overlays.length }));
@@ -2111,7 +2629,7 @@ function layoutPages() {
   const z = S.zoom;
   for (const p of S.pages) { p.el.style.width = `${Math.round(p.w * z)}px`; p.el.style.height = `${Math.round(p.h * z)}px`; }
   $("#zoom-val").textContent = `${Math.round(z * 100)}%`;
-  syncZoomLabel();
+  syncZoomLabel(); syncFitBtn();
 }
 // the visible percentage comes first in the accessible name (voice control: "click 100%")
 const syncZoomLabel = () => $("#zoom-val").setAttribute("aria-label", t("ed.zoom.label", { pct: $("#zoom-val").textContent }));
@@ -2209,6 +2727,7 @@ function updateCurrentPage() {
   if (p && p.i !== S.cur) { S.pages[S.cur]?.thumb.classList.remove("current"); S.cur = p.i; p.thumb.scrollIntoView({ block: "nearest" }); }
   S.pages[S.cur]?.thumb.classList.add("current");
   $("#st-page").textContent = t("status.page", { cur: S.cur + 1, n: S.pages.length });
+  $("#page-pill").textContent = S.pages.length > 1 ? `${S.cur + 1} / ${S.pages.length}` : "";
 }
 function goToPage(i) {
   const p = S.pages[clamp(i, 0, S.pages.length - 1)]; if (!p) return;
@@ -2272,7 +2791,7 @@ function syncOverlays(positionsOnly = false) {
       if (has && !dot) p.thumb.firstChild.append(el("i", { class: "dot", title: t("ov.dot") }));
       if (!has && dot) dot.remove();
     }
-    $("#btn-export").disabled = !S.doc;
+    $("#btn-export").disabled = !S.doc; $("#bb-save").disabled = !S.doc || saving;
   }
 }
 function select(id) { if (S.sel === id) return; S.sel = id; syncOverlays(); syncInspector(); }
@@ -2316,7 +2835,10 @@ function redo() {
   if (!getOv(S.sel)) S.sel = null;
   syncOverlays(); syncInspector(); syncUndo(); autosave();
 }
-function syncUndo() { $("#btn-undo").disabled = !S.history.length; $("#btn-redo").disabled = !S.future.length; }
+function syncUndo() {
+  $("#btn-undo").disabled = $("#bb-undo").disabled = !S.history.length;
+  $("#btn-redo").disabled = $("#bb-redo").disabled = !S.future.length;
+}
 
 /* ---------- placing ---------- */
 function defaultSize(a, page) {
@@ -2346,6 +2868,7 @@ function placeAsset(assetId, page = S.cur, at = null) {
   const o = { id: uid(), assetId, page, x: cx - w / 2, y: cy - h / 2, w, h, rot: 0, opacity: 1, fx: { removeBg: !!a.autoRemoveBg, ink: null } };
   clampInside(o);
   act(() => { S.overlays.push(o); S.sel = o.id; });
+  if (isCompact()) closeSheet(false);
   touchAsset(assetId, { lastUsed: Date.now() });
   // focus follows the new item, so the keyboard can move it right away
   overlayEls.get(o.id)?.focus({ preventScroll: true });
@@ -2387,11 +2910,18 @@ function showMeasure(p, x, y, text) {
 }
 const clearGuides = () => { for (const k of ["v", "h", "m"]) { guides[k]?.remove(); guides[k] = null; } };
 
+// touch: a tap selects (an unselected item lets the finger scroll the page), the selected item is dragged,
+// touch and hold opens its actions; the mouse selects and drags on press, as before
+let lastPointer = "mouse";
 pagesEl.addEventListener("pointerdown", (e) => {
   if (e.button !== 0) return;
-  const ovEl = e.target.closest(".ov");
-  if (!ovEl) { if (e.target.closest(".page")) { select(null); stage.focus({ preventScroll: true }); } return; }
+  lastPointer = e.pointerType;
+  if (drag && drag.pointerId !== e.pointerId) return; // a second finger: the two-finger gesture below takes it
+  const touch = e.pointerType === "touch", ovEl = e.target.closest(".ov");
+  if (touch) armHold(e, ovEl);
+  if (!ovEl) { if (!touch && e.target.closest(".page")) { select(null); stage.focus({ preventScroll: true }); } return; }
   const o = getOv(ovEl.dataset.id); if (!o) return;
+  if (touch && S.sel !== o.id) return;
   e.preventDefault();
   ovEl.focus({ preventScroll: true });
   if (S.sel !== o.id) select(o.id);
@@ -2403,7 +2933,8 @@ pagesEl.addEventListener("pointerdown", (e) => {
   ovEl.classList.add("dragging");
 });
 pagesEl.addEventListener("pointermove", (e) => {
-  if (!drag || e.pointerId !== drag.pointerId) return;
+  if (HOLD.timer && e.pointerId === HOLD.ptr && Math.hypot(e.clientX - HOLD.x, e.clientY - HOLD.y) > 10) cancelHold();
+  if (!drag || e.pointerId !== drag.pointerId || drag.paused) return;
   const o = getOv(drag.id); if (!o) return;
   let p = S.pages[o.page];
   if (drag.mode === "move") {
@@ -2468,6 +2999,111 @@ const endDrag = (e) => {
 };
 pagesEl.addEventListener("pointerup", endDrag);
 pagesEl.addEventListener("pointercancel", endDrag);
+for (const ev of ["pointerup", "pointercancel"]) pagesEl.addEventListener(ev, (e) => { if (e.pointerId === HOLD.ptr) cancelHold(); });
+
+/* ---------- touch gestures: tap, double-tap, touch and hold, pinch ---------- */
+const HOLD = { timer: 0, ptr: null, x: 0, y: 0, id: null, fired: false };
+function cancelHold() { clearTimeout(HOLD.timer); HOLD.timer = 0; }
+function armHold(e, ovEl) {
+  cancelHold(); HOLD.fired = false; HOLD.ptr = e.pointerId; HOLD.x = e.clientX; HOLD.y = e.clientY; HOLD.id = ovEl?.dataset.id || null;
+  if (HOLD.id) HOLD.timer = setTimeout(fireHold, 480);
+}
+function fireHold() {
+  HOLD.timer = 0;
+  const o = getOv(HOLD.id); if (!o) return;
+  HOLD.fired = true;
+  // a drag that only wobbled under the finger is undone: holding is not moving
+  if (drag) {
+    const d = drag, n = getOv(d.id); drag = null;
+    if (n) { Object.assign(n, { x: d.o0.x, y: d.o0.y, w: d.o0.w, h: d.o0.h, rot: d.o0.rot, page: d.o0.page }); }
+    overlayEls.get(d.id)?.classList.remove("dragging"); clearGuides(); gestureBefore = null; syncOverlays();
+  }
+  select(o.id);
+  overlayEls.get(o.id)?.focus({ preventScroll: true });
+  navigator.vibrate?.(12);
+  openItemMenu(o, { x: HOLD.x, y: HOLD.y });
+}
+// Android's own long-press may come first (and cancel the pointer): it opens the same actions
+pagesEl.addEventListener("contextmenu", (e) => {
+  if (lastPointer !== "touch" && !HOLD.fired) return;
+  e.preventDefault();
+  const ov = e.target.closest?.(".ov");
+  if (ov && !HOLD.fired) { cancelHold(); HOLD.id = ov.dataset.id; HOLD.x = e.clientX; HOLD.y = e.clientY; fireHold(); }
+});
+let lastTap = { t: 0, x: 0, y: 0 };
+pagesEl.addEventListener("click", (e) => {
+  if ((e.pointerType || lastPointer) !== "touch") return; // mouse and keyboard: handled on press
+  if (HOLD.fired) { HOLD.fired = false; return; }
+  const ovEl = e.target.closest(".ov");
+  if (ovEl) {
+    const o = getOv(ovEl.dataset.id); if (!o) return;
+    if (S.sel !== o.id) { select(o.id); announce(t("ov.selected", { label: ovLabel(o) })); }
+    ovEl.focus({ preventScroll: true }); lastTap.t = 0; return;
+  }
+  // a double tap zooms in to twice the page width there, or back out to the page width
+  if (e.timeStamp - lastTap.t < 330 && Math.hypot(e.clientX - lastTap.x, e.clientY - lastTap.y) < 40) {
+    lastTap.t = 0;
+    const fit = fitZoom("width");
+    if (S.zoom > fit * 1.15) { S.fit = "width"; setZoom(fit, { x: e.clientX, y: e.clientY }, true); }
+    else setZoom(Math.min(MAX_ZOOM, fit * 2), { x: e.clientX, y: e.clientY });
+    return;
+  }
+  lastTap = { t: e.timeStamp, x: e.clientX, y: e.clientY };
+  if (S.sel) select(null);
+});
+// two fingers: pinch-zoom and pan the document; or, when the first finger is dragging the selected item, scale and rotate it
+let PINCH = { on: false };
+const tDist = (a, b) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+const tMid = (a, b) => ({ x: (a.clientX + b.clientX) / 2, y: (a.clientY + b.clientY) / 2 });
+const tAngle = (a, b) => (Math.atan2(b.clientY - a.clientY, b.clientX - a.clientX) * 180) / Math.PI;
+stage.addEventListener("touchstart", (e) => {
+  if (e.touches.length !== 2 || S.view !== "editor" || !S.pages.length) return;
+  cancelHold();
+  const [a, b] = e.touches, o = drag?.mode === "move" ? getOv(drag.id) : null;
+  if (o) { drag.paused = true; clearGuides(); PINCH = { on: true, kind: "item", id: o.id, d0: tDist(a, b), a0: tAngle(a, b), m0: tMid(a, b), o0: { ...o } }; }
+  else PINCH = { on: true, kind: "page", d0: tDist(a, b), z0: S.zoom, last: tMid(a, b) };
+  if (e.cancelable) e.preventDefault();
+}, { passive: false });
+stage.addEventListener("touchmove", (e) => {
+  if (!PINCH.on) return;
+  if (e.cancelable) e.preventDefault();
+  if (e.touches.length < 2) return;
+  const [a, b] = e.touches;
+  PINCH.cur = { d: tDist(a, b), ang: tAngle(a, b), m: tMid(a, b) };
+  PINCH.raf ||= requestAnimationFrame(applyPinch);
+}, { passive: false });
+function applyPinch() {
+  PINCH.raf = 0; const c = PINCH.cur; if (!PINCH.on || !c) return;
+  if (PINCH.kind === "page") {
+    setZoom(PINCH.z0 * (c.d / PINCH.d0), PINCH.last);
+    stage.scrollLeft -= c.m.x - PINCH.last.x; stage.scrollTop -= c.m.y - PINCH.last.y;
+    PINCH.last = c.m;
+    return;
+  }
+  const o = getOv(PINCH.id); if (!o) return;
+  const o0 = PINCH.o0, k = c.d / PINCH.d0, ratio = o0.h / o0.w;
+  const w = Math.max(MIN_PT, MIN_PT / ratio, o0.w * k), h = w * ratio;
+  let rot = o0.rot + (c.ang - PINCH.a0);
+  rot = ((Math.round(rot) % 360) + 360) % 360;
+  for (const sd of [0, 90, 180, 270, 360]) if (Math.abs(rot - sd) < 4) rot = sd % 360;
+  const cx = o0.x + o0.w / 2 + (c.m.x - PINCH.m0.x) / S.zoom, cy = o0.y + o0.h / 2 + (c.m.y - PINCH.m0.y) / S.zoom;
+  Object.assign(o, { w, h, rot, x: cx - w / 2, y: cy - h / 2 }); clampInside(o);
+  styleOverlay(o, overlayEls.get(o.id));
+  showMeasure(S.pages[o.page], o.x + o.w / 2, o.y, `${fmtMM(o.w)} × ${fmtMM(o.h)} mm · ${o.rot}°`);
+}
+function endPinch(e) {
+  if (!PINCH.on || e.touches.length >= 2) return;
+  cancelAnimationFrame(PINCH.raf); PINCH.raf = 0; applyPinch();
+  const p = PINCH; PINCH = { on: false };
+  if (p.kind === "item") {
+    const o = getOv(p.id);
+    if (drag) { overlayEls.get(drag.id)?.classList.remove("dragging"); drag = null; }
+    if (o) touchAsset(o.assetId, { lastW: o.w });
+    clearGuides(); endGesture(); syncOverlays(); syncInspector();
+  } else scheduleRender(40);
+}
+stage.addEventListener("touchend", endPinch);
+stage.addEventListener("touchcancel", endPinch);
 
 /* ---------- zoom gestures ---------- */
 stage.addEventListener("wheel", (e) => {
@@ -2494,7 +3130,7 @@ function syncLibrary() {
         el("i", { class: "tag" + (a.kind === "seal" ? " seal" : "") + (a.sample ? " sample" : ""), text: a.sample ? t("lib.example") : kindLabel(a.kind) }));
       // editor: the tile itself places the item (click, Enter) or is dragged onto a page; home: it only shows it
       const main = onHome ? el("div", { class: "tile-main" }, art, meta)
-        : el("button", { class: "tile-main", type: "button", draggable: "true", title: t("lib.tile", { name: a.name }), onclick: () => placeAsset(id),
+        : el("button", { class: "tile-main", type: "button", draggable: isTouch() ? null : "true", title: t("lib.tile", { name: a.name }), onclick: () => placeAsset(id),
           ondragstart: (e) => { e.dataTransfer.setData("text/x-pdfe-asset", id); e.dataTransfer.effectAllowed = "copy"; } }, art, meta);
       const tile = el("div", { class: "tile", "data-id": id, title: onHome ? a.name : null }, main,
         a.sample ? null : el("div", { class: "tile-acts" },
@@ -2546,12 +3182,13 @@ async function importImageFiles(files, at = null) {
 function syncInspector() {
   const box = $("#inspector"); box.textContent = "";
   const o = getOv(S.sel);
+  syncSelBar();
   if (!o) {
     box.append(
       el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: t("insp.title") })),
       el("div", { class: "insp-empty" },
         el("p", { class: "hint", style: "margin:0", text: t(S.overlays.length ? "insp.hint.some" : "insp.hint.none") }),
-        el("div", { class: "shortcuts" },
+        isTouch() || OS.android ? null : el("div", { class: "shortcuts" },
           el("span", { class: "kbd", text: kbd("⌘V") }), el("span", { text: t("key.paste") }),
           el("span", { class: "kbd", text: kbd("⌘C ⌘V") }), el("span", { text: t("key.copy") }),
           el("span", { class: "kbd", text: t("key.shiftDrag") }), el("span", { text: t("key.shiftDrag.d") }),
@@ -2764,7 +3401,7 @@ async function openSaveDialog() {
   if (!S.doc || S.view !== "editor") return;
   if (!S.overlays.length) { toast(t("save.nothing")); return; }
   $("#save-name").value = S.rec?.export?.name ? stem(S.rec.export.name) : stem(S.doc.name) + t("save.suffix");
-  saveState.dir = !S.fs ? null : S.rec?.export?.path ? dirname(S.rec.export.path) : S.rec?.source?.path ? dirname(S.rec.source.path) : S.prefs.lastDir.save || "~/Downloads";
+  saveState.dir = !S.fs ? null : OS.android && S.prefs.lastDir.saveTree ? S.prefs.lastDir.saveTree : S.rec?.export?.path ? dirname(S.rec.export.path) : S.rec?.source?.path ? dirname(S.rec.source.path) : S.prefs.lastDir.save || "~/Downloads";
   $("#save-dir-wrap").hidden = !S.fs;
   $("#save-dir").textContent = saveState.dir ? prettyDir(saveState.dir) : "";
   $("#save-dir").title = saveState.dir || "";
@@ -2781,7 +3418,7 @@ $("#save-dir-btn").addEventListener("click", async () => {
   const picked = await browse({ kind: "folder", title: t("save.pickFolder"), start: saveState.dir });
   if (!picked?.length) return;
   saveState.dir = picked[0]; $("#save-dir").textContent = prettyDir(saveState.dir); $("#save-dir").title = saveState.dir;
-  S.prefs.lastDir.save = saveState.dir; persistPrefs(); checkSaveTarget();
+  S.prefs.lastDir.save = saveState.dir; if (OS.android) S.prefs.lastDir.saveTree = saveState.dir; persistPrefs(); checkSaveTarget();
 });
 $("#save-form").addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -2810,6 +3447,7 @@ async function performSave(fileName, dir, openAfter, { seal = false } = {}) {
   if (saving) return; saving = true;
   const btn = $("#btn-export"); const label = [...btn.childNodes];
   btn.disabled = true; btn.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
+  const bb = $("#bb-save"), bbLabel = [...bb.childNodes]; bb.disabled = true; bb.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
   try {
     let bytes = await buildPdf(), sealed = null;
     // seal the finished bytes; if that fails nothing is written
@@ -2834,7 +3472,7 @@ async function performSave(fileName, dir, openAfter, { seal = false } = {}) {
       }
       fp = await fingerprintPath(savedPath, bytes);
       S.prefs.lastDir.save = dir; persistPrefs();
-      toast(t(sealed ? "save.doneSealed" : "save.done", { file: fileName }), { actions: [{ label: t("open"), fn: () => openPath(savedPath) }, { label: t("showIn"), fn: () => revealPath(savedPath) }] });
+      toast(t(sealed ? "save.doneSealed" : "save.done", { file: fileName }), { actions: [{ label: t("open"), fn: () => openPath(savedPath) }, canReveal() ? { label: t("showIn"), fn: () => revealPath(savedPath) } : null].filter(Boolean) });
       if (openAfter) openPath(savedPath);
     } else {
       const dl = await getDownloads();
@@ -2863,7 +3501,7 @@ async function performSave(fileName, dir, openAfter, { seal = false } = {}) {
     else if (code === "rate_limited") toast(t("save.busy"));
     else if (/^EACCES|^EPERM/.test(String(e?.message))) toast(t("save.noPerm"), true);
     else toast(e?.message && !code ? e.message : t("save.fail"), true);
-  } finally { saving = false; btn.replaceChildren(...label); btn.disabled = !S.doc; }
+  } finally { saving = false; btn.replaceChildren(...label); btn.disabled = !S.doc; bb.replaceChildren(...bbLabel); bb.disabled = !S.doc; }
 }
 const openPath = (p) => S.shell?.openPath(p).catch(() => toast(t("openPath.fail"), true));
 const revealPath = (p) => S.shell?.showItemInFolder(p).catch(() => toast(t("reveal.fail"), true));
@@ -3028,7 +3666,7 @@ function sealerBackup() {
     catch (e) { if (isCancel(e)) return; SEALER.msg = t("sealer.backup.fail", { msg: errMsg(e) }); return; }
     if (!res?.path) return;
     S.prefs.lastDir.cert = dirname(res.path); persistPrefs();
-    toast(t("sealer.backup.done", { file: basename(res.path) }), { actions: S.shell ? [{ label: t("showIn"), fn: () => revealPath(res.path) }] : [] });
+    toast(t("sealer.backup.done", { file: basename(res.path) }), { actions: canReveal() ? [{ label: t("showIn"), fn: () => revealPath(res.path) }] : [] });
     SEALER.mode = "main"; SEALER.form = {};
   });
 }
@@ -3096,7 +3734,7 @@ async function basePlaces() {
 }
 async function browse({ kind, title, start = null, multiple = false }) {
   if (!S.fs) return null;
-  if (S.desktop?.dialog || S.sandboxed) return nativeBrowse({ kind, title, start, multiple });
+  if (S.desktop?.dialog || S.sandboxed || S.mobile) return nativeBrowse({ kind, title, start, multiple });
   FB.kind = kind; FB.multiple = multiple; FB.filter = ""; FB.title = title || null; $("#fb-filter").value = "";
   const [ttl, okLabel] = fbText(kind);
   $("#fb-title").textContent = title || ttl; $("#fb-ok").textContent = okLabel;
@@ -3296,15 +3934,15 @@ const isAssetDrag = (e) => [...(e.dataTransfer?.types || [])].includes("text/x-p
 // while 봉인 확인 is open a dropped PDF is only checked there: it is never opened or added to the 보관함
 const verifying = () => $("#dlg-verify").open;
 window.addEventListener("dragenter", (e) => {
-  if (!hasFiles(e) && !isAssetDrag(e)) return;
+  if (S.mobile || (!hasFiles(e) && !isAssetDrag(e))) return;
   e.preventDefault(); dragDepth++;
   if (verifying()) { if (hasFiles(e)) $("#v-drop").classList.add("over"); return; }
   if (hasFiles(e)) { $("#drop-msg").textContent = t(S.view === "editor" ? "drop.editor" : "drop.home"); $("#drop-veil").hidden = false; }
 });
 window.addEventListener("dragleave", () => { if (--dragDepth <= 0) { dragDepth = 0; $("#drop-veil").hidden = true; $("#v-drop").classList.remove("over"); } });
-window.addEventListener("dragover", (e) => { if (hasFiles(e) || isAssetDrag(e)) { e.preventDefault(); e.dataTransfer.dropEffect = verifying() && !hasFiles(e) ? "none" : "copy"; } });
+window.addEventListener("dragover", (e) => { if (!S.mobile && (hasFiles(e) || isAssetDrag(e))) { e.preventDefault(); e.dataTransfer.dropEffect = verifying() && !hasFiles(e) ? "none" : "copy"; } });
 window.addEventListener("drop", async (e) => {
-  if (!hasFiles(e) && !isAssetDrag(e)) return;
+  if (S.mobile || (!hasFiles(e) && !isAssetDrag(e))) return;
   e.preventDefault(); dragDepth = 0; $("#drop-veil").hidden = true; $("#v-drop").classList.remove("over");
   if (verifying()) { if (hasFiles(e)) verifyFile([...e.dataTransfer.files].find((f) => f.type === "application/pdf" || RE_PDF.test(f.name)) || e.dataTransfer.files[0]); return; }
   const p = pageUnderPointer(e.clientX, e.clientY);
@@ -3427,18 +4065,39 @@ function padDraw() {
   $("#pad-hint").hidden = pad.strokes.length > 0 || !!pad.cur;
   $("#pad-save").disabled = pad.strokes.length === 0;
 }
+// one stroke at a time (a second finger or a resting palm is ignored); once a stylus has touched the pad, fingers
+// are taken for the hand resting on the screen. Finger and stylus input is smoothed (no pressure: same line for all).
 padCanvas.addEventListener("pointerdown", (e) => {
+  if (pad.cur) return;
+  if (e.pointerType === "pen") pad.pen = true;
+  else if (e.pointerType === "touch" && (pad.pen || !e.isPrimary)) return;
   try { padCanvas.setPointerCapture(e.pointerId); } catch {}
   const r = padCanvas.getBoundingClientRect();
-  pad.cur = { color: pad.color, width: pad.width, pts: [{ x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp }] }; padDraw();
+  pad.ptr = e.pointerId;
+  pad.cur = { color: pad.color, width: pad.width, pts: [{ x: e.clientX - r.left, y: e.clientY - r.top, t: e.timeStamp }], raw: null }; padDraw();
 });
+const PAD_SMOOTH = { touch: 0.42, pen: 0.6 }; // share of each new point taken (mouse: 1, as drawn)
 padCanvas.addEventListener("pointermove", (e) => {
-  if (!pad.cur) return; const r = padCanvas.getBoundingClientRect();
+  if (!pad.cur || e.pointerId !== pad.ptr) return; const r = padCanvas.getBoundingClientRect();
+  const k = PAD_SMOOTH[e.pointerType] || 1, pts = pad.cur.pts;
   const list = e.getCoalescedEvents?.();
-  for (const ev of list?.length ? list : [e]) pad.cur.pts.push({ x: ev.clientX - r.left, y: ev.clientY - r.top, t: ev.timeStamp });
+  for (const ev of list?.length ? list : [e]) {
+    let x = ev.clientX - r.left, y = ev.clientY - r.top;
+    if (k < 1) {
+      pad.cur.raw = { x, y, t: ev.timeStamp };
+      const last = pts[pts.length - 1];
+      x = last.x + (x - last.x) * k; y = last.y + (y - last.y) * k;
+      if (Math.hypot(x - last.x, y - last.y) < 0.75) continue; // finger jitter
+    }
+    pts.push({ x, y, t: ev.timeStamp });
+  }
   padDraw();
 });
-const padUp = () => { if (pad.cur) { pad.strokes.push(pad.cur); pad.cur = null; padDraw(); } };
+const padUp = (e) => {
+  if (!pad.cur || (e && e.pointerId !== pad.ptr)) return;
+  if (pad.cur.raw) pad.cur.pts.push(pad.cur.raw); // the line ends where the finger lifted
+  delete pad.cur.raw; pad.strokes.push(pad.cur); pad.cur = null; pad.ptr = null; padDraw();
+};
 padCanvas.addEventListener("pointerup", padUp); padCanvas.addEventListener("pointercancel", padUp);
 $("#pad-undo").onclick = () => { pad.strokes.pop(); padDraw(); };
 $("#pad-clear").onclick = () => { pad.strokes = []; padDraw(); };
@@ -3465,7 +4124,7 @@ $("#pad-save").onclick = async () => {
   const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "draw", name: t("draw.name", { date: new Date().toLocaleDateString(LOCALE(), { month: "numeric", day: "numeric" }) }) });
   $("#dlg-draw").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast(t("draw.added"));
 };
-function openDraw() { pad.strokes = []; pad.cur = null; $("#dlg-draw").showModal(); requestAnimationFrame(padResize); }
+function openDraw() { pad.strokes = []; pad.cur = null; pad.pen = false; $("#dlg-draw").showModal(); requestAnimationFrame(padResize); }
 
 /* ================================================================
    Text / date stamp
@@ -3767,12 +4426,25 @@ async function setupDesktop() {
   S.desktop = desktop;
   const platform = desktop.platform || (await desktop.os?.platform?.().catch(() => "")) || "";
   if (platform === "win32") { OS.win = true; document.documentElement.classList.add("is-win"); rerenderAll(); }
+  // the Android app (docs/design/android.md): touch first, the Files app's words, no window chrome
+  S.mobile = desktop.mobile === true || platform === "android";
+  if (platform === "android") { OS.android = true; document.documentElement.classList.add("is-android"); }
+  if (S.mobile) { document.documentElement.classList.add("is-mobile"); syncTouch(); rerenderAll(); }
   // tamper-evident seal: only the standalone app has it; without it every seal control stays hidden
   // the Mac App Store build: a sandbox decides which files the app may read; the page says so instead of "missing"
   if (desktop.standalone) { S.sandboxed = desktop.sandboxed === true; document.documentElement.classList.toggle("is-sandboxed", S.sandboxed); syncSandboxUi(); }
   if (desktop.standalone && desktop.seal) {
     S.seal = desktop.seal; document.documentElement.classList.add("has-seal");
     loadSealIdentity();
+  }
+  if (S.mobile) {
+    await tellShellLanguage();
+    // the app's private store is always there (no permission to ask for); documents come through the system's pickers
+    if (desktop.fs) { S.perm = "granted"; await enableDisk(); renderHome(); }
+    // PDFs opened or shared from another app (ACTION_VIEW / ACTION_SEND), including the one that started the app
+    desktop.onOpenFile?.((path) => { if (S.fs) openPdfPath(path); else toast(t("access.offOpen"), true); });
+    S.offBack = desktop.onBack?.(handleBack);
+    return;
   }
   if (desktop.window) {
     document.documentElement.classList.add("is-desktop");
@@ -3834,7 +4506,8 @@ function syncLangSwitch() {
 function rerenderAll() {
   hideTip();
   document.documentElement.lang = LANG;
-  applyStatic(); padSwatches(); txtSwatches(); syncLangSwitch(); syncInstallStatus(); syncWindowTitle();
+  applyStatic(); padSwatches(); txtSwatches(); syncLangSwitch(); syncInstallStatus(); syncWindowTitle(); syncSheetTitle(); syncFitBtn(); closeMenu();
+  for (const s of $$(".side")) if (s.style.getPropertyValue("--sheet-h")) setSheetH(s, parseFloat(s.style.getPropertyValue("--sheet-h")));
   renderHome();
   if (S.view === "editor") { syncDocTitle(); syncStatus(); syncDocBar(); }
   for (const p of S.pages) { p.thumb.title = t("page.goto", { n: p.i + 1 }); const dot = p.thumb.querySelector(".dot"); if (dot) dot.title = t("ov.dot"); p.thumb.setAttribute("aria-label", t(dot ? "page.goto.has" : "page.goto", { n: p.i + 1 })); }
@@ -3859,6 +4532,7 @@ $("#btn-open").onclick = choosePdf; $("#btn-open-2").onclick = choosePdf; $("#bt
 $("#btn-sample").onclick = loadSample;
 $("#btn-export").onclick = openSaveDialog;
 $("#btn-undo").onclick = undo; $("#btn-redo").onclick = redo;
+$("#bb-undo").onclick = undo; $("#bb-redo").onclick = redo; $("#bb-save").onclick = openSaveDialog; $("#bb-open").onclick = choosePdf; $("#bb-verify").onclick = openVerify;
 $("#btn-zoom-in").onclick = COMMANDS.zoomIn; $("#btn-zoom-out").onclick = COMMANDS.zoomOut;
 $("#zoom-val").onclick = COMMANDS.actual;
 $("#btn-fit-w").onclick = COMMANDS.fitWidth; $("#btn-fit-p").onclick = COMMANDS.fitPage;
@@ -3887,7 +4561,7 @@ async function boot() {
   // example items show in the library until the first real signature is added
   if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {});
 }
-window.__pdfe = { S, Store, openPdfBytes, openRecord, placeAsset, buildPdf, importImageFiles, makeAssetFromSource, addToLibrary, undo, redo, setZoom, select, act, getOv, showHome, showEditor, browse, openSaveDialog, performSave, loadSample, requestFullAccess, enableDisk, setLang, t, openVerify, verifyBytes, openSealer, SEAL, openAbout, grantAccess, fileChecks, refreshFileChecks };
+window.__pdfe = { handleBack, openSheet, closeSheet, SHEET, isCompact, S, Store, openPdfBytes, openRecord, placeAsset, buildPdf, importImageFiles, makeAssetFromSource, addToLibrary, undo, redo, setZoom, select, act, getOv, showHome, showEditor, browse, openSaveDialog, performSave, loadSample, requestFullAccess, enableDisk, setLang, t, openVerify, verifyBytes, openSealer, SEAL, openAbout, grantAccess, fileChecks, refreshFileChecks };
 boot();
 })();
 </script>

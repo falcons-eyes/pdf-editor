@@ -20,6 +20,19 @@ with window.__shimOpenFile(path) (this page load only, like Finder's Open With).
 window.__shimDialogNext, window.__shimSaveNext and window.__shimAccessNext (a path, or null = cancel;
 unset: save and access accept what they were offered). This stand-in exists only here; it is never part
 of the published artifact.
+
+Add &os=android&mobile=1 (with &standalone=1&sandboxed=1) for the Android app (docs/design/android.md):
+`platform: "android"`, `mobile: true`, no permissions/install/dock, no-op window and Menu, `onBack(cb)`
+(press the back button with window.__shimBack(); it returns what the page's callback returned, and a
+false answer is logged as "exit"), and Storage Access Framework stand-ins: documents picked with
+dialog.open, created with dialog.save, received with window.__shimOpenFile(path) or re-granted through
+access.request get page paths /android/<id>/<display name>, backed by the dev-home file the test named
+(__shimDialogNext = ["~/Documents/x.pdf"], __shimSaveNext = "~/Documents/out.pdf"; save defaults to
+~/Documents/<name>). dialog.open({ kind: "folder" }) gives a folder tree /android/<id> (__shimDialogNext =
+["~/Documents/Signed"]): a new name written inside it creates the file. Only those documents and folders and the
+app's store ("~/Library/Application Support/PDF Editor") can be read or written; anything else rejects with
+EPERM, and so does writing a new name into a document's virtual folder /android/<id>/.
+window.__shimAndroid.revoke(id) makes a document's permission lost (EPERM) until access.request.
 """
 
 import base64
@@ -27,7 +40,9 @@ import http.server
 import json
 import os
 import pathlib
+import posixpath
 import shutil
+import urllib.parse
 import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent
@@ -54,6 +69,32 @@ DESKTOP_SHIM = r"""<script>
   const sandboxed = !!q.get("sandboxed");
   const lsGet = (k) => { try { return JSON.parse(localStorage.getItem(k) || "[]"); } catch { return []; } };
   const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} };
+  // &os=android: the Android app (docs/design/android.md). Picked, created and received documents are
+  // /android/<id>/<name> page paths backed by a dev-home file; only those and the app's store are reachable.
+  const android = q.get("os") === "android" && !!q.get("standalone");
+  const STORE = "~/Library/Application Support/PDF Editor";
+  const adocs = (() => { if (!android) return {}; try { return JSON.parse(localStorage.getItem("shim.android") || "{}"); } catch { return {}; } })();
+  const saveAdocs = () => { try { localStorage.setItem("shim.android", JSON.stringify(adocs)); } catch {} };
+  // a picked folder (ACTION_OPEN_DOCUMENT_TREE) is /android/<id>; a new name written inside it creates the file
+  const docPath = (real, tree = false) => {
+    if (!real) return real;
+    const id = Math.random().toString(36).slice(2, 10), name = real.slice(real.lastIndexOf("/") + 1);
+    adocs[id] = { real, name, tree, revoked: false }; saveAdocs(); return tree ? `/android/${id}` : `/android/${id}/${name}`;
+  };
+  const mapAndroid = (p) => {
+    if (!android || typeof p !== "string") return p;
+    const m = /^\/android\/([^/]+)(?:\/(.+))?$/.exec(p);
+    if (m) {
+      const d = adocs[m[1]];
+      if (!d || d.revoked) throw fail(`EPERM: no permission for this document: ${p}`);
+      if (d.tree) { if (m[2] && m[2].includes("/")) throw fail(`EPERM: only files directly in the picked folder: ${p}`); return m[2] ? `${d.real}/${m[2]}` : d.real; }
+      if (d.name !== m[2]) throw fail(`EPERM: no permission for this document: ${p}`); // incl. a new name in its virtual folder
+      return d.real;
+    }
+    if (p === STORE || p.startsWith(STORE + "/")) return p;
+    throw fail(`EPERM: outside the app's storage: ${p}`);
+  };
+  window.__shimAndroid = android ? { docs: adocs, revoke: (id) => { adocs[id].revoked = true; saveAdocs(); }, reset: () => { for (const k of Object.keys(adocs)) delete adocs[k]; saveAdocs(); } } : undefined;
   let denyList = sandboxed ? lsGet("shim.deny") : [];
   Object.defineProperty(window, "__shimDeny", { get: () => denyList, set: (v) => { denyList = Array.isArray(v) ? v : []; lsSet("shim.deny", denyList); }, configurable: true });
   const bookmarks = new Set(sandboxed ? lsGet("shim.bookmarks") : []), session = new Set();
@@ -63,6 +104,10 @@ DESKTOP_SHIM = r"""<script>
   const denied = (p) => sandboxed && typeof p === "string" && denyList.some((d) => under(p, d)) && ![...bookmarks, ...session].some((g) => under(p, g));
   const guard = (...ps) => { for (const p of ps) if (denied(p)) throw fail(`EPERM: operation not permitted (sandbox): ${p}`); };
   const call = async (op, args) => {
+    if (android) {
+      try { for (const k of ["path", "from", "to"]) if (k in args) args = { ...args, [k]: mapAndroid(args[k]) }; }
+      catch (e) { if (op === "exists") return false; throw e; }
+    }
     if (op === "exists" && denied(args.path)) return false; // like fs.access in the sandbox: no permission reads as "no"
     guard(args.path, args.from, args.to);
     const r = await fetch("/__fs", { method: "POST", headers: { "Content-Type": "application/json", "X-PDFE-Dev": "1" }, body: JSON.stringify({ op, ...args }) });
@@ -96,26 +141,55 @@ DESKTOP_SHIM = r"""<script>
   // &sandboxed=1 adds the store build's behavior (see the module docstring). The save and access answers default
   // to accepting what was offered; set window.__shimSaveNext / __shimAccessNext to a path or null (cancel) first.
   const answer = (key, offered) => { const v = window[key]; window[key] = undefined; return v === undefined ? offered : v; };
+  let backCb = null;
   if (q.get("standalone")) Object.assign(desktop, {
-    standalone: true, platform: q.get("os") || "darwin", version: "dev", sandboxed,
+    standalone: true, platform: q.get("os") || "darwin", version: "dev", sandboxed: sandboxed || android,
     dialog: {
-      open: async (o) => { log("dialog.open", o); const r = window.__shimDialogNext ?? null; window.__shimDialogNext = undefined; for (const p of r || []) grant(p); return r; },
+      open: async (o) => {
+        log("dialog.open", o); const r = window.__shimDialogNext ?? null; window.__shimDialogNext = undefined;
+        if (android) return r && r.map((x) => docPath(x, o?.kind === "folder"));
+        for (const p of r || []) grant(p); return r;
+      },
       save: async (o = {}) => {
         log("dialog.save", o);
+        if (android) return docPath(answer("__shimSaveNext", `~/Documents/${o.name || "Untitled.pdf"}`));
         const r = answer("__shimSaveNext", `${o.start || "~/Documents"}/${o.name || "Untitled.pdf"}`);
         grant(r); return r;
       },
     },
     access: {
-      request: async (path, o = {}) => { log("access.request", path, o); const r = answer("__shimAccessNext", path); grant(r); return r; },
+      request: async (path, o = {}) => {
+        log("access.request", path, o);
+        if (android) {
+          const next = window.__shimAccessNext; window.__shimAccessNext = undefined;
+          if (next !== undefined) return next && docPath(next);
+          const m = /^\/android\/([^/]+)(\/|$)/.exec(path || "");
+          if (m && adocs[m[1]]) { adocs[m[1]].revoked = false; saveAdocs(); return path; }
+          return null;
+        }
+        const r = answer("__shimAccessNext", path); grant(r); return r;
+      },
     },
     links: { privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md", support: "https://github.com/falcons-eyes/pdf-editor/issues", repo: "https://github.com/falcons-eyes/pdf-editor" },
     openExternal: async (url) => { log("openExternal", url); if (!/^https:/i.test(url)) throw fail("EPERM: only https links can be opened"); },
     pathForFile: () => null,
-    onOpenFile: (cb) => { window.__shimOpenFile = (p) => { grant(p, false); cb(p); }; },
+    onOpenFile: (cb) => { window.__shimOpenFile = (p) => { if (android) { cb(docPath(p)); return; } grant(p, false); cb(p); }; },
     setLanguage: async (lang) => { log("setLanguage", lang); window.__shimLang = lang; },
     seal: mockSeal(),
   });
+  // the Android app's object (docs/design/android.md): no permissions, install or dock; window and Menu do nothing;
+  // the shell opens a document in another app (ACTION_VIEW), can't reveal or trash it; the back button goes to onBack
+  if (android) {
+    for (const k of ["permissions", "install", "app"]) delete desktop[k];
+    Object.assign(desktop, {
+      mobile: true,
+      window: { setOptions: async () => ({}), getOptions: async () => ({}), show: async () => {}, hide: async () => {} },
+      Menu: { setApplicationMenu: async () => {}, popup: async () => {} },
+      shell: { openPath: async (p) => log("openPath", p), showItemInFolder: async () => {}, trashItem: async () => { throw fail("EPERM: not available on Android"); } },
+      onBack: (cb) => { backCb = cb; },
+    });
+    window.__shimBack = () => { const r = backCb ? !!backCb() : false; log("back", r); if (!r) { log("exit"); window.__shimExited = (window.__shimExited || 0) + 1; } return r; };
+  } else if (q.get("mobile")) desktop.mobile = true;
   // MOCK of desktop.seal (docs/design/seal-and-language.md) for exercising the page UI in a browser.
   // NOT a signature: "sign" appends a marker line with a SHA-256 of the bytes before it; "verify" reports
   // intact if that marker is present and the bytes before it are unchanged, modified otherwise, none without it.
@@ -146,7 +220,9 @@ DESKTOP_SHIM = r"""<script>
       exportIdentity: async ({ password, defaultName = "backup.p12", start = "~/Documents" } = {}) => {
         log("seal.exportIdentity"); fail();
         if (!st.id) throw new Error("ENOENT: no identity");
-        const path = `${start}/${defaultName}`;
+        // Android: the shell writes the backup through its save panel (ACTION_CREATE_DOCUMENT)
+        const path = android ? await desktop.dialog.save({ name: defaultName, title: "Back up" }) : `${start}/${defaultName}`;
+        if (!path) return null;
         await fs.writeFile(path, enc.encode("MOCK-P12 " + JSON.stringify({ password, id: st.id })));
         return { path };
       },
@@ -189,7 +265,7 @@ DESKTOP_SHIM = r"""<script>
 # the getter line above is replaced below (kept simple: fs is attached only once access is granted)
 DESKTOP_SHIM = DESKTOP_SHIM.replace(
     "  get fs() {}\n",
-    '  Object.defineProperty(desktop, "fs", { get: () => (perm === "granted" ? fs : undefined) });\n'
+    '  Object.defineProperty(desktop, "fs", { get: () => (android || perm === "granted" ? fs : undefined) });\n'
     '  window.claude = { use: async (name) => (name === "desktop" ? desktop : null) };\n',
 )
 
@@ -252,8 +328,20 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
+    def _local_host(self):
+        host = (self.headers.get("Host") or "").rsplit(":", 1)[0]
+        return host in ("localhost", "127.0.0.1")
+
     def do_GET(self):
+        # DNS rebinding: only answer requests addressed to this machine by name
+        if not self._local_host():
+            self._send(403, b"forbidden", "text/plain; charset=utf-8"); return
         path, _, query = self.path.partition("?")
+        # the dev home (default web/.devhome) holds test files: never served
+        clean = posixpath.normpath(urllib.parse.unquote(path.split("#", 1)[0]))
+        target = (ROOT / clean.lstrip("/")).resolve()
+        if clean == "/.devhome" or clean.startswith("/.devhome/") or target == DEV_HOME or DEV_HOME in target.parents:
+            self._send(404, b"not found", "text/plain; charset=utf-8"); return
         if path in ("/", "/index.html"):
             shim = DESKTOP_SHIM if "desktop=1" in query else ""
             body = (SKELETON_HEAD + shim + PAGE.read_text(encoding="utf-8") + SKELETON_TAIL).encode()
@@ -261,14 +349,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return
         super().do_GET()
 
+    def do_HEAD(self):  # not needed by the page; refused so nothing bypasses the checks in do_GET
+        self._send(405, b"", "text/plain; charset=utf-8")
+
     def do_POST(self):
         if self.path != "/__fs":
             self._send(404, b"{}", "application/json"); return
         # only this page may use the file API: other sites can't send the custom header without a
         # CORS preflight (which this server never answers), and DNS rebinding fails the Host check
-        host = (self.headers.get("Host") or "").rsplit(":", 1)[0]
         origin = self.headers.get("Origin")
-        if (self.headers.get("X-PDFE-Dev") != "1" or host not in ("localhost", "127.0.0.1")
+        if (self.headers.get("X-PDFE-Dev") != "1" or not self._local_host()
                 or (origin and origin.split("://", 1)[-1].rsplit(":", 1)[0] not in ("localhost", "127.0.0.1"))):
             self._send(403, b'{"error":"EACCES: forbidden"}', "application/json"); return
         req = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))) or b"{}")

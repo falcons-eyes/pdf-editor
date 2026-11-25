@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- sampled from desktop/build/icon.png by scripts/make-icons.mjs -->
+<resources>
+    <color name="ic_launcher_background">#314ebd</color>
+    <color name="ic_launcher_background_top">#4562ce</color>
+    <color name="ic_launcher_background_bottom">#213fb0</color>
+    <color name="splash_background">#314ebd</color>
+</resources>

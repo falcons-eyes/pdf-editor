@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Android 12+ backup.
+     Cloud backup (Google): only the language setting. The app's store (files/store/: signature and
+     stamp images, document records, document copies, thumbnails) stays on the device: it is
+     personal and it isn't ours to upload.
+     Device-to-device transfer (the user's own cable/Wi-Fi move to a new phone): the store moves, so
+     the library comes along; documents then read "needs permission" until re-granted.
+     Never, in either: no_backup/ (the sealer key file, Keystore-encrypted, and the table of picked
+     documents; a Keystore key can't leave the device, so move the identity with a .p12 backup),
+     WebView data, caches, test files. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="file" path="store/" />
+        <exclude domain="file" path="test-docs/" />
+        <exclude domain="root" path="no_backup/" />
+        <exclude domain="root" path="app_webview/" />
+        <exclude domain="root" path="cache/" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="file" path="test-docs/" />
+        <exclude domain="root" path="no_backup/" />
+        <exclude domain="root" path="app_webview/" />
+        <exclude domain="root" path="cache/" />
+    </device-transfer>
+</data-extraction-rules>

@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Only the app's own store is shareable, one file at a time, when the user asks to open it in
+     another app. Never the seal key (noBackupFilesDir) or anything else. -->
+<paths>
+    <files-path name="store" path="store/" />
+</paths>

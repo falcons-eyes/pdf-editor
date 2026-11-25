@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Debug builds: also filesDir/test-docs/, the stand-in for picked/created documents while the
+     test hook is on (SealworksFilesPlugin.testHook), and the target of the VIEW/SEND intent test. -->
+<paths>
+    <files-path name="store" path="store/" />
+    <files-path name="test" path="test-docs/" />
+</paths>

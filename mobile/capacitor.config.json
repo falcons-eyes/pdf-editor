@@ -1,0 +1,22 @@
+{
+  "appId": "com.falconoon.sealworks",
+  "appName": "Sealworks",
+  "webDir": "www",
+  "loggingBehavior": "debug",
+  "server": {
+    "androidScheme": "https",
+    "hostname": "localhost"
+  },
+  "android": {
+    "allowMixedContent": false,
+    "captureInput": false,
+    "initialFocus": true,
+    "resolveServiceWorkerRequests": false
+  },
+  "plugins": {
+    "SystemBars": {
+      "insetsHandling": "css",
+      "style": "DEFAULT"
+    }
+  }
+}

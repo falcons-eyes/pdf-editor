@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Sealworks</string>
+    <string name="title_activity_main">Sealworks</string>
+    <string name="package_name">com.falconoon.sealworks</string>
+    <string name="custom_url_scheme">com.falconoon.sealworks</string>
+</resources>
