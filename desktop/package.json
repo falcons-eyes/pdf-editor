@@ -1,8 +1,8 @@
 {
   "name": "pdf-editor-desktop",
-  "productName": "Sealmark",
+  "productName": "Sealworks",
   "version": "1.1.0",
-  "description": "Sealmark: place signatures, stamps and images onto PDFs and seal them",
+  "description": "Sealworks: place signatures, stamps and images onto PDFs and seal them",
   "author": {
     "name": "Falcon Eyes Inc."
   },
@@ -45,8 +45,8 @@
     "playwright": "1.65.1"
   },
   "build": {
-    "appId": "com.falconoon.sealmark.direct",
-    "productName": "Sealmark",
+    "appId": "com.falconoon.sealworks.direct",
+    "productName": "Sealworks",
     "copyright": "Copyright © 2026 Falcon Eyes Inc.",
     "directories": {
       "output": "dist",
@@ -84,7 +84,7 @@
       "identity": "-",
       "hardenedRuntime": false,
       "gatekeeperAssess": false,
-      "artifactName": "Sealmark-${version}-${arch}.${ext}",
+      "artifactName": "Sealworks-${version}-${arch}.${ext}",
       "extendInfo": {
         "CFBundleDocumentTypes": [
           {
@@ -105,14 +105,14 @@
       "minimumSystemVersion": "13.0"
     },
     "mas": {
-      "appId": "com.falconoon.sealmark",
+      "appId": "com.falconoon.sealworks",
       "type": "distribution",
       "identity": null,
       "hardenedRuntime": false,
       "entitlements": "build/entitlements.mas.plist",
       "entitlementsInherit": "build/entitlements.mas.inherit.plist",
       "minimumSystemVersion": "13.0",
-      "artifactName": "Sealmark-${version}-mas-${arch}.${ext}",
+      "artifactName": "Sealworks-${version}-mas-${arch}.${ext}",
       "extraResources": [
         {
           "from": "build/mas/PrivacyInfo.xcprivacy",
@@ -126,8 +126,8 @@
     },
     "dmg": {
       "sign": false,
-      "title": "Sealmark ${version}",
-      "artifactName": "Sealmark-${version}-${arch}.${ext}",
+      "title": "Sealworks ${version}",
+      "artifactName": "Sealworks-${version}-${arch}.${ext}",
       "window": {
         "width": 540,
         "height": 380
@@ -173,15 +173,15 @@
         "en_US"
       ],
       "multiLanguageInstaller": true,
-      "shortcutName": "Sealmark",
+      "shortcutName": "Sealworks",
       "deleteAppDataOnUninstall": false,
       "include": "build/installer.nsh",
-      "artifactName": "Sealmark-${version}-setup-${arch}.${ext}",
+      "artifactName": "Sealworks-${version}-setup-${arch}.${ext}",
       "differentialPackage": false,
-      "uninstallDisplayName": "Sealmark"
+      "uninstallDisplayName": "Sealworks"
     },
     "portable": {
-      "artifactName": "Sealmark-${version}-portable-${arch}.${ext}"
+      "artifactName": "Sealworks-${version}-portable-${arch}.${ext}"
     },
     "publish": null
   }

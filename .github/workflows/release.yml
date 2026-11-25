@@ -56,8 +56,8 @@ jobs:
         with:
           name: release-${{ runner.os }}
           path: |
-            desktop/dist/Sealmark-*.dmg
-            desktop/dist/Sealmark-*.exe
+            desktop/dist/Sealworks-*.dmg
+            desktop/dist/Sealworks-*.exe
           if-no-files-found: error
 
   # ---- Mac App Store package (only when the signing secrets are configured) ----
@@ -67,7 +67,7 @@ jobs:
   #   MAS_INSTALLER_CERT_P12        base64 of a .p12 with "Mac Installer Distribution"
   #                                 ("3rd Party Mac Developer Installer") certificate + private key
   #   MAS_INSTALLER_CERT_PASSWORD   its password
-  #   MAS_PROVISIONING_PROFILE      base64 of the "Mac App Store Connect" profile for com.falconoon.sealmark
+  #   MAS_PROVISIONING_PROFILE      base64 of the "Mac App Store Connect" profile for com.falconoon.sealworks
   #   APPLE_TEAM_ID                 the 10-character team ID (Info.plist ElectronTeamID, app group prefix)
   # Optional, for validation/upload with an App Store Connect API key (App Manager role):
   #   ASC_API_KEY_P8 (base64 of AuthKey_<id>.p8), ASC_API_KEY_ID, ASC_API_ISSUER_ID
@@ -146,12 +146,12 @@ jobs:
 
       - name: Check signature, entitlements, architectures
         run: |
-          app="dist/mas-universal/Sealmark.app"
-          pkg="$(ls dist/mas-universal/Sealmark-*-mas-universal.pkg)"
+          app="dist/mas-universal/Sealworks.app"
+          pkg="$(ls dist/mas-universal/Sealworks-*-mas-universal.pkg)"
           codesign --verify --deep --strict --verbose=2 "$app"
           codesign -d --entitlements - --xml "$app" | plutil -p -
-          codesign -d --entitlements - --xml "$app/Contents/Frameworks/Sealmark Helper (Renderer).app" | plutil -p -
-          lipo -archs "$app/Contents/MacOS/Sealmark"
+          codesign -d --entitlements - --xml "$app/Contents/Frameworks/Sealworks Helper (Renderer).app" | plutil -p -
+          lipo -archs "$app/Contents/MacOS/Sealworks"
           plutil -p "$app/Contents/Info.plist" | grep -E 'CFBundleIdentifier|CFBundleVersion|CFBundleShortVersionString|ElectronTeamID|ITSAppUsesNonExemptEncryption|LSMinimumSystemVersion|LSApplicationCategoryType'
           pkgutil --check-signature "$pkg"
           for k in device.camera device.microphone device.usb print network.client allow-jit; do
@@ -161,7 +161,7 @@ jobs:
       # App Store Connect rejects packages whose files carry com.apple.quarantine (since 2025-02-18)
       - name: No quarantine attributes
         run: |
-          if xattr -lr dist/mas-universal/Sealmark.app dist/mas-universal/*.pkg | grep -q com.apple.quarantine; then
+          if xattr -lr dist/mas-universal/Sealworks.app dist/mas-universal/*.pkg | grep -q com.apple.quarantine; then
             echo "::error::com.apple.quarantine found in the store package"; xattr -lr dist/mas-universal | grep com.apple.quarantine | head; exit 1
           fi
 
@@ -174,7 +174,7 @@ jobs:
         run: |
           mkdir -p ~/.appstoreconnect/private_keys
           printf '%s' "$ASC_API_KEY_P8" | base64 --decode > ~/.appstoreconnect/private_keys/AuthKey_${ASC_API_KEY_ID}.p8
-          xcrun altool --validate-app -f dist/mas-universal/Sealmark-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
+          xcrun altool --validate-app -f dist/mas-universal/Sealworks-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
 
       - name: Upload to App Store Connect
         if: vars.MAS_UPLOAD == 'true' && env.HAS_ASC_KEY == 'true'
@@ -182,7 +182,7 @@ jobs:
           ASC_API_KEY_P8: ${{ secrets.ASC_API_KEY_P8 }}
           ASC_API_KEY_ID: ${{ secrets.ASC_API_KEY_ID }}
           ASC_API_ISSUER_ID: ${{ secrets.ASC_API_ISSUER_ID }}
-        run: xcrun altool --upload-app -f dist/mas-universal/Sealmark-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
+        run: xcrun altool --upload-app -f dist/mas-universal/Sealworks-*-mas-universal.pkg -t macos --apiKey "$ASC_API_KEY_ID" --apiIssuer "$ASC_API_ISSUER_ID"
 
       - name: Remove signing material
         if: always()
@@ -192,7 +192,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           name: mas-pkg
-          path: desktop/dist/mas-universal/Sealmark-*-mas-universal.pkg
+          path: desktop/dist/mas-universal/Sealworks-*-mas-universal.pkg
           if-no-files-found: error
           retention-days: 14
 
@@ -214,6 +214,6 @@ jobs:
         run: |
           ls -la out
           if ! gh release view "$TAG" >/dev/null 2>&1; then
-            gh release create "$TAG" --title "Sealmark ${TAG#v}" --generate-notes --verify-tag
+            gh release create "$TAG" --title "Sealworks ${TAG#v}" --generate-notes --verify-tag
           fi
           gh release upload "$TAG" out/* --clobber

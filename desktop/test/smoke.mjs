@@ -42,8 +42,8 @@ function resolveTarget() {
   if (!p) {
     const dist = path.join(DESKTOP, "dist");
     const candidates = process.platform === "darwin"
-      ? [`mac-${process.arch}`, "mac", "mac-arm64", "mac-universal"].map((d) => path.join(dist, d, "Sealmark.app"))
-      : process.platform === "win32" ? [path.join(dist, "win-unpacked", "Sealmark.exe"), path.join(dist, "win-arm64-unpacked", "Sealmark.exe")]
+      ? [`mac-${process.arch}`, "mac", "mac-arm64", "mac-universal"].map((d) => path.join(dist, d, "Sealworks.app"))
+      : process.platform === "win32" ? [path.join(dist, "win-unpacked", "Sealworks.exe"), path.join(dist, "win-arm64-unpacked", "Sealworks.exe")]
       : [path.join(dist, "linux-unpacked", "pdf-editor-desktop")];
     p = candidates.find((c) => fs.existsSync(c));
     if (!p) throw new Error(`no unpacked build found in ${dist}; run npm run pack or pass --app`);
@@ -306,7 +306,7 @@ async function main() {
       const enTop = en.map((m) => m.label);
       const help = en.find((m) => m.label === "Help");
       const appItems = process.platform === "darwin" ? en[0].items : [];
-      check("setLanguage(\"en\"): Edit / Window / Help menus in English", enTop.includes("Edit") && enTop.includes("Window") && ["Privacy Policy", "Support", "GitHub repository"].every((x) => help?.items.includes(x)) && (process.platform !== "darwin" || (appItems.includes("Quit Sealmark") && appItems.includes("About Sealmark"))), enTop.join(" | "));
+      check("setLanguage(\"en\"): Edit / Window / Help menus in English", enTop.includes("Edit") && enTop.includes("Window") && ["Privacy Policy", "Support", "GitHub repository"].every((x) => help?.items.includes(x)) && (process.platform !== "darwin" || (appItems.includes("Quit Sealworks") && appItems.includes("About Sealworks"))), enTop.join(" | "));
       const ko = await langOf("ko");
       const koTop = ko.map((m) => m.label);
       check("setLanguage(\"ko\"): back to Korean", koTop.includes("편집") && koTop.includes("도움말") && ["개인정보 처리방침", "지원", "GitHub 저장소"].every((x) => ko.find((m) => m.label === "도움말")?.items.includes(x)), koTop.join(" | "));

@@ -15,7 +15,7 @@ const SCHEME = "app";
 const HOST = "pdf-editor";
 const ORIGIN = `${SCHEME}://${HOST}`;
 const INDEX_URL = `${ORIGIN}/index.html`;
-const PRODUCT = "Sealmark";
+const PRODUCT = "Sealworks";
 const COPYRIGHT = "Copyright © 2026 Falcon Eyes Inc.";
 const REPO_URL = "https://github.com/falcons-eyes/pdf-editor";
 // desktop.links (docs/design/appstore-build.md); also the Help menu

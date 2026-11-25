@@ -1,15 +1,15 @@
-# Sealmark — desktop app
+# Sealworks — desktop app
 
 Electron shell for `web/pdf-editor.html` (the same page that runs as a Claude artifact). The page is
 not edited here: `npm run build:page` wraps it in the artifact skeleton and swaps its CDN scripts and
 Google Fonts for local copies, so the app works fully offline.
 
-Product name **Sealmark** (version 1.1.0, © Falcon Eyes Inc.). Two macOS builds share this code:
+Product name **Sealworks** (version 1.1.0, © Falcon Eyes Inc.). Two macOS builds share this code:
 
 | build | bundle ID | signed | data store |
 | --- | --- | --- | --- |
-| GitHub DMG (arm64, x64), Windows NSIS/portable | `com.falconoon.sealmark.direct` | ad-hoc (macOS), unsigned (Windows) | `~/Library/Application Support/PDF Editor` (unchanged, keeps existing users' data) |
-| Mac App Store (`mas`, universal) | `com.falconoon.sealmark` | Apple Distribution + provisioning profile | the container: `~/Library/Containers/com.falconoon.sealmark/Data/Library/Application Support/PDF Editor` |
+| GitHub DMG (arm64, x64), Windows NSIS/portable | `com.falconoon.sealworks.direct` | ad-hoc (macOS), unsigned (Windows) | `~/Library/Application Support/PDF Editor` (unchanged, keeps existing users' data) |
+| Mac App Store (`mas`, universal) | `com.falconoon.sealworks` | Apple Distribution + provisioning profile | the container: `~/Library/Containers/com.falconoon.sealworks/Data/Library/Application Support/PDF Editor` |
 
 Decisions and the page-facing API: `docs/design/appstore-build.md`; plan: `docs/appstore/sandbox-plan.md`.
 
@@ -20,10 +20,10 @@ npm start            # build:page + electron . (uses your real data store, see b
 npm run pack         # unpacked app in dist/ (mac-arm64/, mac/ or win-unpacked/)
 npm test             # seal + unit tests (plain Node), then the smoke test against the unpacked app
                      # (or: npm run test:seal / test:unit; node test/smoke.mjs --dev | --app <path>)
-npm run dist:mac     # dist/Sealmark-<v>-arm64.dmg and -x64.dmg (ad-hoc signed, not notarized)
-npm run dist:win     # dist/Sealmark-<v>-setup-x64.exe (NSIS) and -portable-x64.exe
-npm run dist:mas     # dist/mas-universal/Sealmark-<v>-mas-universal.pkg (needs the Apple certificates, below)
-npm run dist:mas-dev # dist/mas-dev-universal/Sealmark.app, development-signed (needs a dev profile)
+npm run dist:mac     # dist/Sealworks-<v>-arm64.dmg and -x64.dmg (ad-hoc signed, not notarized)
+npm run dist:win     # dist/Sealworks-<v>-setup-x64.exe (NSIS) and -portable-x64.exe
+npm run dist:mas     # dist/mas-universal/Sealworks-<v>-mas-universal.pkg (needs the Apple certificates, below)
+npm run dist:mas-dev # dist/mas-dev-universal/Sealworks.app, development-signed (needs a dev profile)
 npm run test:sandbox # local App Sandbox test without certificates (macOS, below)
 npm run icon         # re-render build/icon.{png,icns,ico} from the page's drawAppIcon() (macOS, python3 + Pillow)
 ```
@@ -100,7 +100,7 @@ top frame at `app://pdf-editor/`). Errors reject with messages starting with the
 | `shell.openPath / showItemInFolder / trashItem` | |
 | `permissions.state(name?) / request() / manage()` | always `"granted"` |
 | `window.setOptions(o)` | applies `minWidth`/`minHeight`, `titleBarOverlay` (Windows/Linux), `trafficLightPosition` (macOS); returns `{applied:"now"}`. `getOptions`, `show`, `hide` |
-| `Menu.setApplicationMenu(template)` | click functions stay in the preload; macOS gets the app menu, `editMenu`/`windowMenu` become main's menus in the `setLanguage` language, plus Help › Privacy Policy / Support / GitHub repository (도움말 › 개인정보 처리방침 / 지원 / GitHub 저장소); store build: Sealmark › Import data from the previous version… |
+| `Menu.setApplicationMenu(template)` | click functions stay in the preload; macOS gets the app menu, `editMenu`/`windowMenu` become main's menus in the `setLanguage` language, plus Help › Privacy Policy / Support / GitHub repository (도움말 › 개인정보 처리방침 / 지원 / GitHub 저장소); store build: Sealworks › Import data from the previous version… |
 | `app.dock.setIcon` | no-op `{written:false}` (the bundled icon is used) |
 | `os.platform() / arch()`, `install.state() / request()` | `"installed"` |
 | `standalone`, `platform`, `version` | sync values (`true`, `process.platform`, app version) |
@@ -127,7 +127,7 @@ Paths: `/`-separated; `~`, `~/x` = home. Windows `C:\a\b` ⇄ `/C:/a/b`, `\\srv\
 
 The DMGs are ad-hoc signed (no Developer ID, no notarization). A downloaded copy is quarantined, so the
 first launch needs System Settings › Privacy & Security › "Open Anyway" (or
-`xattr -dr com.apple.quarantine "/Applications/Sealmark.app"`). The renamed app has a new bundle ID, so
+`xattr -dr com.apple.quarantine "/Applications/Sealworks.app"`). The renamed app has a new bundle ID, so
 macOS and Windows treat it as a new app next to an installed "PDF Editor"; the data store is the same.
 
 ## Mac App Store build
@@ -142,7 +142,7 @@ Electron's MAS variant (`process.mas`) inside the App Sandbox. Only these entitl
 | `files.bookmarks.app-scope` | keep those files/folders reachable on the next launch |
 
 Added by `@electron/osx-sign` when signing (not in the file): `application-identifier`,
-`developer.team-identifier` and `application-groups = ["<TEAMID>.com.falconoon.sealmark"]`. The
+`developer.team-identifier` and `application-groups = ["<TEAMID>.com.falconoon.sealworks"]`. The
 group is required: the MAS Electron registers its Mach rendezvous service as
 `<TEAMID>.<bundle id>.MachPortRendezvousServer.<pid>` and aborts at launch without it (seen locally).
 Not requested: `network.*` (offline; links open in the browser), `files.downloads.*` (saves go through
@@ -150,7 +150,7 @@ the save panel), `cs.allow-jit` (only matters under the hardened runtime, which 
 runs fine without it), camera/microphone/usb/print (in osx-sign's default template, unused). No
 `container-migration.plist`: its `Move` really moves the old folder (the DMG and Claude-installed app
 would lose their data) and is reported not to work with iCloud Desktop & Documents; the store build
-has Sealmark › "Import data from the previous version…" instead, which copies `prefs.json`,
+has Sealworks › "Import data from the previous version…" instead, which copies `prefs.json`,
 `documents.json`, `library.json`, `library/`, `docs/`, `thumbs/` from a folder the user picks (current
 data kept as `*.before-import-<time>`, never `seal/` or `.electron/`) and reloads the page. Seal keys
 move with a .p12 backup (export in the DMG build, import in the store build; same fingerprint).
@@ -165,7 +165,7 @@ comes before quit). `bookmarks.json` is main's: the page's fs API refuses it lik
 
 - Certificates: **Apple Distribution**, **Mac Installer Distribution** (keychain name "3rd Party Mac
   Developer Installer"), and **Apple Development** for `mas-dev`.
-- App ID `com.falconoon.sealmark`; profiles: **Mac App Store Connect** (`build/mas/embedded.provisionprofile`)
+- App ID `com.falconoon.sealworks`; profiles: **Mac App Store Connect** (`build/mas/embedded.provisionprofile`)
   and **macOS App Development** with the test Mac's UDID (`build/mas/dev.provisionprofile`). Both are
   git-ignored (`desktop/.gitignore`).
 - Local: install the certificates in the login keychain, put the profiles in `build/mas/`, then
@@ -192,10 +192,10 @@ build/entitlements.mas.inherit.plist`, then the app with `entitlements.mas.plist
 App Sandbox: first without a test home (data store in the container, `~` = real home), then
 `test/smoke.mjs` with a test home inside the container, an outside folder that must be denied, the
 sealer key in the Keychain (safeStorage) and the import menu. Kernel sandbox reports during the run go
-to `test/out/sandbox-denials.log`. Test-only differences: bundle ID `com.falconoon.sealmark.localtest`
+to `test/out/sandbox-denials.log`. Test-only differences: bundle ID `com.falconoon.sealworks.localtest`
 (the real ID never gets a container here), a fake `ElectronTeamID`/app group `LOCALTEST0`, and
 `network.server` so Playwright can reach the inspector on 127.0.0.1. Afterwards it removes the
-container, group/app-scripts folders and the "Sealmark Safe Storage" Keychain item it created
+container, group/app-scripts folders and the "Sealworks Safe Storage" Keychain item it created
 (`--keep` keeps them, `--skip-build` re-signs the existing build). `node test/smoke.mjs --simulate-sandbox`
 exercises the store-build code paths in a regular build.
 

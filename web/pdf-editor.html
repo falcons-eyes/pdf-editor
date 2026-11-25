@@ -1,4 +1,4 @@
-<title>Sealmark</title>
+<title>Sealworks</title>
 <script type="application/json" id="claude-artifacts-manifest">{"permissions": ["full-access"]}</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -319,7 +319,7 @@ div.tile-main { cursor: default; }
 .status .about-btn:hover { color: var(--fg); background: color-mix(in oklab, var(--fg) 7%, transparent); }
 /* text only for screen readers (live announcements, headings the layout doesn't show) */
 .sr-only { position: absolute !important; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
-/* about Sealmark: links to privacy policy, support, source */
+/* about Sealworks: links to privacy policy, support, source */
 .about-links { display: grid; gap: 6px; }
 .about-links a { display: flex; align-items: center; gap: 8px; color: var(--accent); text-decoration: none; padding: 6px 8px; border-radius: 7px; border: 1px solid var(--line); background: var(--panel); }
 .about-links a:hover { border-color: var(--accent); }
@@ -525,7 +525,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
     <button class="btn outline back" id="btn-back" data-i18n-tip="nav.back" data-k="⇧⌘H" data-i18n-label="nav.back.label" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg><span class="hide-narrow" data-i18n="lib.name"></span></button>
     <div class="brand">
       <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="2" width="14" height="19" rx="2" fill="var(--paper)" stroke="var(--line-strong)"/><path d="M6.5 15.5c1.6-2.8 2.4-.2 3.4-1.6s1.6-2.2 2.4-.4 2.2-.8 3.2-1.4" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/><circle cx="17.5" cy="17.5" r="4" fill="none" stroke="var(--seal)" stroke-width="1.6"/></svg>
-      <div class="doc-name"><strong id="doc-title">Sealmark</strong><span id="doc-sub"></span></div>
+      <div class="doc-name"><strong id="doc-title">Sealworks</strong><span id="doc-sub"></span></div>
     </div>
     <div class="grow"></div>
     <button class="btn outline seal-only" id="btn-verify" data-i18n-tip="verify.tip" data-i18n-label="seal.verify"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="m5.5 8 1.75 1.75L10.75 6.5"/></svg><span class="hide-narrow" id="btn-verify-text" data-i18n="seal.verify"></span></button>
@@ -1044,7 +1044,7 @@ const STR = {
   "install.installed": ["앱 설치: 이 {pc}에 설치됨", "App install: installed on this {pc}"],
   "install.unavailable": ["앱 설치: 이 화면에서는 지원 안 됨", "App install: not supported here"],
   "install.other": ["앱 설치: {st}", "App install: {st}"],
-  "install.started": ["설치를 시작했습니다. 잠시 뒤 Dock이나 Spotlight에서 Sealmark를 열 수 있습니다.", "Installing. In a moment you can open Sealmark from the Dock or Spotlight."],
+  "install.started": ["설치를 시작했습니다. 잠시 뒤 Dock이나 Spotlight에서 Sealworks를 열 수 있습니다.", "Installing. In a moment you can open Sealworks from the Dock or Spotlight."],
   "install.fail": ["설치하지 못했습니다. Claude 앱을 업데이트한 뒤 다시 시도해 주세요.", "Couldn't install. Update the Claude app and try again."],
   "menu.file": ["파일", "File"], "menu.view": ["보기", "View"],
   "menu.home": ["보관함으로 돌아가기", "Back to Library"],
@@ -1070,7 +1070,7 @@ const STR = {
   "seal.verifyDots": ["봉인 확인…", "Verify seal…"],
   "seal.sealer": ["봉인하는 사람 (서명자 정보)", "Sealer (signer identity)"],
   "seal.sealed": ["봉인됨", "Sealed"],
-  "seal.reason": ["Sealmark로 봉인", "Sealed with Sealmark"],
+  "seal.reason": ["Sealworks로 봉인", "Sealed with Sealworks"],
   "save.seal.explain": ["봉인한 뒤 누가 파일을 고치면, 받는 사람이 ‘봉인 확인’으로 바로 알 수 있습니다.", "If anyone edits the file after sealing, the recipient can tell with “Verify seal”."],
   "save.seal.as": ["봉인하는 사람: {name}", "Sealed by {name}"],
   "save.seal.first": ["처음 봉인할 때 봉인하는 사람 정보를 이 컴퓨터에 만듭니다. 이 이름이 봉인에 들어갑니다.", "The first time you seal, a sealer identity is created on this computer. This name goes into the seal."],
@@ -1100,7 +1100,7 @@ const STR = {
   "sealer.pw.mismatch": ["두 암호가 다릅니다.", "The passwords don't match."],
   "sealer.backup.go": ["폴더 골라 저장…", "Choose folder and save…"],
   "sealer.backup.folder": ["백업을 저장할 폴더 고르기", "Choose a folder for the backup"],
-  "sealer.backup.file": ["Sealmark 봉인 백업 - {name}", "Sealmark seal backup - {name}"],
+  "sealer.backup.file": ["Sealworks 봉인 백업 - {name}", "Sealworks seal backup - {name}"],
   "sealer.backup.done": ["백업했습니다: {file}", "Backed up: {file}"],
   "sealer.backup.fail": ["백업하지 못했습니다. {msg}", "Couldn't back up. {msg}"],
   "sealer.import.pw": ["이 파일을 만들 때 정한 암호를 적어 주세요.", "Enter the password the file was protected with."],
@@ -1137,28 +1137,28 @@ const STR = {
 
   // Mac App Store build (desktop.sandboxed): files the app may no longer read (docs/design/appstore-build.md)
   "src.noaccess": ["권한이 필요해 확인하지 못함", "Needs permission to check"],
-  "src.noaccess.tip": ["원본을 확인할 권한이 없습니다. ‘접근 허용…’으로 이 파일을 다시 허용해 주세요: {path}", "Sealmark has no permission to check the original. Use “Grant access…” to allow the file again: {path}"],
+  "src.noaccess.tip": ["원본을 확인할 권한이 없습니다. ‘접근 허용…’으로 이 파일을 다시 허용해 주세요: {path}", "Sealworks has no permission to check the original. Use “Grant access…” to allow the file again: {path}"],
   "file.noaccess": ["권한이 필요해 확인하지 못함", "Needs permission to check"],
-  "file.noaccess.tip": ["저장한 파일을 확인할 권한이 없습니다. ‘접근 허용…’으로 이 파일을 다시 허용해 주세요: {path}", "Sealmark has no permission to check the saved file. Use “Grant access…” to allow it again: {path}"],
+  "file.noaccess.tip": ["저장한 파일을 확인할 권한이 없습니다. ‘접근 허용…’으로 이 파일을 다시 허용해 주세요: {path}", "Sealworks has no permission to check the saved file. Use “Grant access…” to allow it again: {path}"],
   "access.grant": ["접근 허용…", "Grant access…"],
   "access.grant.src.tip": ["원본을 확인할 수 있게 접근 허용…", "Grant access so the original can be checked…"],
   "access.grant.file.tip": ["저장한 파일을 확인할 수 있게 접근 허용…", "Grant access so the saved file can be checked…"],
   "access.grant.src.aria": ["{name} 원본에 접근 허용…", "Grant access to the original of {name}…"],
   "access.grant.file.aria": ["{name} 저장한 파일에 접근 허용…", "Grant access to the saved file of {name}…"],
-  "access.granted": ["접근을 허용했습니다. 다음 실행에도 이 파일을 확인합니다.", "Access granted. Sealmark keeps checking this file, also next time."],
-  "bar.srcNoAccess.b": ["원본 PDF를 확인하려면 권한이 필요합니다.", "Sealmark needs permission to check the original PDF."],
+  "access.granted": ["접근을 허용했습니다. 다음 실행에도 이 파일을 확인합니다.", "Access granted. Sealworks keeps checking this file, also next time."],
+  "bar.srcNoAccess.b": ["원본 PDF를 확인하려면 권한이 필요합니다.", "Sealworks needs permission to check the original PDF."],
   "bar.srcNoAccess": ["보관함 사본으로 계속 작업할 수 있습니다.", "You can keep working on the Library copy."],
-  "bar.fileNoAccess.b": ["저장한 파일을 확인하려면 권한이 필요합니다.", "Sealmark needs permission to check the saved file."],
+  "bar.fileNoAccess.b": ["저장한 파일을 확인하려면 권한이 필요합니다.", "Sealworks needs permission to check the saved file."],
   "bar.fileNoAccess": ["허용하면 앱 밖에서 바뀌었을 때 알려 드립니다.", "Allow it to be told when it changes outside the app."],
-  "open.noCopy.perm": ["보관함 사본이 없고, 원본을 읽을 권한이 없습니다: {path}", "There's no Library copy, and Sealmark has no permission to read the original: {path}"],
+  "open.noCopy.perm": ["보관함 사본이 없고, 원본을 읽을 권한이 없습니다: {path}", "There's no Library copy, and Sealworks has no permission to read the original: {path}"],
   "save.checkLater": ["같은 이름의 파일이 있으면 저장할 때 확인합니다.", "If a file with this name exists, you'll be asked when you save."],
   "save.sandboxNote": ["이 폴더를 아직 허용하지 않았다면 저장할 때 한 번 묻습니다. 폴더를 한 번 허용하면 다음부터 바로 저장합니다.", "If this folder isn't allowed yet, you'll be asked once when you save. Allow a folder once and later saves go straight there."],
   "save.panelTitle": ["서명한 PDF 저장", "Save the signed PDF"],
   "sandbox.firstRun": ["{fm}에서 열거나 이 창에 끌어다 놓은 PDF는 이번 실행 동안만 원본을 확인할 수 있습니다. ‘새 PDF 열기’로 고른 파일은 다음 실행에도 계속 확인합니다.", "PDFs opened from {fm} or dropped on this window can be checked against their original only until you quit. Files you choose with “Open new PDF” stay checkable next time."],
   "home.explain.sandbox": ["**권한** {fm}에서 열거나 끌어다 놓은 원본은 이번 실행 동안만 확인합니다. ‘새 PDF 열기’로 고르면 계속 확인합니다.", "**Permission** Originals opened from {fm} or dropped in are checked only until you quit. Choose them with “Open new PDF” to keep checking."],
 
-  // about Sealmark
-  "about.btn": ["Sealmark 정보", "About Sealmark"], "about.title": ["Sealmark 정보", "About Sealmark"],
+  // about Sealworks
+  "about.btn": ["Sealworks 정보", "About Sealworks"], "about.title": ["Sealworks 정보", "About Sealworks"],
   "about.tagline": ["PDF에 서명과 도장을 넣는 앱입니다. 파일은 이 기기 안에서만 처리되고 어디로도 전송되지 않습니다.", "Sign and stamp PDFs. Files are processed on this device only and never sent anywhere."],
   "about.seal": ["봉인해서 저장하면, 받은 뒤 누가 파일을 고쳤는지 바로 알 수 있습니다.", "Seal and save, and any later edit to the file shows."],
   "about.version": ["버전 {v}", "Version {v}"],
@@ -1810,7 +1810,7 @@ function toggleSide() {
   persistPrefs(); applySide();
   if (S.view === "editor") setTimeout(() => (S.fit ? applyFit() : scheduleRender()), 0);
 }
-const APP_NAME = "Sealmark"; // product name (the data folder keeps the old "PDF Editor" name for existing users)
+const APP_NAME = "Sealworks"; // product name (the data folder keeps the old "PDF Editor" name for existing users)
 function syncWindowTitle() { document.title = S.view === "editor" && S.doc && !S.doc.isSample ? `${S.doc.name} — ${APP_NAME}` : APP_NAME; }
 function showHome() {
   if (S.view === "home") { renderHome(); return; }
@@ -1949,7 +1949,7 @@ function renderPermBanner() {
 }
 // store build: what "needs permission" means and how to avoid it (hidden elsewhere)
 function syncSandboxUi() { for (const n of $$(".sandbox-only")) n.hidden = !S.sandboxed; }
-/* ---------- About Sealmark: privacy policy, support, source (desktop.links; https only) ---------- */
+/* ---------- About Sealworks: privacy policy, support, source (desktop.links; https only) ---------- */
 const LINKS = { privacy: "https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md", support: "https://github.com/falcons-eyes/pdf-editor/issues", repo: "https://github.com/falcons-eyes/pdf-editor" };
 function appLinks() {
   const out = { ...LINKS }, d = S.desktop?.links || {};

@@ -1,16 +1,16 @@
-# Sealmark v1.1 — Mac App Store build contract
+# Sealworks v1.1 — Mac App Store build contract
 
 Decisions (2026-11-25, from the owner):
 
 | | |
 | --- | --- |
-| Product name | **Sealmark** (store: "Sealmark: Sign & Seal PDFs" / "씰마크 – PDF 서명·봉인") |
-| Mac App Store bundle ID | `com.falconoon.sealmark` |
-| GitHub DMG / Windows app ID | `com.falconoon.sealmark.direct` (different from the store build so the two never share a container, Keychain items or Launch Services identity) |
+| Product name | **Sealworks** (store: "Sealworks: Sign & Seal PDFs" / "씰웍스 – PDF 서명·봉인") |
+| Mac App Store bundle ID | `com.falconoon.sealworks` |
+| GitHub DMG / Windows app ID | `com.falconoon.sealworks.direct` (different from the store build so the two never share a container, Keychain items or Launch Services identity) |
 | Distribution | both: Mac App Store, and GitHub releases (DMG arm64/x64, Windows NSIS/portable) |
 | Copyright / publisher | Falcon Eyes Inc. (주식회사 팔콘아이즈) |
 | Data store (DMG, Windows) | unchanged: page path `~/Library/Application Support/PDF Editor` (keeps existing users' data) |
-| Data store (store build) | the container (`~/Library/Containers/com.falconoon.sealmark/Data/...`), same page path |
+| Data store (store build) | the container (`~/Library/Containers/com.falconoon.sealworks/Data/...`), same page path |
 | Minimum macOS | 13.0 (Electron 45) |
 | Privacy policy URL | `https://github.com/falcons-eyes/pdf-editor/blob/main/PRIVACY.md` |
 | Support URL | `https://github.com/falcons-eyes/pdf-editor/issues` |

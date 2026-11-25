@@ -1,4 +1,4 @@
-"""Local preview for the Sealmark page (the artifact and the desktop app's page).
+"""Local preview for the Sealworks page (the artifact and the desktop app's page).
 
 The artifact host wraps the page in a small HTML skeleton at publish time;
 this server does the same on every request, so a reload shows the latest

@@ -12,7 +12,7 @@
 //   node scripts/sandbox-local.mjs --skip-build --keep
 //
 // Differences from the real store build, all test-only (never in build/entitlements.mas.plist):
-//   - bundle ID com.falconoon.sealmark.localtest, so the real ID never gets a container on this Mac
+//   - bundle ID com.falconoon.sealworks.localtest, so the real ID never gets a container on this Mac
 //   - ElectronTeamID LOCALTEST0 + application-groups ["LOCALTEST0.<id>"]: the MAS Electron registers
 //     its Mach rendezvous service under "<team>.<bundle id>" and aborts without that group; a real
 //     signing run gets both from the team ID (@electron/osx-sign preAutoEntitlements)
@@ -32,11 +32,11 @@ const argv = process.argv.slice(2);
 const SKIP_BUILD = argv.includes("--skip-build");
 const KEEP = argv.includes("--keep");
 const ARCH = process.arch === "x64" ? "x64" : "arm64";
-const ID = "com.falconoon.sealmark.localtest";
+const ID = "com.falconoon.sealworks.localtest";
 const TEAM = "LOCALTEST0";
-const APP = path.join(DESKTOP, "dist", `mas-dev-${ARCH}`, "Sealmark.app");
+const APP = path.join(DESKTOP, "dist", `mas-dev-${ARCH}`, "Sealworks.app");
 const CONTAINER = path.join(os.homedir(), "Library", "Containers", ID);
-const KEYCHAIN_SERVICE = "Sealmark Safe Storage";
+const KEYCHAIN_SERVICE = "Sealworks Safe Storage";
 const run = (cmd, args, o = {}) => execFileSync(cmd, args, { stdio: "inherit", cwd: DESKTOP, ...o });
 const out = (cmd, args) => spawnSync(cmd, args, { encoding: "utf8" });
 const results = [];
@@ -69,7 +69,7 @@ if (!SKIP_BUILD) {
   ], { env: { ...process.env, MAS_DEV_IDENTITY: "none" } });
 }
 if (!fs.existsSync(APP)) { console.error(`missing ${APP}`); process.exit(2); }
-const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sealmark-sbx-"));
+const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "sealworks-sbx-"));
 const plist = path.join(APP, "Contents", "Info.plist");
 run("plutil", ["-replace", "CFBundleIdentifier", "-string", ID, plist]);
 run("plutil", ["-replace", "ElectronTeamID", "-string", TEAM, plist]);
@@ -81,7 +81,7 @@ run("codesign", ["--force", "--deep", "--sign", "-", "--entitlements", path.join
 run("codesign", ["--force", "--sign", "-", "--entitlements", ents, APP]);
 check("codesign --verify --deep --strict", out("codesign", ["--verify", "--deep", "--strict", APP]).status === 0);
 const entsOf = (p) => out("codesign", ["-d", "--entitlements", "-", "--xml", p]).stdout;
-const mainEnts = entsOf(APP), rendererEnts = entsOf(path.join(APP, "Contents", "Frameworks", "Sealmark Helper (Renderer).app"));
+const mainEnts = entsOf(APP), rendererEnts = entsOf(path.join(APP, "Contents", "Frameworks", "Sealworks Helper (Renderer).app"));
 check("main entitlements: sandbox, user-selected r/w, app-scope bookmarks (+ test-only keys)", ["app-sandbox", "files.user-selected.read-write", "files.bookmarks.app-scope"].every((k) => mainEnts.includes(`com.apple.security.${k}`)) && !/device\.|\.print|network\.client|allow-jit/.test(mainEnts));
 check("helper entitlements: sandbox + inherit", rendererEnts.includes("com.apple.security.app-sandbox") && rendererEnts.includes("com.apple.security.inherit"));
 
@@ -89,7 +89,7 @@ check("helper entitlements: sandbox + inherit", rendererEnts.includes("com.apple
 cleanContainers();
 const keychainBefore = keychainHas();
 if (keychainBefore) console.log(`note: a "${KEYCHAIN_SERVICE}" Keychain item already exists; the safeStorage check is skipped and the item is left alone`);
-const outside = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "sealmark-outside-")));
+const outside = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "sealworks-outside-")));
 fs.writeFileSync(path.join(outside, "outside.pdf"), "%PDF-1.4\n%%EOF\n");
 // the kernel's sandbox reports are streamed, not kept in the log store: collect them while the app runs
 const streamFile = path.join(tmp, "stream.log");
@@ -98,7 +98,7 @@ const stream = spawn("/usr/bin/log", ["stream", "--style", "compact", "--predica
 await new Promise((r) => setTimeout(r, 1500));
 const env = { ...process.env };
 for (const k of ["ELECTRON_RUN_AS_NODE", "PDFE_HOME_OVERRIDE", "PDFE_TEST_NO_DIALOGS", "PDFE_TEST_SANDBOXED", "PDFE_SEAL_SAFESTORAGE"]) delete env[k];
-const exe = path.join(APP, "Contents", "MacOS", "Sealmark");
+const exe = path.join(APP, "Contents", "MacOS", "Sealworks");
 
 try {
   // ---- A: the real mapping (no test home) ----
@@ -146,12 +146,12 @@ try {
 await new Promise((r) => setTimeout(r, 1500));
 stream.kill();
 fs.closeSync(streamFd);
-const lines = fs.readFileSync(streamFile, "utf8").split("\n").filter((l) => /Sandbox: Sealmark[^(]*\(\d+\) deny/.test(l));
+const lines = fs.readFileSync(streamFile, "utf8").split("\n").filter((l) => /Sandbox: Sealworks[^(]*\(\d+\) deny/.test(l));
 fs.mkdirSync(OUT, { recursive: true });
 fs.writeFileSync(path.join(OUT, "sandbox-denials.log"), lines.join("\n") + "\n");
 const kinds = new Map();
 for (const l of lines) {
-  const m = /(?:(\d+) duplicate reports? for )?Sandbox: (Sealmark[^(]*)\(\d+\) deny\(\d+\) (\S+)\s*(.*)$/.exec(l);
+  const m = /(?:(\d+) duplicate reports? for )?Sandbox: (Sealworks[^(]*)\(\d+\) deny\(\d+\) (\S+)\s*(.*)$/.exec(l);
   if (!m) continue;
   const k = `${m[2]}: ${m[3]} ${m[4].replace(outside, "<outside>").replace(os.homedir(), "~").replace(/pdfe-smoke-\w+/, "pdfe-smoke-*").slice(0, 120)}`;
   kinds.set(k, (kinds.get(k) || 0) + (m[1] ? +m[1] : 1));

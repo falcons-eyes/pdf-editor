@@ -23,6 +23,28 @@ App Store Connect에 넣을 글과 질문지 답변의 초안입니다. 제출 �
 
 ## 1. 앱 이름 `[결정]`
 
+### 확정: **Sealworks** (2026-11-25)
+
+- 스토어 이름: **Sealworks: Sign & Seal PDFs** / **씰웍스 – PDF 서명·봉인**
+- Bundle ID: Mac App Store `com.falconoon.sealworks`, GitHub DMG·Windows `com.falconoon.sealworks.direct`
+- Android 패키지 이름(나중에 만들 때): `com.falconoon.sealworks`
+
+이름 겹침 확인 (2026-11-25, 공개 검색 기준 — 상표 검색은 아님):
+
+| 이름 | Apple App Store (US·KR·JP·UK, iPhone·iPad·Mac) | Google Play | Microsoft Store |
+| --- | --- | --- | --- |
+| **Sealworks** | 없음 | 없음 | 없음 |
+| Sealmark | **있음**: "Sealmark: Condition Reports" (iOS, Productivity) → 포기 | – | 없음 |
+| Sealwise / Sealkit / Stampseal / Sealbook / Sealry | 없음 | 확인 안 함 | 없음 (Sealwise·Sealkit·Stampseal) |
+| SealSign / SealDesk / SealProof / SealNote / Sealio / Sealform | **있음** (SealSign은 전자서명 서비스) | SealSign 있음 | – |
+
+참고: Google Play에 "Sign & Seal: Stamp PDFs"(Veridir)라는 앱이 있어서, 부제·설명에서 "Sign & Seal"만 단독 브랜드처럼 쓰지 않습니다. 산업용 실링(seal) 회사 중 "Seal Works"라는 상호가 있을 수 있으니 KIPRIS·USPTO에서 **9류(소프트웨어)** 상표를 확인한 뒤 출원을 검토합니다.
+
+이름 선점 방법(계정 주인이 직접):
+1. **App Store Connect** › 앱 › `+` 새로운 앱 › 플랫폼 macOS, 이름 "Sealworks: Sign & Seal PDFs", 기본 언어, Bundle ID `com.falconoon.sealworks`(먼저 Certificates, Identifiers & Profiles에서 등록), SKU. 앱 레코드를 만들면 그 이름이 예약됩니다. 오래 제출하지 않으면 이름을 잃을 수 있습니다(`⚠ 확인 필요`: 현재 기간 규정).
+2. **Microsoft Partner Center** › 앱 및 게임 › 새 제품 › MSIX/PWA 앱 › "Sealworks" **이름 예약**(제출 전 3개월간 유지, `⚠ 확인 필요`). Win32 설치 파일(.exe) 그대로 올리는 방식도 있습니다.
+3. **Google Play Console** › 앱 만들기 › 앱 이름 "Sealworks". Play는 이름을 독점 예약하지 않고 **패키지 이름**이 고유합니다. 지금은 Android 앱이 없으므로 출시 시점에 `com.falconoon.sealworks`로 만듭니다.
+
 ### "PDF Editor"를 그대로 쓰기 어려운 이유
 
 1. **이미 같은·비슷한 이름이 매우 많습니다.** 웹 검색만으로도 Mac App Store에 "PDF Editor", "PDF Editor +", "PDF Editor Pro", "PDF Editor - for Adobe PDF …" 등이 보입니다. App Store 이름은 스토어 안에서 겹칠 수 없으므로 정확히 "PDF Editor"는 등록이 안 될 가능성이 큽니다(`⚠ 확인 필요`: App Store Connect에서 앱을 만들 때 이름 중복 여부가 바로 나옵니다).
@@ -35,7 +57,7 @@ App Store Connect에 넣을 글과 질문지 답변의 초안입니다. 제출 �
 | # | English (글자) | 한국어 (글자) | 메모 |
 |---|---|---|---|
 | A | **Dojang: Sign & Stamp PDFs** (25) | **도장 – PDF 서명·도장 찍기** (17) | 한국 "도장"을 브랜드로. 외국 사용자에게는 생소하지만 기억에 남음 |
-| B | **Sealmark: Sign & Seal PDFs** (26) | **씰마크 – PDF 서명·봉인** (15) | 봉인(tamper-evident) 기능을 앞세움. 봉인이 출시될 때만 `[조건부]` |
+| B | **Sealworks: Sign & Seal PDFs** (26) | **씰웍스 – PDF 서명·봉인** (15) | 봉인(tamper-evident) 기능을 앞세움. 봉인이 출시될 때만 `[조건부]` |
 | C | **Stamp & Seal for PDF** (20) | **PDF 도장·서명·봉인** (12) | 설명형. 상표 등록은 어려움 |
 | D | (회사 브랜드) + ": PDF Sign & Stamp" | (회사 브랜드) + " PDF 서명·도장" | 회사 이름이 짧으면 가장 안전 |
 

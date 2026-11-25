@@ -20,7 +20,7 @@ const pki = require("./pki");
 // `key` names the reason; seal.js turns it into a short localized message
 const err = (code, message, key) => Object.assign(new Error(`${code}: ${message}`), { code, key });
 const MAGIC_OS = Buffer.from("PDFEK1O\n"), MAGIC_FILE = Buffer.from("PDFEK1F\n");
-const DEFAULT_REASON = { ko: "Sealmark로 봉인함", en: "Sealed with Sealmark" };
+const DEFAULT_REASON = { ko: "Sealworks로 봉인함", en: "Sealed with Sealworks" };
 
 // Rejections are "CODE: message" with CODE one of EPASSWORD, ENOENT, EEXIST, EINVAL, EIO and a short
 // message in the last setLanguage() language (the page shows it inside its own sentence).
@@ -212,7 +212,7 @@ function createSeal({ dir, safeStorage, useOs = true, appVersion = "", lang = ()
       const key = await unlock(rec);
       const p12 = pki.exportP12({
         keyDer: key.export({ type: "pkcs8", format: "der" }), certDer: rec.certDer, chainDers: rec.chainDers,
-        password, friendlyName: `${rec.meta.name || rec.ci.name} (Sealmark)`,
+        password, friendlyName: `${rec.meta.name || rec.ci.name} (Sealworks)`,
       });
       return exact(p12);
     },
@@ -247,7 +247,7 @@ function createSeal({ dir, safeStorage, useOs = true, appVersion = "", lang = ()
         name: rec.meta.name || rec.ci.name,
         reason: cleanText(o?.reason, "reason", 200) ?? DEFAULT_REASON[lang],
         location: cleanText(o?.location, "location", 200),
-        appName: "Sealmark", appVersion,
+        appName: "Sealworks", appVersion,
       });
       return exact(out);
     },

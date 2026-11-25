@@ -37,14 +37,14 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   check("override: app support stays under the test home", over.toOs("~/Library/Application Support/PDF Editor") === "C:\\t\\home\\Library\\Application Support\\PDF Editor");
 
   // the store build: "~" is the real home, app support is the container's
-  const C = "/Users/u/Library/Containers/com.falconoon.sealmark/Data";
+  const C = "/Users/u/Library/Containers/com.falconoon.sealworks/Data";
   const mas = createPathMapper({ platform: "darwin", home: "/Users/u", appData: `${C}/Library/Application Support`, mapAppSupport: true });
   check("mas: data store -> container appData", mas.toOs("~/Library/Application Support/PDF Editor") === `${C}/Library/Application Support/PDF Editor`);
   check("mas: app support root -> container appData", mas.toOs("~/Library/Application Support") === `${C}/Library/Application Support`);
   check("mas: container store -> page path ~/Library/Application Support/…", mas.toPage(`${C}/Library/Application Support/PDF Editor/docs/x.pdf`) === "~/Library/Application Support/PDF Editor/docs/x.pdf");
   check("mas: ~ is the real home", mas.toOs("~") === "/Users/u" && mas.toOs("~/Documents/a.pdf") === "/Users/u/Documents/a.pdf" && mas.toPage("/Users/u/Desktop/b.pdf") === "~/Desktop/b.pdf");
   check("mas: ~/Library (other) stays real", mas.toOs("~/Library/Preferences") === "/Users/u/Library/Preferences" && mas.toOs("~/Library/Application Supportx/y") === "/Users/u/Library/Application Supportx/y");
-  check("mas: other container paths map below the real home", mas.toPage(`${C}/tmp/z`) === "~/Library/Containers/com.falconoon.sealmark/Data/tmp/z");
+  check("mas: other container paths map below the real home", mas.toPage(`${C}/tmp/z`) === "~/Library/Containers/com.falconoon.sealworks/Data/tmp/z");
   check("mas: outside home stays absolute", mas.toPage("/Volumes/USB/c.pdf") === "/Volumes/USB/c.pdf" && mas.toOs("/Volumes/USB/c.pdf") === "/Volumes/USB/c.pdf");
   check("mas: .. is resolved (main's guards see the real target)", mas.toOs("~/Library/Application Support/../../Documents/a.pdf") === `${C}/Documents/a.pdf`);
   // default (no mapAppSupport given) keeps the old behaviour
