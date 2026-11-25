@@ -15,7 +15,7 @@ npm run dist:win     # dist/PDF-Editor-<v>-setup-x64.exe (NSIS) and -portable-x6
 npm run icon         # re-render build/icon.{png,icns,ico} from the page's drawAppIcon() (macOS, python3 + Pillow)
 ```
 
-CI: `.github/workflows/build.yml` builds and smoke-tests on macos-14 and windows-latest for every
+CI: `.github/workflows/build.yml` builds and smoke-tests on macos-latest and windows-latest for every
 push/PR; `release.yml` does the same for `v*` tags (tag must equal `version` here) and attaches the
 DMGs and EXEs to the GitHub release.
 
