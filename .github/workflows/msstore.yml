@@ -1,0 +1,199 @@
+name: msstore
+
+# Microsoft Store package (MSIX/AppX): build it, sign it with a throwaway self-signed certificate,
+# install it on the runner and test the installed app; Windows App Certification Kit when available.
+# The package identity comes from the repository variables MSSTORE_IDENTITY_NAME / MSSTORE_PUBLISHER /
+# MSSTORE_PUBLISHER_DISPLAY_NAME (Partner Center › Product identity) when set, else a test identity.
+# The uploaded .appx files are test-signed: for the Store, build with `npm run dist:msstore` and the
+# real identity (the Store signs on submission).
+
+on:
+  push:
+    branches: ["**"]
+    paths: ["desktop/**", "web/**", ".github/workflows/msstore.yml"]
+  pull_request:
+    paths: ["desktop/**", "web/**", ".github/workflows/msstore.yml"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: msstore-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  msix:
+    name: MSIX (build, install, test)
+    runs-on: windows-latest
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: desktop
+        shell: pwsh
+    env:
+      CSC_IDENTITY_AUTO_DISCOVERY: "false"
+      MSSTORE_IDENTITY_NAME: ${{ vars.MSSTORE_IDENTITY_NAME }}
+      MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
+      MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: desktop/package-lock.json
+
+      - run: npm ci
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      # x64 + arm64 .appx in dist/msstore/, plus dist/msstore/win-unpacked
+      - name: Build (npm run dist:msstore)
+        run: npm run dist:msstore
+
+      # the same app as version x.y.z.1, to test an in-place update
+      - name: Build an update package (4th version part 1)
+        env:
+          MSSTORE_BUILD_NUMBER: "1"
+        run: |
+          New-Item -ItemType Directory -Force ../out/msstore, ../out/update | Out-Null
+          Move-Item dist/msstore/*.appx ../out/msstore/
+          npx electron-builder --config electron-builder.msstore.cjs --win appx --x64 --prepackaged dist/msstore/win-unpacked --publish never
+          Move-Item dist/msstore/*.appx ../out/update/
+          Get-ChildItem ../out/msstore, ../out/update | Format-Table Name, Length
+
+      - name: Package identity and manifest
+        id: id
+        run: |
+          $cfg = node -e "const b=require('./electron-builder.msstore.cjs'); console.log(JSON.stringify(b.appx))" | ConvertFrom-Json
+          "name=$($cfg.identityName)" >> $env:GITHUB_OUTPUT
+          "publisher=$($cfg.publisher)" >> $env:GITHUB_OUTPUT
+          $appx = Get-ChildItem ../out/msstore/*-x64.appx | Select-Object -First 1
+          "appx=$($appx.FullName)" >> $env:GITHUB_OUTPUT
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          $zip = [IO.Compression.ZipFile]::OpenRead($appx.FullName)
+          $entry = $zip.Entries | Where-Object FullName -eq "AppxManifest.xml"
+          $reader = New-Object IO.StreamReader($entry.Open()); $xml = $reader.ReadToEnd(); $reader.Close()
+          $names = $zip.Entries.FullName
+          $zip.Dispose()
+          New-Item -ItemType Directory -Force test/out | Out-Null
+          Set-Content -Path test/out/AppxManifest.xml -Value $xml
+          Write-Host $xml
+          [xml] $m = $xml
+          $caps = @($m.Package.Capabilities.ChildNodes | ForEach-Object { $_.Name })
+          Write-Host "capabilities: $($caps -join ', ')"
+          if ($caps.Count -ne 1 -or $caps[0] -ne "runFullTrust") { Write-Host "::error::capabilities must be only runFullTrust, got: $($caps -join ', ')"; exit 1 }
+          if ($xml -notmatch '<uap:FileType>\.pdf</uap:FileType>') { Write-Host "::error::no .pdf file type association"; exit 1 }
+          $assets = @($names | Where-Object { $_ -like "assets/*" })
+          Write-Host "assets: $($assets.Count) files; resources.pri: $($names -contains 'resources.pri')"
+          if ($names -notcontains "resources.pri" -or ($assets | Where-Object { $_ -match 'SampleAppx' })) { Write-Host "::error::tile assets missing or the default sample images were used"; exit 1 }
+
+      - name: Self-signed test certificate (subject = Publisher), sign, trust
+        id: sign
+        env:
+          PUBLISHER: ${{ steps.id.outputs.publisher }}
+        run: |
+          $cert = New-SelfSignedCertificate -Type Custom -Subject $env:PUBLISHER -KeyUsage DigitalSignature -FriendlyName "Sealworks MSIX test (CI)" `
+            -CertStoreLocation Cert:\CurrentUser\My -NotAfter (Get-Date).AddDays(7) `
+            -TextExtension @("2.5.29.37={text}1.3.6.1.5.5.7.3.3", "2.5.29.19={text}")
+          $pw = [guid]::NewGuid().ToString()
+          $pfx = Join-Path $env:RUNNER_TEMP "msix-test.pfx"
+          Export-PfxCertificate -Cert $cert -FilePath $pfx -Password (ConvertTo-SecureString $pw -AsPlainText -Force) | Out-Null
+          Export-Certificate -Cert $cert -FilePath ../out/msstore/Sealworks-test-certificate.cer | Out-Null
+          Import-Certificate -FilePath ../out/msstore/Sealworks-test-certificate.cer -CertStoreLocation Cert:\LocalMachine\TrustedPeople | Out-Null
+          $signtool = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\bin\*\x64\signtool.exe" | Sort-Object { [version] $_.Directory.Parent.Name } -ErrorAction SilentlyContinue | Select-Object -Last 1
+          Write-Host "signtool: $($signtool.FullName)"
+          foreach ($f in Get-ChildItem ../out/msstore/*.appx, ../out/update/*.appx) {
+            & $signtool.FullName sign /fd SHA256 /f $pfx /p $pw $f.FullName
+            if ($LASTEXITCODE) { throw "signtool failed for $($f.Name)" }
+          }
+          Remove-Item $pfx
+          Get-ChildItem Cert:\CurrentUser\My | Where-Object Thumbprint -eq $cert.Thumbprint | Remove-Item
+
+      - name: Install (Add-AppxPackage)
+        id: install
+        env:
+          APPX: ${{ steps.id.outputs.appx }}
+          NAME: ${{ steps.id.outputs.name }}
+        run: |
+          Add-AppxPackage -Path $env:APPX
+          $pkg = Get-AppxPackage -Name $env:NAME
+          if (-not $pkg) { throw "not installed" }
+          $pkg | Format-List Name, PackageFullName, PackageFamilyName, Version, Architecture, InstallLocation, SignatureKind, Status
+          "exe=$(Join-Path $pkg.InstallLocation 'app\Sealworks.exe')" >> $env:GITHUB_OUTPUT
+
+      # the installed files, started by path (Playwright needs to start the process itself), with a
+      # test home; the sealer key through safeStorage (DPAPI)
+      - name: Smoke test (installed package)
+        env:
+          EXE: ${{ steps.install.outputs.exe }}
+        run: node test/smoke.mjs --app $env:EXE --expect-msstore --safestorage
+
+      # launched the way Windows does it (package identity): Open with, Start, update, uninstall
+      - name: Installed-package checks (identity, data location, update, uninstall)
+        env:
+          NAME: ${{ steps.id.outputs.name }}
+        run: |
+          $upd = Get-ChildItem ../out/update/*-x64.appx | Select-Object -First 1
+          ./test/msstore-installed.ps1 -IdentityName $env:NAME -Out test/out -UpdateAppx $upd.FullName
+
+      - name: Windows App Certification Kit
+        id: wack
+        if: always() && steps.sign.outcome == 'success'
+        continue-on-error: true
+        timeout-minutes: 30
+        env:
+          APPX: ${{ steps.id.outputs.appx }}
+          NAME: ${{ steps.id.outputs.name }}
+        run: |
+          $appcert = Get-ChildItem "${env:ProgramFiles(x86)}\Windows Kits\10\App Certification Kit\appcert.exe" -ErrorAction SilentlyContinue | Select-Object -First 1
+          if (-not $appcert) {
+            Write-Host "::notice::Windows App Certification Kit (appcert.exe) is not installed on this runner; skipped"
+            "## WACK`nnot available on this runner" >> $env:GITHUB_STEP_SUMMARY
+            exit 0
+          }
+          Get-AppxPackage -Name $env:NAME | Remove-AppxPackage -ErrorAction SilentlyContinue
+          New-Item -ItemType Directory -Force ../out/wack | Out-Null
+          $report = Join-Path (Resolve-Path ../out/wack) "wack-report.xml"
+          & $appcert.FullName reset
+          & $appcert.FullName test -appxpackagepath $env:APPX -reportoutputpath $report
+          Write-Host "appcert exit code: $LASTEXITCODE"
+          if (-not (Test-Path $report)) { Write-Host "::warning::WACK wrote no report"; exit 1 }
+          [xml] $r = Get-Content -Raw $report
+          $overall = $r.REPORT.OVERALL_RESULT
+          $rows = foreach ($t in $r.SelectNodes("//TEST")) {
+            $res = $t.RESULT.InnerText
+            [pscustomobject] @{ Result = $res; Name = $t.NAME; Detail = (($t.MESSAGES.MESSAGE | ForEach-Object { $_.TEXT }) -join " / ") }
+          }
+          $rows | Format-Table -AutoSize -Wrap | Out-String -Width 300 | Write-Host
+          $md = "## WACK: $overall`n`n| result | test | messages |`n| --- | --- | --- |`n"
+          foreach ($x in $rows | Where-Object { $_.Result -ne "PASS" }) { $md += "| $($x.Result) | $($x.Name) | $($x.Detail -replace '\|', '/') |`n" }
+          $md >> $env:GITHUB_STEP_SUMMARY
+          foreach ($x in $rows | Where-Object { $_.Result -eq "FAIL" }) { Write-Host "::warning title=WACK FAIL::$($x.Name): $($x.Detail)" }
+          if ($overall -ne "PASS") { exit 1 }
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: msstore-screenshots
+          path: desktop/test/out/
+          if-no-files-found: ignore
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: msstore-wack-report
+          path: out/wack/
+          if-no-files-found: ignore
+
+      # test-signed (CN of the test certificate): install the .cer into Local Machine › Trusted People to sideload
+      - uses: actions/upload-artifact@v4
+        with:
+          name: msstore-appx-test-signed
+          path: |
+            out/msstore/*.appx
+            out/msstore/*.cer
+          if-no-files-found: error
