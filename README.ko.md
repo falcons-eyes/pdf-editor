@@ -4,7 +4,7 @@
 
 **PDF에 서명과 도장을 놓고 새 파일로 저장하세요. 봉인해 두면 나중에 고친 티가 납니다.**
 
-Mac·Windows용 무료 오픈소스 앱입니다. 출력도, 스캔도, 업로드도 필요 없습니다. 파일은 내 컴퓨터 밖으로 나가지 않습니다.
+Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로드도 필요 없습니다. 파일은 내 컴퓨터 밖으로 나가지 않습니다.
 
 [**다운로드 (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [사용법](#3단계면-끝) · [봉인](#봉인-고치면-티가-나는-pdf) · [처음 열 때 안내](#처음-열-때-안내) · [English](README.md)
 
@@ -178,13 +178,25 @@ npm run dist:win    # desktop/dist/ 에 설치형·실행형 EXE
 
 - 화면은 [web/pdf-editor.html](web/pdf-editor.html) 한 파일입니다. `python3 web/dev_server.py`로 브라우저에서 미리 볼 수 있습니다.
 - README 이미지는 [docs/tools/render.sh](docs/tools/render.sh)로 실제 화면에서 한국어·영어 두 벌을 다시 만들 수 있습니다. 가상의 문서만 씁니다.
-- 예전 Python(Tkinter) 버전은 [pdf_overlay_editor_v3.py](pdf_overlay_editor_v3.py)에 남아 있습니다. 더는 고치지 않습니다.
+- 예전 Python(Tkinter) 시제품은 삭제했습니다. v1.1.0까지의 git 기록에 남아 있습니다.
 
 ## 라이선스
 
-[MIT](LICENSE) © 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈)
+Sealworks는 **소스 공개** 소프트웨어입니다. 코드는 모두 여기서 볼 수 있지만, 오픈소스는 아닙니다. 소스 코드의 라이선스는 [PolyForm Strict License 1.0.0](LICENSE)이고, 공식 앱에는 [추가 권한](LICENSE-PERMISSIONS.md#한국어)을 드립니다.
 
-함께 쓰는 오픈소스:
+Copyright (c) 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈). Sealworks — https://sealworks.falconoon.com
+
+간단히 정리하면 이렇습니다. 효력이 있는 것은 [LICENSE](LICENSE)와 [LICENSE-PERMISSIONS.md](LICENSE-PERMISSIONS.md)의 영문 원문입니다.
+
+- **공식 앱은 누구나, 어떤 목적으로든 무료로 쓸 수 있습니다.** 회사를 포함해 누구나 GitHub Releases, Mac App Store, Microsoft Store(Google Play는 나중에)에서 받은 고치지 않은 공식 Sealworks 앱을 설치해 쓸 수 있습니다. 계약서 서명 같은 업무용도 됩니다.
+- **공식 앱은 나눠 줄 수 있습니다.** 공식 앱 파일을 고치지 않은 그대로, 무료로, 라이선스와 함께, Sealworks 이름과 아이콘을 그대로 둔 채 나눠 줄 수 있습니다.
+- **소스 코드는 비상업적 목적으로만 쓸 수 있습니다.** 개인 공부·취미·연구·실험, 그리고 자선단체, 교육기관, 공공 연구기관, 공공 안전·보건 기관, 환경보호 단체, 정부기관의 사용이 여기에 해당합니다.
+- **따로 라이선스가 필요한 것:** Sealworks를 고치거나 이를 바탕으로 새 저작물을 만드는 것(다시 포장하거나 이름을 바꾼 빌드 포함), 소스 코드나 고친 사본을 나눠 주는 것, 사본에 돈을 받는 것, 소스 코드의 상업적 사용, [TRADEMARKS.md](TRADEMARKS.md#한국어) 범위를 넘어 Sealworks 이름과 아이콘을 쓰는 것. [COMMERCIAL.md](COMMERCIAL.md#한국어)를 보거나 support@falconoon.com으로 문의하세요.
+- **기여:** 이슈와 풀 리퀘스트를 환영합니다. [CONTRIBUTING.md](CONTRIBUTING.md#한국어)를 보세요. 보안 문제를 찾았다면 [SECURITY.md](SECURITY.md#한국어)를 보세요.
+
+**이전 버전은 MIT였습니다.** v1.1.0까지의 버전과, 라이선스를 바꾸기 전에 이 저장소에 공개된 모든 내용은 MIT 라이선스로 배포되었습니다. MIT로 받은 사본에는 계속 MIT 조건이 적용됩니다. v1.1.0 다음 릴리스부터 Sealworks의 라이선스는 PolyForm Strict 1.0.0과 위의 추가 권한입니다. MIT 라이선스는 저작권에 관한 것이라, 처음부터 Sealworks라는 이름이나 아이콘을 쓸 권리는 주지 않았습니다.
+
+Sealworks가 쓰는 오픈소스 구성 요소입니다. 각자 원래 라이선스를 따르며, 자세한 내용은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)에 있습니다.
 
 - [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0)
 - [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT)

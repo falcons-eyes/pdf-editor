@@ -1,18 +1,66 @@
-build/
-dist/
 *.dmg
 .venv*/
 __pycache__/
 *.pyc
-app_icon.iconset/
 .DS_Store
 .claude/settings.local.json
-*.spec
 web/.devhome/
 
 # desktop app (Electron)
 desktop/node_modules/
 desktop/app/
 desktop/dist/
+mobile/dist/
 desktop/test/out/
-!desktop/build/
+
+# Android app (Capacitor): dependencies, generated web bundle, build scratch, test output
+mobile/node_modules/
+mobile/www/
+mobile/.build/
+mobile/test/out/
+mobile/android/app/release/
+.kotlin/
+
+# CI-style outputs at the repo root (msstore workflow writes ../out from desktop/)
+/out/
+
+# secrets and signing material, anywhere in the repo (force-add a test fixture if one is ever needed)
+.env
+.env.*
+!.env.example
+*.p12
+*.pfx
+*.p8
+*.pem
+*.key
+*.cer
+*.jks
+*.keystore
+keystore.properties
+*.mobileprovision
+*.provisionprofile
+google-services.json
+GoogleService-Info.plist
+
+# installers and store packages
+*.pkg
+*.exe
+*.msi
+*.appx
+*.msix
+*.apk
+*.aab
+
+# local tools and agent artifacts
+.claude/*
+!.claude/launch.json
+.playwright-mcp/
+.impeccable/
+*.log
+Thumbs.db
+
+# leftovers of the removed Python prototype's local builds (never commit)
+/build/
+/dist/
+/*.spec
+/PDF_Editor.dmg

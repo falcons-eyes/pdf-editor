@@ -34,8 +34,8 @@ const TXT = {
       notes: ["You need a printer and a scanner.", "Scans often come out crooked or blurry.", "Or a paid app, or a website you upload files to."] },
     after: { tag: "Sealworks", title: "Drop it on and save", flow: ["Open<br>a PDF", "Place<br>signature", "Save a<br>new file"],
       notes: ["Right on your computer, no printer or scanner.", "Your files are never uploaded.", "Original untouched. Seal it, and later edits show."] },
-    social: { head: "Sign and stamp PDFs.<br><span>Seal them, too.</span>", sub: "Free and open source for Mac and Windows.<br>Your files never leave your computer.",
-      chips: ["Free · open source (MIT)", "Nothing uploaded", "macOS · Windows"] },
+    social: { head: "Sign and stamp PDFs.<br><span>Seal them, too.</span>", sub: "Free and source-available for Mac and Windows.<br>Your files never leave your computer.",
+      chips: ["Free · source available", "Nothing uploaded", "macOS · Windows"] },
     states: ["The file is exactly as it was sealed.", "Something was added or changed after sealing.", "There’s no seal, so changes can’t be detected."],
   },
   ko: {
@@ -57,8 +57,8 @@ const TXT = {
       notes: ["프린터와 스캐너가 있어야 합니다.", "스캔본은 기울거나 흐릿해지기 쉽습니다.", "아니면 유료 프로그램이나, 파일을 올려야 하는 웹사이트."] },
     after: { tag: "Sealworks", title: "끌어다 놓고 저장", flow: ["PDF<br>열기", "서명·도장<br>놓기", "새 파일로<br>저장"],
       notes: ["프린터·스캐너 없이 내 컴퓨터에서 바로.", "파일은 인터넷에 올라가지 않습니다.", "원본은 그대로. 봉인하면 나중에 고친 티가 납니다."] },
-    social: { head: "PDF에 서명·도장,<br><span>봉인까지.</span>", sub: "Mac·Windows용 무료 오픈소스 앱.<br>파일은 내 컴퓨터 밖으로 나가지 않습니다.",
-      chips: ["무료 · 오픈소스 (MIT)", "업로드 없음", "macOS · Windows"] },
+    social: { head: "PDF에 서명·도장,<br><span>봉인까지.</span>", sub: "Mac·Windows용 무료 소스 공개 앱.<br>파일은 내 컴퓨터 밖으로 나가지 않습니다.",
+      chips: ["무료 · 소스 공개", "업로드 없음", "macOS · Windows"] },
     states: ["봉인한 그대로입니다.", "봉인한 뒤에 무언가 덧붙거나 바뀌었습니다.", "봉인이 없어서 바뀌었는지 알 수 없습니다."],
   },
 };

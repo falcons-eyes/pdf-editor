@@ -201,3 +201,14 @@ exercises the store-build code paths in a regular build.
 
 Still manual (needs real panels): picking/saving through panels and the bookmark round trip across
 launches, Finder "Open With"/Dock drops, the T1–T14 table in `docs/appstore/sandbox-plan.md` §7.
+
+## License
+
+Sealworks is source-available under the [PolyForm Strict License 1.0.0](../LICENSE), with
+[additional permissions](../LICENSE-PERMISSIONS.md) that let anyone use official, unmodified builds for any purpose
+and share exact copies free of charge (versions up to and including v1.1.0 were released under MIT).
+Third-party components keep their own licenses: see [THIRD_PARTY_NOTICES.md](../THIRD_PARTY_NOTICES.md).
+Builds should ship `LICENSE`, `LICENSE-PERMISSIONS.md` and those notices. Today `build-page.mjs` copies the
+third-party license files into `app/lib`, `app/fonts` and `app/vendor/pdfjs`, and electron-builder adds Electron's
+`LICENSE.electron.txt` and `LICENSES.chromium.html`. The Sealworks `LICENSE` and `LICENSE-PERMISSIONS.md` are not
+bundled yet.

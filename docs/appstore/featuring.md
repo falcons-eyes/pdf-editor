@@ -115,7 +115,7 @@ App Store Connect › **앱** › PDF Editor 선택 › 사이드바 **피처링
 - 여러 쪽에 복사하거나 `모든 쪽의 같은 위치에 넣기`가 됩니다. 서명·도장 목록은 저장되어 다음 문서에서 다시 씁니다.
 - **보관함**이 자동 저장하고 문서 상태(`저장 전` / `파일 저장됨` / `확인 필요`)를 보여 줍니다. Finder에서 원본을 옮기거나 이름을 바꾸거나 고치면 알려 줍니다.
 - **원본은 바꾸지 않습니다.** 저장하면 `<이름>_서명.pdf`라는 새 파일이 생깁니다.
-- 인터넷 없이 동작합니다. 업로드, 계정, 사용 기록 수집이 없습니다. 무료이고 MIT 오픈소스입니다.
+- 인터넷 없이 동작합니다. 업로드, 계정, 사용 기록 수집이 없습니다. 무료이고, 회사를 포함해 누구나 업무에도 쓸 수 있습니다. 소스 코드는 GitHub에 공개합니다(소스 공개, PolyForm Strict + 추가 권한. "오픈소스"라고 쓰지 않습니다).
 - 시스템 **다크 모드**(`prefers-color-scheme`, `nativeTheme`)와 **동작 줄이기**(`prefers-reduced-motion`)를 따릅니다. macOS 메뉴 막대와 네이티브 열기 대화상자, 단축키(⌘O, ⌘S, ⌘Z, ⌘D, 화살표로 미세 이동)가 있습니다.
 - **v1.1 (작업 중, `docs/design/seal-and-language.md`):**
   - 한국어·영어 화면 전환. 처음에는 시스템 언어를 따르고, 메뉴와 대화상자도 같이 바뀝니다.
@@ -174,24 +174,24 @@ App Store Connect › **앱** › PDF Editor 선택 › 사이드바 **피처링
 - **현지화:** `ko`, `en-US` (앱 메타데이터를 낸 언어만)
 - **관련 국가 또는 지역:** 아래 [국가 선택](#국가-선택) 참고
 
-**Description (741자 / 1,000자):**
+**Description (723자 / 1,000자):**
 
 ```text
-PDF Editor is a free, open-source Mac app for signing PDFs without printing, scanning or uploading. Drop a PDF, place a drawn signature, a stamp photo (white paper background removed automatically) or a text/date stamp, and save a new copy. The original is never modified.
+PDF Editor is a free Mac app for signing PDFs without printing, scanning or uploading. Drop a PDF, place a drawn signature, a stamp photo (white paper background removed automatically) or a text/date stamp, and save a new copy. The original is never modified.
 
 New on the Mac App Store: English and Korean UI, a Library that autosaves every document and notices when a file is moved or edited in Finder, and a reusable signature library. Fully offline: no account, no upload, no tracking.
 
-PDF Editor는 출력·스캔·업로드 없이 PDF에 서명하는 무료 오픈소스 Mac 앱입니다. 직접 그린 서명, 도장 사진(흰 배경 자동 제거), 글자·날짜 도장을 놓고 새 파일로 저장합니다. 원본은 바꾸지 않습니다.
+PDF Editor는 출력·스캔·업로드 없이 PDF에 서명하는 무료 Mac 앱입니다. 직접 그린 서명, 도장 사진(흰 배경 자동 제거), 글자·날짜 도장을 놓고 새 파일로 저장합니다. 원본은 바꾸지 않습니다.
 
 Mac App Store 첫 출시: 한국어·영어 화면, 문서를 자동 저장하고 Finder에서 옮기거나 고친 것을 알려 주는 보관함, 다시 쓰는 서명 목록. 인터넷 없이 동작하며 계정·업로드·추적이 없습니다.
 ```
 
 > 봉인(Seal)도 첫 출시 빌드에 들어간다면, 두 번째 문단 끝에 이 문장을 덧붙이세요(+약 110자): `New: Seal and save adds a PAdES digital signature so any later edit shows; the key stays in the macOS Keychain.` 한국어 문단 끝에도 `봉인해서 저장: PDF 전자서명(PAdES)으로 나중에 고친 흔적이 드러나고, 키는 macOS 키체인에 둡니다.`를 붙입니다. 이때 4-2는 다음 큰 업데이트용으로 아껴 둡니다.
 
-**Helpful Details (422자 / 500자):**
+**Helpful Details (423자 / 500자):**
 
 ```text
-Made in Korea for a real habit: Korean contracts still need a signature and a dojang (seal stamp). PDF Editor turns a phone photo of a paper stamp into a clean transparent stamp. Privacy by design: works fully offline, no account, no analytics (App Privacy: Data Not Collected). Follows Dark Mode and Reduce Motion, native macOS menus, keyboard shortcuts. Universal (Apple Silicon + Intel). MIT-licensed; source on GitHub.
+Made in Korea for a real habit: Korean contracts still need a signature and a dojang (seal stamp). PDF Editor turns a phone photo of a paper stamp into a clean transparent stamp. Privacy by design: works fully offline, no account, no analytics (App Privacy: Data Not Collected). Follows Dark Mode and Reduce Motion, native macOS menus, keyboard shortcuts. Universal (Apple Silicon + Intel). Source code available on GitHub.
 ```
 
 - `[조건부]` `Data Not Collected`: 개인정보 레이블을 그렇게 냈을 때만 남깁니다.
@@ -223,10 +223,10 @@ PDF Editor는 출력·스캔·업로드 없이 Mac에서 PDF에 서명하는 앱
 
 > 한국어·영어 전환이 첫 출시에 들어가지 않았다면, 이 요청의 이름을 `… – Seal + English UI`로 바꾸고 다음 문장을 덧붙이세요: `The whole app, menus and dialogs are now in English as well as Korean, following the system language.` / `앱 전체와 메뉴·대화상자를 한국어와 영어로 쓸 수 있고, 시스템 언어를 따릅니다.`
 
-**Helpful Details (422자 / 500자):**
+**Helpful Details (435자 / 500자):**
 
 ```text
-Why it matters: people email signed PDFs and have no easy way to show the file was not changed afterwards. Seal gives that with standard PDF signatures any reader can check, without a server or subscription. The key is kept encrypted with the macOS Keychain. Honest UI: the app says a self-made certificate shows as "signer not verified" in Acrobat. English and Korean UI, Dark Mode, offline, no data collected. Free, MIT.
+Why it matters: people email signed PDFs and have no easy way to show the file was not changed afterwards. Seal gives that with standard PDF signatures any reader can check, without a server or subscription. The key is kept encrypted with the macOS Keychain. Honest UI: the app says a self-made certificate shows as "signer not verified" in Acrobat. English and Korean UI, Dark Mode, offline, no data collected. Free; source on GitHub.
 ```
 
 **Supplemental Materials:** 봉인 데모 영상(영어/한국어), TestFlight 공개 링크 `[조건부]`, 봉인 확인 화면 스크린샷, `docs/design/seal-and-language.md`의 공개용 요약(선택).
@@ -260,7 +260,7 @@ T = Mac App Store 목표 출시일. 출시 날짜를 직접 정하려면 App Sto
 > Apple 공식 경로가 아닙니다. 피처링 여부와 상관없고, 각 커뮤니티의 홍보 규칙을 따르세요. 회사·개인 연락처는 꼭 필요한 곳에만 넣습니다.
 
 - **국내:** GeekNews(Show GN), 디스콰이엇, OKKY, Threads `1인개발` 같은 주제 피드, 맥 사용자 커뮤니티(클리앙 맥당 등), 회사 블로그·브런치. 한국어 데모 GIF를 함께 올립니다.
-- **해외:** Product Hunt(화요일~목요일 출시 권장, 일반론), Hacker News "Show HN"(오픈소스와 오프라인을 강조), Reddit r/macapps, AlternativeTo, MacUpdate.
+- **해외:** Product Hunt(화요일~목요일 출시 권장, 일반론), Hacker News "Show HN"(소스 공개와 오프라인을 강조. 라이선스가 OSI 오픈소스가 아니므로 "open source"라고 쓰지 않고 "source-available"이라고 씁니다), Reddit r/macapps, AlternativeTo, MacUpdate.
 - **GitHub:** Release 노트, README 상단에 Mac App Store 배지 넣기. 배지 사용 규정을 지키세요.
 - **문구 주의:** "Apple 추천", "Featured by Apple"은 실제로 피처링되었을 때만, 사실 그대로 조심해서 씁니다. 공인 전자서명이라는 표현은 쓰지 않습니다.
 

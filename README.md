@@ -4,7 +4,7 @@
 
 **Put your signature and stamp on a PDF, save a new copy, and seal it so any later edit shows.**
 
-Free and open source for Mac and Windows. No printing, no scanning, no uploading. Your files never leave your computer.
+Free and source-available for Mac and Windows. No printing, no scanning, no uploading. Your files never leave your computer.
 
 [**Download (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [How it works](#three-steps) · [Seal](#seal-tamper-evident-pdfs) · [First launch](#first-launch) · [한국어](README.ko.md)
 
@@ -178,13 +178,25 @@ See [desktop/README.md](desktop/README.md) for details.
 
 - The whole interface is one file, [web/pdf-editor.html](web/pdf-editor.html). You can preview it in a browser with `python3 web/dev_server.py`.
 - The README images are made from the real interface with [docs/tools/render.sh](docs/tools/render.sh), in both languages, using made-up documents only.
-- The old Python (Tkinter) version is still in [pdf_overlay_editor_v3.py](pdf_overlay_editor_v3.py). It is no longer maintained.
+- The old Python (Tkinter) prototype has been removed. It is still in the git history up to v1.1.0.
 
 ## License
 
-[MIT](LICENSE) © 2026 Falcon Eyes Inc.
+Sealworks is **source-available**: you can read all of its code here, but it is not open source. The source code is licensed under the [PolyForm Strict License 1.0.0](LICENSE), with [additional permissions](LICENSE-PERMISSIONS.md) for the official app.
 
-Sealworks is built with these open-source projects:
+Copyright (c) 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈). Sealworks — https://sealworks.falconoon.com
+
+What that means, in short (the [LICENSE](LICENSE) and [LICENSE-PERMISSIONS.md](LICENSE-PERMISSIONS.md) texts are what count):
+
+- **The official app is free for everyone, for any purpose.** Anyone, including businesses, may install and use the official, unmodified Sealworks app from GitHub Releases, the Mac App Store or the Microsoft Store (Google Play later), including for work such as signing contracts.
+- **You can share the official app.** Pass on exact, unmodified copies of the official app files free of charge, together with the license and with the Sealworks name and icon unchanged.
+- **The source code is for noncommercial use only.** Personal study, hobby projects, research and experiments, and use by charities, schools, public research bodies, public safety or health organizations, environmental organizations and government institutions.
+- **Not allowed without a separate license:** changing Sealworks or making new works based on it (including repackaged or rebranded builds), sharing the source code or changed copies, charging for copies, commercial use of the source code, or using the Sealworks name and icon beyond [TRADEMARKS.md](TRADEMARKS.md). See [COMMERCIAL.md](COMMERCIAL.md) or write to support@falconoon.com.
+- **Contributing:** issues and pull requests are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md). Found a security problem? See [SECURITY.md](SECURITY.md).
+
+**Earlier versions were MIT.** Sealworks versions up to and including v1.1.0, and everything published in this repository before the license changed, were released under the MIT License. If you got a copy under MIT, that copy keeps its MIT terms. Starting with the first release after v1.1.0, Sealworks is licensed under PolyForm Strict 1.0.0 with the additional permissions above. The MIT License covers copyright only. It never gave anyone the right to use the Sealworks name or icon.
+
+Sealworks uses these open-source components. They keep their own licenses, listed in [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md):
 
 - [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0)
 - [pdf-lib](https://github.com/Hopding/pdf-lib) (MIT)

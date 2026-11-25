@@ -68,7 +68,7 @@ PDF Editor 데스크톱 앱(`desktop/`, Electron)을 **회사 명의(조직 개�
 | R9 | 봉인 기능은 **출시 빌드에 있을 때만** 메타데이터·스크린샷에. 심사 메모에 사용 경로 명시 | ASC | S | todo | 2.3.1, 2.5.19 |
 | R10 | 카테고리: 주 생산성(빌드의 `LSApplicationCategoryType`과 일치), 보조 비즈니스. 가격 무료, IAP 없음. 콘텐츠 권한 답 | ASC | S | todo | App information |
 | R11 | 저작권 표시를 회사 법인명으로(`package.json`의 `copyright`, `author`, About 패널, 스토어 Copyright 칸) | code, legal | S | done (code) | —; **desktop**: "Copyright © 2026 Falcon Eyes Inc.", author Falcon Eyes Inc., About 패널, NSHumanReadableCopyright |
-| R12 | **오픈소스 고지**를 앱 안에서 볼 수 있게(About 또는 도움말 › 오픈소스 라이선스): pdf.js(Apache-2.0, `pdfjs-dist`에는 NOTICE 파일 없이 LICENSE만 있음), pdf-lib(MIT), @signpdf(MIT), node-forge(BSD-3-Clause 선택), pako(MIT·Zlib), tslib(0BSD), 글꼴(OFL-1.1), Electron(MIT)·Chromium(`LICENSES.chromium.html`) | code, legal | S | todo | 아래 §4 |
+| R12 | **제3자(오픈소스) 구성 요소 고지**를 앱 안에서 볼 수 있게(About 또는 도움말 › 제3자 라이선스). 목록은 저장소의 `THIRD_PARTY_NOTICES.md`: pdf.js(Apache-2.0, `pdfjs-dist`에는 NOTICE 파일 없이 LICENSE만 있음), pdf-lib(MIT), @signpdf(MIT), node-forge(BSD-3-Clause 선택), pako(MIT·Zlib), tslib(0BSD), 글꼴(OFL-1.1), Electron(MIT)·Chromium(`LICENSES.chromium.html`) | code, legal | S | todo | 아래 §4 |
 | R13 | 최소 macOS 표기 정리: Electron 45 바이너리는 **macOS 13.0 이상**(`LSMinimumSystemVersion`). 저장소 README는 "macOS 12 이상"이라 적혀 있음(DMG판도 13 이상일 것) | code | S | done (code) | 로컬 `Info.plist` 확인; **desktop**: `minimumSystemVersion: "13.0"` |
 | R14 | Electron 버전 운영: 45 지원 종료 예정 2027-04-27 전에 다음 메이저로 올려 재심사 | code | S | todo | [sandbox-plan](sandbox-plan.md) §8 |
 
@@ -112,14 +112,14 @@ PDF Editor 데스크톱 앱(`desktop/`, Electron)을 **회사 명의(조직 개�
 
 ---
 
-## 4. 오픈소스 라이선스와 App Store
+## 4. 라이선스와 App Store
 
-- **이 앱(MIT)**: 저작권자인 회사가 App Store(Apple 표준 EULA)로 배포하는 데 문제 없습니다. 외부 기여자 코드도 MIT라 재배포·재라이선스가 허용됩니다. 저작권 표시와 MIT 고지를 앱 안에 두면 됩니다.
+- **이 앱(소스 공개, PolyForm Strict 1.0.0 + `LICENSE-PERMISSIONS.md` 추가 권한)**: v1.1.0 다음 릴리스부터의 라이선스입니다(v1.1.0까지는 MIT). 추가 권한으로 회사를 포함한 누구나 고치지 않은 공식 빌드(App Store판 포함)를 어떤 목적으로든 쓸 수 있으므로, 스토어 문구에 "개인용"·"비상업용" 같은 제한을 쓰지 않습니다. 소스 코드는 비상업·수정 금지입니다. Strict의 배포·수정 금지는 라이선스를 받는 사람에게 걸리는 조건이고, 저작권자인 회사가 App Store(Apple 표준 EULA)로 배포하는 데는 영향이 없습니다. 외부 기여자 코드는 `CONTRIBUTING.md`의 기여 라이선스(상업·앱 스토어 배포를 포함해 어떤 조건으로든 라이선스 가능)로 받습니다. 스토어 문구에는 "오픈소스"라고 쓰지 않습니다(OSI 정의의 오픈소스가 아님). 이름·아이콘은 `TRADEMARKS.md`.
 - **production 의존성**(`desktop/package-lock.json`에서 확인): `@signpdf/signpdf` MIT, `@signpdf/utils` MIT, `pdf-lib` MIT, `@pdf-lib/standard-fonts` MIT, `@pdf-lib/upng` MIT, `pako` MIT AND Zlib, `tslib` 0BSD, **`node-forge` (BSD-3-Clause OR GPL-2.0)**.
   - node-forge는 **둘 중 하나를 고르는 이중 라이선스**입니다. **BSD-3-Clause를 선택**한다고 고지에 적으면 GPL 의무(소스 공개, 추가 제한 금지)는 생기지 않습니다. GPL-2.0을 고를 이유가 없습니다.
   - 그 밖에 GPL 의존성은 없습니다.
-- **번들되는 개발 의존성 산출물**(`desktop/scripts/build-page.mjs`가 `app/`에 복사): pdf.js `pdfjs-dist` Apache-2.0(빌드 때 `app/lib/LICENSE-pdfjs-dist.txt`로 복사됨. NOTICE 파일은 패키지에 없음), 글꼴 IBM Plex Mono·IBM Plex Sans KR·Nanum Myeongjo·Nanum Pen Script 모두 **OFL-1.1**(앱에 넣어 배포 가능, 글꼴만 따로 팔지 않으면 됨), `web/vendor/pdfjs/`의 `LICENSE_FOXIT`, `LICENSE_LIBERATION`.
-- **Electron/Chromium**: Electron MIT, Chromium 구성 요소 고지는 번들의 `LICENSES.chromium.html`. 일부 구성 요소(예: FFmpeg)는 LGPL로 동적 링크됩니다. App Store 배포와 LGPL 동적 링크의 관계는 일반적으로 허용되는 것으로 알려져 있으나 공식 확인은 못 했습니다(`⚠ 확인 필요`, 법무). 이 앱은 오디오·비디오를 쓰지 않습니다.
+- **번들되는 개발 의존성 산출물**(`desktop/scripts/build-page.mjs`가 `app/`에 복사): pdf.js `pdfjs-dist` Apache-2.0(빌드 때 `app/lib/LICENSE-pdfjs-dist.txt`로 복사됨. NOTICE 파일은 패키지에 없음), 글꼴 IBM Plex Mono·IBM Plex Sans KR·Nanum Myeongjo·Nanum Pen Script 모두 **OFL-1.1**(앱에 넣어 배포 가능, 글꼴만 따로 팔지 않으면 됨), `web/vendor/pdfjs/`의 `LICENSE_FOXIT`, `LICENSE_LIBERATION`, `LICENSE_CMAPS`(Adobe CMaps, BSD-3-Clause. `cmaps-ko.json`에 들어 있음).
+- **Electron/Chromium**: Electron MIT, Chromium 구성 요소 고지는 번들의 `LICENSES.chromium.html`. 일부 구성 요소(예: FFmpeg)는 LGPL로 동적 링크됩니다. App Store 배포와 LGPL 동적 링크의 관계는 일반적으로 허용되는 것으로 알려져 있으나 공식 확인은 못 했습니다(`⚠ 확인 필요`, 법무). 이 앱은 오디오·비디오를 쓰지 않습니다. 앱 라이선스가 수정·리버스 엔지니어링을 금지하므로, LGPL 구성 요소에는 LGPL이 그대로 적용되고 Sealworks 라이선스가 그 권리를 제한하지 않는다고 `THIRD_PARTY_NOTICES.md`에 밝혀 두었습니다(`⚠ 확인 필요`, 법무).
 
 ---
 
