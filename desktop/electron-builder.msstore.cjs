@@ -55,6 +55,8 @@ build.appx = {
   minVersion: "10.0.17763.0",
   maxVersionTested: "10.0.26100.0",
   setBuildNumber: !!env.MSSTORE_BUILD_NUMBER,
+  // the default template + desktop4:SupportsMultipleInstances (see the file)
+  customManifestPath: "appx-manifest.xml",
   artifactName: "Sealworks-${version}-${arch}.${ext}",
 };
 if (env.MSSTORE_BUILD_NUMBER) build.buildNumber = String(env.MSSTORE_BUILD_NUMBER);

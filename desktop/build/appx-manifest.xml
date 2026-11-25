@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sealworks: electron-builder's appx template (app-builder-lib/templates/appx/appxmanifest.xml) plus
+     desktop4:SupportsMultipleInstances, so every activation (Start, "Open with" while running) starts a
+     new process like a regular Win32 launch and Electron's single-instance lock hands the file to the
+     running window. Without it Windows ended the running instance on a second "Open with" (seen in CI).
+     Used by electron-builder.msstore.cjs (appx.customManifestPath). -->
+<!--suppress XmlUnusedNamespaceDeclaration -->
+<Package
+   xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+   xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+   xmlns:desktop="http://schemas.microsoft.com/appx/manifest/desktop/windows10"
+   xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+   xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+   IgnorableNamespaces="desktop4">
+  <Identity Name="${identityName}"
+    ProcessorArchitecture="${arch}"
+    Publisher="${publisher}"
+    Version="${version}" />
+  <Properties>
+    <DisplayName>${displayName}</DisplayName>
+    <PublisherDisplayName>${publisherDisplayName}</PublisherDisplayName>
+    <Description>${description}</Description>
+    <Logo>${logo}</Logo>
+  </Properties>
+  <Resources>
+    ${resourceLanguages}
+  </Resources>
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="${minVersion}" MaxVersionTested="${maxVersionTested}" />
+  </Dependencies>
+  ${capabilities}
+  <Applications>
+    <Application Id="${applicationId}" Executable="${executable}" EntryPoint="Windows.FullTrustApplication" desktop4:SupportsMultipleInstances="true">
+      <uap:VisualElements
+       BackgroundColor="${backgroundColor}"
+       DisplayName="${displayName}"
+       Square150x150Logo="${square150x150Logo}"
+       Square44x44Logo="${square44x44Logo}"
+       Description="${description}">
+        ${lockScreen}
+        ${defaultTile}
+        ${splashScreen}
+      </uap:VisualElements>
+      ${extensions}
+    </Application>
+  </Applications>
+</Package>

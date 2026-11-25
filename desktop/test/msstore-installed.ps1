@@ -204,11 +204,12 @@ Start-Sleep -Seconds 8
 Check "Open with: the page opened the PDF (its record is written)" ((Docs).Contains("opened-with-first.pdf")) "$((Docs).Length) bytes"
 Shot "msstore-open-with-first"
 $before = @(Sealworks-Processes | ForEach-Object Id)
+[void] $w.Handle # keep a handle so the exit code can be read if it ends
 $how = Open-With $second
 Start-Sleep -Seconds 8
 $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
 $alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
-Check "second Open with: the running window opened it (single instance)" ($mains.Count -eq 1 -and $alive -and ((Docs).Contains("opened-with-second.pdf"))) "$how, windows: $($mains.Count) (pid $($mains.Id -join ',')), first main pid $($w.Id) alive: $alive, processes before: $($before -join ','), now: $((Sealworks-Processes | ForEach-Object Id) -join ',')"
+Check "second Open with: the running window opened it (single instance)" ($mains.Count -eq 1 -and $alive -and ((Docs).Contains("opened-with-second.pdf"))) "$how, windows: $($mains.Count) (pid $($mains.Id -join ',')), first main pid $($w.Id) alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" }), processes before: $($before -join ','), now: $((Sealworks-Processes | ForEach-Object Id) -join ',')"
 Shot "msstore-open-with-second"
 $clean = Close-App
 Check "closes cleanly (window close -> quit)" $clean
@@ -224,6 +225,13 @@ $identity = Identity-Of $w
 Check "launch from Start (AUMID): window shown, package identity" (($null -ne $w) -and ($identity -eq $pkg.PackageFullName)) "$how, $identity"
 Start-Sleep -Seconds 6
 Shot "msstore-relaunch"
+# Start again while it runs: the running window comes forward, no second window, nothing ends
+[void] $w.Handle
+$how = Launch-App
+Start-Sleep -Seconds 6
+$mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
+$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
+Check "Start while running: same window (single instance)" ($mains.Count -eq 1 -and $alive) "$how, windows: $($mains.Count), first alive: $alive$(if (-not $alive) { " (exit code $($w.ExitCode))" })"
 [void] (Close-App)
 Check "relaunch: documents.json kept" ((Docs).Contains("opened-with-second.pdf"))
 
