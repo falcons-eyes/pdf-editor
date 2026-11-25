@@ -55,7 +55,7 @@ public static class PkgLaunch {
     var m = (IApplicationActivationManager)new ApplicationActivationManager();
     uint pid;
     int hr = m.ActivateApplication(aumid, "", 0, out pid);
-    if (hr != 0) throw new COMException("ActivateApplication " + aumid, hr);
+    if (hr != 0) throw new COMException("ActivateApplication failed: 0x" + hr.ToString("X8"), hr);
     return pid;
   }
   public static uint OpenWith(string aumid, string file) {
@@ -71,9 +71,26 @@ public static class PkgLaunch {
       var m = (IApplicationActivationManager)new ApplicationActivationManager();
       uint pid;
       hr = m.ActivateForFile(aumid, array, "open", out pid);
-      if (hr != 0) throw new COMException("ActivateForFile " + aumid, hr);
+      if (hr != 0) throw new COMException("ActivateForFile failed: 0x" + hr.ToString("X8"), hr);
       return pid;
     } finally { Marshal.Release(array); }
+  }
+  [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode)]
+  struct SHELLEXECUTEINFO {
+    public int cbSize; public uint fMask; public IntPtr hwnd;
+    public string lpVerb; public string lpFile; public string lpParameters; public string lpDirectory;
+    public int nShow; public IntPtr hInstApp; public IntPtr lpIDList; public string lpClass;
+    public IntPtr hkeyClass; public uint dwHotKey; public IntPtr hIconOrMonitor; public IntPtr hProcess;
+  }
+  [DllImport("shell32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+  static extern bool ShellExecuteEx(ref SHELLEXECUTEINFO info);
+  // what Explorer does when the user picks the app in "Open with": the file with the app's ProgID
+  public static void OpenWithProgId(string progId, string file) {
+    var info = new SHELLEXECUTEINFO();
+    info.cbSize = Marshal.SizeOf(typeof(SHELLEXECUTEINFO));
+    info.fMask = 0x1 | 0x400; // SEE_MASK_CLASSNAME | SEE_MASK_FLAG_NO_UI
+    info.lpVerb = "open"; info.lpFile = file; info.lpClass = progId; info.nShow = 1;
+    if (!ShellExecuteEx(ref info)) throw new System.ComponentModel.Win32Exception(Marshal.GetLastWin32Error(), "ShellExecuteEx " + progId);
   }
   // the package full name of a running process, or null without package identity
   public static string PackageOf(uint pid) {
@@ -127,6 +144,20 @@ function Hash-Tree([string] $dir) {
   (Get-ChildItem -Recurse -File $dir | Sort-Object FullName | ForEach-Object { "$($_.FullName.Substring($dir.Length))=$((Get-FileHash $_.FullName).Hash)" }) -join "`n"
 }
 
+# Open with: IApplicationActivationManager.ActivateForFile, else ShellExecuteEx with the package's ProgID
+function Open-With([string] $file) {
+  try { [void] [PkgLaunch]::OpenWith($aumid, $file); return "ActivateForFile" }
+  catch { Write-Host "note: $($_.Exception.InnerException.Message ?? $_.Exception.Message); using the ProgID" }
+  [PkgLaunch]::OpenWithProgId($script:progid, $file); return "ShellExecuteEx($script:progid)"
+}
+# Start menu: ActivateApplication, else shell:AppsFolder\<AUMID> through Explorer
+function Launch-App {
+  try { [void] [PkgLaunch]::Launch($aumid); return "ActivateApplication" }
+  catch { Write-Host "note: $($_.Exception.InnerException.Message ?? $_.Exception.Message); using shell:AppsFolder" }
+  Start-Process explorer.exe "shell:AppsFolder\$aumid"; return "shell:AppsFolder"
+}
+function Identity-Of($w) { if ($w) { [PkgLaunch]::PackageOf([uint32] $w.Id) } else { "(no window)" } }
+
 $pkg = Get-AppxPackage -Name $IdentityName
 if (-not $pkg) { throw "package $IdentityName is not installed" }
 $pfn = $pkg.PackageFamilyName
@@ -142,6 +173,7 @@ Check "package data folder created at registration" (Test-Path $pkgDir) ((Get-Ch
 $progids = @((Get-Item "HKCU:\Software\Classes\.pdf\OpenWithProgids" -ErrorAction SilentlyContinue).Property | Where-Object { $_ -like "AppX*" })
 $ours = @($progids | Where-Object { (Get-ItemProperty "HKCU:\Software\Classes\$_\Application" -ErrorAction SilentlyContinue).AppUserModelID -eq $aumid })
 Check ".pdf: the package's ProgID is in OpenWithProgids" ($ours.Count -eq 1) ($ours -join " ")
+$progid = $ours | Select-Object -First 1
 $choice = (Get-ItemProperty "HKCU:\Software\Microsoft\Windows\CurrentVersion\Explorer\FileExts\.pdf\UserChoice" -ErrorAction SilentlyContinue).ProgId
 Check ".pdf: not made the default (UserChoice)" (-not ($ours -contains $choice)) "UserChoice=$(if ($choice) { $choice } else { '(none)' })"
 
@@ -160,17 +192,17 @@ if (-not $src) { $src = Get-ChildItem (Join-Path $PSScriptRoot "fixtures") -Filt
 $first = Join-Path $work "opened-with-first.pdf"; Copy-Item $src.FullName $first -Force
 $second = Join-Path $work "opened-with-second.pdf"; Copy-Item $src.FullName $second -Force
 
-$pid1 = [PkgLaunch]::OpenWith($aumid, $first)
+$how = Open-With $first
 $w = Main-Window 90
-Check "Open with: Sealworks started (window shown)" ($null -ne $w) "pid $pid1"
-$identity = [PkgLaunch]::PackageOf($pid1)
+Check "Open with: Sealworks started (window shown)" ($null -ne $w) "$how, pid $($w.Id)"
+$identity = Identity-Of $w
 Check "Open with: the process runs with package identity" ($identity -eq $pkg.PackageFullName) "$identity"
 Start-Sleep -Seconds 8
 Shot "msstore-open-with-first"
-$pid2 = [PkgLaunch]::OpenWith($aumid, $second)
+$how = Open-With $second
 Start-Sleep -Seconds 6
 $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
-Check "second Open with: still one window (single instance)" ($mains.Count -eq 1) "windows: $($mains.Count), second pid $pid2 running: $([bool](Get-Process -Id $pid2 -ErrorAction SilentlyContinue | Where-Object MainWindowHandle -ne 0))"
+Check "second Open with: still one window (single instance)" ($mains.Count -eq 1 -and $mains[0].Id -eq $w.Id) "$how, windows: $($mains.Count)"
 Shot "msstore-open-with-second"
 $clean = Close-App
 Check "closes cleanly (window close -> quit)" $clean
@@ -183,9 +215,10 @@ Check "nothing redirected to LocalCache\Roaming" (-not (Test-Path $redirected)) 
 Check "the real %APPDATA%\PDF Editor (NSIS store) is untouched" ((Hash-Tree $real) -eq $realBefore)
 
 # ---- 3. relaunch: the same data ----
-$pid3 = [PkgLaunch]::Launch($aumid)
+$how = Launch-App
 $w = Main-Window 90
-Check "launch from Start (AUMID): window shown, package identity" (($null -ne $w) -and ([PkgLaunch]::PackageOf($pid3) -eq $pkg.PackageFullName)) "pid $pid3"
+$identity = Identity-Of $w
+Check "launch from Start (AUMID): window shown, package identity" (($null -ne $w) -and ($identity -eq $pkg.PackageFullName)) "$how, $identity"
 Start-Sleep -Seconds 6
 Shot "msstore-relaunch"
 [void] (Close-App)
@@ -198,9 +231,10 @@ if ($UpdateAppx) {
   $upd = Get-AppxPackage -Name $IdentityName
   Check "update installed" ([version] $upd.Version -gt [version] $pkg.Version) "$($pkg.Version) -> $($upd.Version)"
   Check "update: the data store is unchanged" ((Test-Path $docsFile) -and ((Hash-Tree $store) -eq $storeBefore))
-  $pid4 = [PkgLaunch]::Launch($aumid)
+  $how = Launch-App
   $w = Main-Window 90
-  Check "update: launches with the new package identity" (($null -ne $w) -and ([PkgLaunch]::PackageOf($pid4) -eq $upd.PackageFullName)) "$([PkgLaunch]::PackageOf($pid4))"
+  $identity = Identity-Of $w
+  Check "update: launches with the new package identity" (($null -ne $w) -and ($identity -eq $upd.PackageFullName)) "$how, $identity"
   Start-Sleep -Seconds 6
   Shot "msstore-after-update"
   [void] (Close-App)

@@ -125,8 +125,8 @@ async function main() {
       check("main is Electron's Mac App Store variant (process.mas)", m.mas, JSON.stringify(m));
     }
     if (EXPECT_MSSTORE && !SIMULATE_MSSTORE) {
-      // process.windowsStore is true only with package identity (launched from Start, "Open with" or
-      // the AUMID); a launch by path (as here) runs the same files without it
+      // started by path (Playwright starts the process itself); main treats the WindowsApps install
+      // folder as the store build either way. windowsStore is reported, not required (CI: true)
       const m = await app.evaluate(({ app: a }) => ({ exe: process.execPath, windowsStore: process.windowsStore === true, packaged: a.isPackaged }));
       check("msstore: runs from the installed package (WindowsApps)", /\\WindowsApps\\[^\\]+_\d+\.\d+\.\d+\.\d+_[^\\]+\\app\\Sealworks\.exe$/i.test(m.exe) && m.packaged, JSON.stringify(m));
     }
