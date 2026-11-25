@@ -197,20 +197,23 @@ $w = Main-Window 90
 Check "Open with: Sealworks started (window shown)" ($null -ne $w) "$how, pid $($w.Id)"
 $identity = Identity-Of $w
 Check "Open with: the process runs with package identity" ($identity -eq $pkg.PackageFullName) "$identity"
+$docsFile = Join-Path $store "documents.json"
+# the page writes its records ~0.5 s after a change; it keeps one record for a PDF that was only opened
+function Docs { if (Test-Path $docsFile) { Get-Content -Raw $docsFile } else { "" } }
 Start-Sleep -Seconds 8
+Check "Open with: the page opened the PDF (its record is written)" ((Docs).Contains("opened-with-first.pdf")) "$((Docs).Length) bytes"
 Shot "msstore-open-with-first"
+$before = @(Sealworks-Processes | ForEach-Object Id)
 $how = Open-With $second
-Start-Sleep -Seconds 6
+Start-Sleep -Seconds 8
 $mains = @(Sealworks-Processes | Where-Object { $_.MainWindowHandle -ne 0 })
-Check "second Open with: still one window (single instance)" ($mains.Count -eq 1 -and $mains[0].Id -eq $w.Id) "$how, windows: $($mains.Count)"
+$alive = [bool] (Get-Process -Id $w.Id -ErrorAction SilentlyContinue)
+Check "second Open with: the running window opened it (single instance)" ($mains.Count -eq 1 -and $alive -and ((Docs).Contains("opened-with-second.pdf"))) "$how, windows: $($mains.Count) (pid $($mains.Id -join ',')), first main pid $($w.Id) alive: $alive, processes before: $($before -join ','), now: $((Sealworks-Processes | ForEach-Object Id) -join ',')"
 Shot "msstore-open-with-second"
 $clean = Close-App
 Check "closes cleanly (window close -> quit)" $clean
 
-$docsFile = Join-Path $store "documents.json"
-$docs = if (Test-Path $docsFile) { Get-Content -Raw $docsFile } else { "" }
 Check "data store in the package's LocalState" ((Test-Path $docsFile) -and (Test-Path (Join-Path $store ".electron"))) ((Get-ChildItem $store -Force -ErrorAction SilentlyContinue | ForEach-Object Name) -join " ")
-Check "both PDFs opened via Open with are recorded" ($docs.Contains("opened-with-first.pdf") -and $docs.Contains("opened-with-second.pdf")) "$($docs.Length) bytes"
 Check "nothing redirected to LocalCache\Roaming" (-not (Test-Path $redirected)) $redirected
 Check "the real %APPDATA%\PDF Editor (NSIS store) is untouched" ((Hash-Tree $real) -eq $realBefore)
 
@@ -222,7 +225,7 @@ Check "launch from Start (AUMID): window shown, package identity" (($null -ne $w
 Start-Sleep -Seconds 6
 Shot "msstore-relaunch"
 [void] (Close-App)
-Check "relaunch: documents.json kept" ((Test-Path $docsFile) -and (Get-Content -Raw $docsFile).Contains("opened-with-first.pdf"))
+Check "relaunch: documents.json kept" ((Docs).Contains("opened-with-second.pdf"))
 
 # ---- update: data kept ----
 if ($UpdateAppx) {
