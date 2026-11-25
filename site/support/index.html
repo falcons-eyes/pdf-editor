@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; media-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Support · Sealworks</title>
+<meta name="description" content="Get help with Sealworks: contact by email, report bugs on GitHub, and answers about first launch, where your data is stored, backing up your seal key and verifying seals.">
+<link rel="canonical" href="https://sealworks.falconoon.com/support/">
+<link rel="alternate" hreflang="en" href="https://sealworks.falconoon.com/support/">
+<link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/support/">
+<link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/support/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1120" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sealworks">
+<meta property="og:title" content="Support · Sealworks">
+<meta property="og:description" content="Get help with Sealworks: contact by email, report bugs on GitHub, and answers about first launch, where your data is stored, backing up your seal key and verifying seals.">
+<meta property="og:url" content="https://sealworks.falconoon.com/support/">
+<meta property="og:image" content="https://sealworks.falconoon.com/assets/social-en.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free and open source for Mac and Windows.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-180.png">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Sealworks home"><img src="/assets/logo-64.png" width="32" height="32" alt=""><span>Sealworks</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/support/" aria-current="page">Support</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li class="lang"><a href="/ko/support/" lang="ko" hreflang="ko" aria-label="한국어로 보기">한국어</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main" tabindex="-1">
+
+<div class="wrap narrow">
+  <header class="page-head">
+    <h1>Support</h1>
+    <p class="lead">Questions about Sealworks? Write to us, or find a quick answer below.</p>
+  </header>
+  <div class="doc support">
+    <h2 id="contact">Contact</h2>
+    <div class="contact-card"><dl><dt>Email</dt><dd><a href="mailto:support@falconoon.com">support@falconoon.com</a></dd><dt>Reply time</dt><dd>We aim to reply within 3 business days.</dd><dt>Bug reports</dt><dd><a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. Issues are public, so please don't include personal information or documents.</dd><dt>Company</dt><dd>Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>)</dd></dl></div>
+    <nav class="toc" aria-labelledby="toc-title">
+      <h2 id="toc-title">On this page</h2>
+      <ol><li><a href="#first-launch">How do I open Sealworks the first time?</a></li><li><a href="#data">Where does Sealworks keep my data?</a></li><li><a href="#backup">How do I back up and restore my sealer key (.p12)?</a></li><li><a href="#verify">How do I verify a seal, and why does Acrobat say the signer isn't verified?</a></li><li><a href="#preview">Why did re-saving in macOS Preview break the seal?</a></li><li><a href="#legal">Is a seal a certified electronic signature?</a></li><li><a href="#language">How do I switch the language?</a></li><li><a href="#bug">How do I report a bug?</a></li></ol>
+    </nav>
+    <h2 id="faq">Frequently asked questions</h2>
+    <div class="faq"><div class="faq-item"><h3 id="first-launch">How do I open Sealworks the first time?</h3>
+<p><strong>Mac App Store version:</strong> it opens normally, like any app from the store.</p>
+<p>The <strong>DMG and EXE downloads</strong> from GitHub aren't signed with paid Apple or Microsoft certificates, so macOS and Windows warn you the first time. Allow it once and it opens normally after that.</p>
+<h4>macOS (DMG)</h4>
+<ol>
+  <li>Open the DMG and drag <strong>Sealworks</strong> to the <code>Applications</code> folder.</li>
+  <li>If the first launch says the developer can't be verified, or that macOS can't check it for malicious software, click <strong>Done</strong> (or Cancel).</li>
+  <li>In Finder › Applications, <strong>right-click (Control-click) Sealworks › Open</strong>, then click <strong>Open</strong> again.</li>
+  <li>If there's still no Open button, go to <strong>System Settings › Privacy &amp; Security</strong>, scroll down, and click <strong>Open Anyway</strong> next to the message about Sealworks. (From macOS 15 Sequoia on, this is the way.)</li>
+</ol>
+<p>If it says the app “is damaged and can't be opened”, that comes from the quarantine flag macOS puts on downloaded files. Paste this into Terminal, press Return, and open the app again:</p>
+<pre><code>xattr -dr com.apple.quarantine "/Applications/Sealworks.app"</code></pre>
+<h4>Windows</h4>
+<ol>
+  <li>Run the <code>…-setup-x64.exe</code> you downloaded.</li>
+  <li>If a blue “Windows protected your PC” box appears, click <strong>More info</strong>, then <strong>Run anyway</strong>.</li>
+  <li>When setup finishes, open <strong>Sealworks</strong> from the Start menu. You can also right-click a PDF › Open with › Sealworks.</li>
+</ol>
+<p class="note">Not sure which Mac you have? Choose Apple menu › <strong>About This Mac</strong>. If it says <code>Chip  Apple M…</code>, download the <code>arm64</code> DMG. If it says <code>Processor  … Intel …</code>, download the <code>x64</code> DMG.</p></div><div class="faq-item"><h3 id="data">Where does Sealworks keep my data?</h3>
+<p>Everything stays on your computer. The Library (document copies, where you placed signatures, your signatures and stamps, settings) and your seal key are kept in this folder:</p>
+<div class="table-wrap"><table><thead><tr><th scope="col">Version</th><th scope="col">Folder</th></tr></thead><tbody><tr><td>Mac App Store</td><td>inside the app's container, <code>~/Library/Containers/com.falconoon.sealworks/</code></td></tr><tr><td>macOS, downloaded from GitHub (DMG)</td><td><code>~/Library/Application Support/PDF Editor</code></td></tr><tr><td>Windows</td><td><code>%APPDATA%\PDF Editor</code></td></tr></tbody></table></div>
+<p>The folder keeps its old name from when the app was called PDF Editor, so updating from 1.0 keeps all your documents. Your seal key is in the <code>seal</code> subfolder, encrypted with a key that the macOS Keychain or Windows (DPAPI) protects.</p>
+<p>To erase everything, quit Sealworks and delete that folder. Uninstalling the app leaves the folder in place. On macOS you can also remove the app's Keychain item in Keychain Access. Your original PDFs and the files you saved elsewhere aren't affected.</p></div><div class="faq-item"><h3 id="backup">How do I back up and restore my sealer key (.p12)?</h3>
+<p>Your sealer identity (the private key and certificate used for <strong>Seal and save</strong>) lives only on your computer. If you lose or reset the computer without a backup, you'll have to make a new identity, and its fingerprint will be different.</p>
+<h4>Back up</h4>
+<ol>
+  <li>Open <strong>Sealer…</strong> and choose <strong>Back up…</strong>.</li>
+  <li>Choose a password (at least 6 characters) and a folder. Sealworks saves a password-protected <code>.p12</code> file there.</li>
+  <li>Keep the file and the password somewhere safe, for example on a USB drive or in your password manager. The password can't be recovered if you forget it.</li>
+</ol>
+<h4>Restore</h4>
+<ol>
+  <li>On the new computer (or in the other version of Sealworks), open <strong>Sealer…</strong> and choose <strong>Import…</strong>.</li>
+  <li>Pick the <code>.p12</code> file and enter its password. Importing replaces the current sealer identity, so Sealworks asks you to confirm first.</li>
+</ol>
+<p>After restoring your own backup, your fingerprint is the same as before. <strong>Import…</strong> also accepts a <code>.p12</code> or <code>.pfx</code> certificate you already have.</p>
+<p class="note">Moving between the downloaded version and the Mac App Store version? The seal key doesn't move by itself. Back up in one and import in the other.</p></div><div class="faq-item"><h3 id="verify">How do I verify a seal, and why does Acrobat say the signer isn't verified?</h3>
+<h4>In Sealworks</h4>
+<p>Click <strong>Verify seal</strong> in the title bar (or on the Library screen), then drop the PDF on the dialog or click <strong>Choose file…</strong>. Checking a file never adds it to your Library. You'll see <strong>Seal intact</strong>, <strong>Modified after sealing</strong>, <strong>Seal is not valid</strong> or <strong>Not sealed</strong>, plus who sealed it, when, and the certificate fingerprint.</p>
+<h4>In Adobe Acrobat or Acrobat Reader</h4>
+<p>Open the PDF and open the Signatures panel. Acrobat shows whether the document was changed after it was signed.</p>
+<p>It will also say the signer's identity can't be verified. <strong>That's expected.</strong> The certificate was made by Sealworks on the sender's computer, not bought from a certificate authority, so Acrobat has no outside authority to vouch for the name. The part that matters for tamper evidence is whether the document was modified.</p>
+<p>To be sure a file came from a particular person, compare fingerprints: the sender finds theirs under <strong>Sealer…</strong> and shares it with you once, for example by phone or in person. If the fingerprint in the file matches, the file was sealed with their key.</p></div><div class="faq-item"><h3 id="preview">Why did re-saving in macOS Preview break the seal?</h3>
+<p>A seal covers every byte of the file. macOS Preview rewrites the whole PDF when it saves, even when you only add a note or highlight, and it saves changes automatically. The bytes change, so <strong>Verify seal</strong> shows <strong>Modified after sealing</strong>. Other apps that re-save PDFs do the same.</p>
+<ul>
+  <li>Keep a sealed file exactly as you received it.</li>
+  <li>If you want to annotate it, make a copy first and annotate the copy.</li>
+  <li>If the seal on a file you need is broken, ask the sender for the file again.</li>
+</ul></div><div class="faq-item"><h3 id="legal">Is a seal a certified electronic signature?</h3>
+<p>No. The seal is meant for spotting changes. It isn't a certified electronic signature under any law, and it uses a self-made certificate rather than one from a certificate authority. If a document needs a particular kind of electronic signature, check what the recipient or the law requires.</p>
+<p>A seal also shows tampering rather than preventing it: it can't stop someone from removing the seal and sending the file on as an ordinary, unsealed PDF. If a seal matters to you, check that one is there.</p></div><div class="faq-item"><h3 id="language">How do I switch the language?</h3>
+<p>Sealworks speaks English and Korean. The first time it opens, it follows your computer's language. To switch, click <strong>English</strong> or <strong lang="ko">한국어</strong> at the bottom right of the window (in the status bar), or use <strong>View › Language</strong>. Everything switches in place: nothing reloads, and your work stays where it is. Sealworks remembers your choice.</p>
+<p>This website is in both languages too. Use the <span lang="ko">한국어</span> / English link at the top of any page.</p></div><div class="faq-item"><h3 id="bug">How do I report a bug?</h3>
+<p>Open an issue on <a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. It helps to include:</p>
+<ul>
+  <li>Your Sealworks version (shown under <strong>About Sealworks</strong> in the status bar) and where you got it (Mac App Store, DMG or Windows).</li>
+  <li>Your macOS or Windows version.</li>
+  <li>What you did, what you expected, and what happened instead. A screenshot helps.</li>
+</ul>
+<p>Issues are public, so please don't attach real documents, signatures or personal information. If the problem only shows with a private file, email <a href="mailto:support@falconoon.com">support@falconoon.com</a> instead and describe it without attaching the file.</p></div></div>
+  </div>
+</div>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <p>© 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈)</p>
+      <p>Sealworks is free and open source (MIT).</p>
+    </div>
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href="/support/">Support</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="https://github.com/falcons-eyes/pdf-editor">Source code on GitHub</a></li>
+        <li><a href="/ko/support/" lang="ko" hreflang="ko">한국어</a></li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>

@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; media-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
+<meta name="referrer" content="no-referrer">
+<title>Privacy Policy · Sealworks</title>
+<meta name="description" content="Sealworks collects no personal information. Your PDFs, signatures and seal key stay on your device. No account, no network use, no analytics.">
+<link rel="canonical" href="https://sealworks.falconoon.com/privacy/">
+<link rel="alternate" hreflang="en" href="https://sealworks.falconoon.com/privacy/">
+<link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/privacy/">
+<link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/privacy/">
+<meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#f5f7fc" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d1120" media="(prefers-color-scheme: dark)">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Sealworks">
+<meta property="og:title" content="Privacy Policy · Sealworks">
+<meta property="og:description" content="Sealworks collects no personal information. Your PDFs, signatures and seal key stay on your device. No account, no network use, no analytics.">
+<meta property="og:url" content="https://sealworks.falconoon.com/privacy/">
+<meta property="og:image" content="https://sealworks.falconoon.com/assets/social-en.png">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1280">
+<meta property="og:image:height" content="640">
+<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free and open source for Mac and Windows.">
+<meta property="og:locale" content="en_US">
+<meta property="og:locale:alternate" content="ko_KR">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" sizes="32x32" href="/assets/icon-32.png">
+<link rel="icon" type="image/png" sizes="512x512" href="/assets/icon-512.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/assets/icon-180.png">
+<link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="site-header">
+  <div class="wrap">
+    <a class="brand" href="/" aria-label="Sealworks home"><img src="/assets/logo-64.png" width="32" height="32" alt=""><span>Sealworks</span></a>
+    <nav class="site-nav" aria-label="Main">
+      <ul>
+        <li><a href="/">Home</a></li>
+        <li><a href="/support/">Support</a></li>
+        <li><a href="/privacy/" aria-current="page">Privacy</a></li>
+        <li class="lang"><a href="/ko/privacy/" lang="ko" hreflang="ko" aria-label="한국어로 보기">한국어</a></li>
+      </ul>
+    </nav>
+  </div>
+</header>
+<main id="main" tabindex="-1">
+
+<div class="wrap narrow">
+  <header class="page-head">
+    <h1>Sealworks Privacy Policy</h1>
+    <p class="updated">Effective date: <time datetime="2026-11-25">2026-11-25</time></p>
+  </header>
+  <article class="doc">
+    <p>Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>, "we") publishes Sealworks (the "app"), a desktop app for macOS and Windows that places signatures, stamps and images on PDFs and can seal them. This policy explains how the app handles your information. It covers every version of the app: the Mac App Store version, and the macOS (DMG) and Windows versions downloaded from GitHub.</p>
+
+    <h2 id="collect">1. Information we collect</h2>
+    <p><strong>We do not collect any personal information through the app.</strong></p>
+    <ul>
+      <li>The app has no account or sign-in.</li>
+      <li>The app does not use the network. Your PDFs, images, signatures and stamps never leave your device.</li>
+      <li>The app does not send usage data, analytics, crash reports or advertising identifiers to us or to anyone else.</li>
+      <li>The app contains no third-party analytics, advertising or crash-reporting tools.</li>
+    </ul>
+
+    <h2 id="on-device">2. Information stored only on your device</h2>
+    <p>To work, the app keeps the following <strong>only on your device</strong>. It is never sent to us, and we cannot see it.</p>
+    <div class="table-wrap"><table><thead><tr><th scope="col">Information</th><th scope="col">Why</th></tr></thead><tbody><tr><td>Copies of PDFs you open, page thumbnails, where you placed signatures and stamps</td><td>So you can continue in the Library</td></tr><tr><td>Signature and stamp images you add</td><td>To reuse them in later documents</td></tr><tr><td>Location, size, modification time and a content hash of originals and saved files</td><td>To tell you when a file was moved or changed outside the app</td></tr><tr><td>Access permissions for files and folders you chose (Mac App Store version only, as security-scoped bookmarks)</td><td>To check the same files the next time you open the app</td></tr><tr><td>Preferences (language, window size and similar)</td><td>To keep your settings</td></tr><tr><td>Sealer details you enter (your name, and optionally an organization) and your seal key</td><td>To seal (digitally sign) PDFs</td></tr></tbody></table></div>
+    <p>Where it is kept:</p>
+    <div class="table-wrap"><table><thead><tr><th scope="col">Version</th><th scope="col">Folder</th></tr></thead><tbody><tr><td>macOS, downloaded from GitHub</td><td><code>~/Library/Application Support/PDF Editor</code></td></tr><tr><td>Windows</td><td><code>%APPDATA%\PDF Editor</code></td></tr><tr><td>Mac App Store</td><td>the app's container, <code>~/Library/Containers/com.falconoon.sealworks/</code></td></tr></tbody></table></div>
+    <p>The folder name "PDF Editor" comes from the app's earlier name.</p>
+    <p><strong>Your seal key.</strong> The private key used for sealing is created on your device and stays there. It is stored in the folder above, encrypted with a key protected by the macOS Keychain or by Windows (DPAPI). The app never sends it anywhere. If you choose <code>Back up…</code>, the app writes a password-protected <code>.p12</code> file to a place you pick; what you do with that file is up to you.</p>
+    <p><strong>Deleting it.</strong> You can remove documents and signatures in the app. To remove everything, quit the app and delete the folder above. Removing the app does not delete this folder by itself. On macOS you can also remove the app's Keychain item in Keychain Access.</p>
+    <p>The app reads only files you choose or drop onto it, and writes new files only where you choose.</p>
+
+    <h2 id="sealed-pdfs">3. Information inside sealed PDFs</h2>
+    <p>When you use "Seal and save", the sealer details you entered (your name, and the organization if you gave one), the certificate and its fingerprint, and the time of sealing are written <strong>into that PDF</strong>. Anyone who receives the file can see them. This information is not sent to us.</p>
+
+    <h2 id="sharing">4. Sharing</h2>
+    <p>Because we collect no personal information, we do not share or sell any, and no one processes it on our behalf.</p>
+    <ul>
+      <li><strong>Mac App Store version:</strong> Apple processes information when you download, install or update the app, under Apple's privacy policy. If you agreed in your Mac's settings to share analytics with app developers, Apple may give us aggregated crash reports and usage statistics. These come from Apple, not from the app.</li>
+      <li><strong>GitHub downloads:</strong> GitHub processes information when you download a release or post an issue, under GitHub's privacy statement.</li>
+    </ul>
+
+    <h2 id="links">5. External links</h2>
+    <p>Links in the app (for example Privacy policy, Support and the GitHub source code link) open in your default web browser. Those websites have their own policies.</p>
+
+    <h2 id="children">6. Children</h2>
+    <p>The app can be used by anyone, and it collects no personal information from anyone, including children.</p>
+
+    <h2 id="rights">7. Your choices and rights</h2>
+    <p>We hold no personal information about you, so there is nothing for us to access, correct or delete. You can delete the information stored on your device at any time, as described in <a href="#on-device">section 2</a>.</p>
+
+    <h2 id="changes">8. Changes</h2>
+    <p>If this policy changes, we will publish the new version here with a new effective date. If a future version of the app ever sends information off your device (for example, an optional trusted timestamp for seals), we will tell you in the app before that feature is turned on, and list here what is sent and where.</p>
+
+    <h2 id="contact">9. Contact</h2>
+    <ul>
+      <li>Publisher: Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>)</li>
+      <li>Email: <a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
+      <li>Privacy contact: Falcon Eyes Inc. support (support@falconoon.com)</li>
+      <li>Questions and bug reports: <a href="https://github.com/falcons-eyes/pdf-editor/issues">GitHub Issues</a>. Issues are public, so please don't include personal information or documents.</li>
+    </ul>
+  </article>
+</div>
+</main>
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <p>© 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈)</p>
+      <p>Sealworks is free and open source (MIT).</p>
+    </div>
+    <nav aria-label="Footer">
+      <ul>
+        <li><a href="/support/">Support</a></li>
+        <li><a href="/privacy/">Privacy</a></li>
+        <li><a href="https://github.com/falcons-eyes/pdf-editor">Source code on GitHub</a></li>
+        <li><a href="/ko/privacy/" lang="ko" hreflang="ko">한국어</a></li>
+      </ul>
+    </nav>
+  </div>
+</footer>
+</body>
+</html>
