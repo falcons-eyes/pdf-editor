@@ -805,8 +805,19 @@ app.on("web-contents-created", (_e, wc) => {
 
 /* ---------------- boot ---------------- */
 function main() {
-  if (!app.requestSingleInstanceLock()) { app.quit(); return; }
+  // TEMP diagnostics (msstore CI): <userData>/lifecycle-trace present -> append lifecycle events
+  const traceFile = path.join(app.getPath("userData"), "lifecycle-trace");
+  const trace = (m) => { try { if (fs.existsSync(traceFile)) fs.appendFileSync(traceFile, `${new Date().toISOString()} pid ${process.pid} ${m}\n`); } catch {} };
+  trace(`start argv=${JSON.stringify(process.argv)} cwd=${process.cwd()} windowsStore=${process.windowsStore}`);
+  process.on("exit", (c) => trace(`exit ${c}`));
+  app.on("will-quit", () => trace("will-quit"));
+  app.on("before-quit", () => trace("before-quit"));
+  app.on("quit", (_e, c) => trace(`quit ${c}`));
+  const locked = app.requestSingleInstanceLock();
+  trace(`lock ${locked}`);
+  if (!locked) { app.quit(); return; }
   app.on("second-instance", (_e, argv, cwd) => {
+    trace(`second-instance argv=${JSON.stringify(argv)} cwd=${cwd}`);
     const files = IS_MAC ? [] : pdfsFromArgv(argv, cwd);
     if (files.length) files.forEach(openFromOs);
     else if (app.isReady()) showWindow();
