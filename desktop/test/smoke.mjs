@@ -66,7 +66,7 @@ async function main() {
   fs.mkdirSync(path.join(home, "Out"));
   const target = resolveTarget();
   console.log(`app:  ${target.label}\nhome: ${home}`);
-  const env = { ...process.env, PDFE_HOME_OVERRIDE: home };
+  const env = { ...process.env, PDFE_HOME_OVERRIDE: home, PDFE_TEST_NO_DIALOGS: "1" };
   delete env.ELECTRON_RUN_AS_NODE;
 
   const app = await electron.launch({ executablePath: target.executablePath, args: target.args, env, timeout: 90_000 });
@@ -190,8 +190,10 @@ async function main() {
       r.v = await d.seal.verify(out);
       r.unsigned = (await d.seal.verify(pdf)).status;
       r.garbage = (await d.seal.verify(new Uint8Array([37, 80, 68, 70, 1, 2, 3]))).status;
-      const p12 = await d.seal.exportIdentity({ password: "smoke-비밀" });
-      r.p12 = p12 instanceof Uint8Array && p12.length > 1000;
+      // main writes the backup itself (a save panel in real use) and only returns where it went
+      const saved = await d.seal.exportIdentity({ password: "smoke-비밀", defaultName: "smoke-backup.p12", start: "~/Out" });
+      const p12 = saved?.path ? await d.fs.readFile(saved.path) : null;
+      r.p12 = saved?.path === "~/Out/smoke-backup.p12" && p12 instanceof Uint8Array && p12.length > 1000;
       await d.seal.removeIdentity();
       r.afterRemove = await d.seal.identity();
       r.noIdentity = [await err(d.seal.sign(pdf)), await err(d.seal.exportIdentity({ password: "x" }))];
@@ -207,6 +209,9 @@ async function main() {
         // case-insensitive file systems (macOS, Windows): another spelling is the same folder
         ...(d.platform === "linux" ? [] : [await err(d.fs.readFile("~/library/application support/pdf editor/SEAL/key.bin"))]),
         await err(d.fs.rm(`${sealDir}/identity.json`)),
+        // nor by moving or copying a folder that contains it
+        await err(d.fs.rename("~/Library/Application Support/PDF Editor", "~/Out/moved-store")),
+        await err(d.fs.rename("~/Library", "~/Out/moved-library")),
       ];
       r.listOk = Array.isArray(await d.fs.readdir(sealDir));
       return r;

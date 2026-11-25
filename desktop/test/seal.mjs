@@ -2,6 +2,8 @@
 // plus interoperability with signatures made by other tools:
 //   - test/fixtures/pyhanko-certified-plus-approval.pdf: pyHanko 0.38 certification signature
 //     (PAdES, RSA, DocMDP P=2) followed by an approval signature (adbe.pkcs7.detached, ECDSA P-256)
+//   - test/fixtures/p1-sealed-plus-later-signature.pdf: this app's DocMDP P=1 seal, then an
+//     approval signature appended by pyHanko with its DocMDP check disabled (must read "modified")
 //   - `openssl cms -sign` signatures (DER and BER/indefinite-length), when openssl is on PATH
 //   - .p12 files from `openssl pkcs12 -export` (AES/PBES2, -legacy RC2/3DES, EC, empty and
 //     non-ASCII passwords), when openssl is on PATH
@@ -116,6 +118,12 @@ async function main() {
       fv.signatures.map((s) => `${s.name}${s.certify ? " (certify)" : ""}`).join(", "));
     const ff = Buffer.from(fixture); ff[200] ^= 0x01;
     check("pyHanko: tampered -> invalid", (await status(ff)) === "invalid");
+    // a "no changes" (P=1) seal from this app, then a second signature added by a tool that ignores
+    // DocMDP (pyHanko with its check disabled): every signature verifies, but the seal is broken
+    const later = await sig.verifyPdf(fs.readFileSync(path.join(DESKTOP, "test", "fixtures", "p1-sealed-plus-later-signature.pdf")));
+    check("P=1 seal + a later signature -> modified",
+      later.status === "modified" && later.signatures.length === 2 && later.signatures[0].certify && later.signatures[0].docMdp === 1 && later.signatures.every((s) => s.digestOk && s.signatureOk),
+      later.status);
 
     const crt = path.join(tmp, "rsa.crt"), k = path.join(tmp, "rsa.key"), eck = path.join(tmp, "ec.key"), ecc = path.join(tmp, "ec.crt");
     const run = (args, input) => execFileSync(openssl, args, { input, stdio: ["pipe", "pipe", "pipe"] });

@@ -104,10 +104,13 @@ DESKTOP_SHIM = r"""<script>
         await new Promise((r) => setTimeout(r, 300)); // key generation takes a moment
         st.id = await make(o); return { ...st.id };
       },
-      exportIdentity: async ({ password } = {}) => {
+      // like the app: it saves the backup itself (here straight to start/defaultName) and returns the path
+      exportIdentity: async ({ password, defaultName = "backup.p12", start = "~/Documents" } = {}) => {
         log("seal.exportIdentity"); fail();
         if (!st.id) throw new Error("ENOENT: no identity");
-        return enc.encode("MOCK-P12 " + JSON.stringify({ password, id: st.id }));
+        const path = `${start}/${defaultName}`;
+        await fs.writeFile(path, enc.encode("MOCK-P12 " + JSON.stringify({ password, id: st.id })));
+        return { path };
       },
       importIdentity: async (p12, { password } = {}) => {
         log("seal.importIdentity"); fail();

@@ -228,10 +228,12 @@ const canon = (p) => {
   probe = probe.normalize("NFC");
   return IS_MAC || IS_WIN ? probe.toLowerCase() : probe;
 };
-function guarded(p) {
+function guarded(p, { tree = false } = {}) {
   const o = osPath(p);
   const seal = canon(SEAL_DIR), c = canon(o);
   if (c === seal || c.startsWith(seal + path.sep)) throw fsError("EPERM", `the sealer key folder is private: ${p}`);
+  // moving, copying or deleting a folder that contains the key folder would expose or destroy it
+  if (tree && (seal.startsWith(c.endsWith(path.sep) ? c : c + path.sep))) throw fsError("EPERM", `this folder holds the sealer key: ${p}`);
   return o;
 }
 
@@ -276,7 +278,7 @@ const FS = {
     } catch { return false; }
   },
   async mkdir(p, o) { await fsp.mkdir(guarded(p), { recursive: !!o?.recursive }); },
-  async rename(from, to) { await fsp.rename(guarded(from), guarded(to)); },
+  async rename(from, to) { await fsp.rename(guarded(from, { tree: true }), guarded(to, { tree: true })); },
   // the page only deletes its own single files (保管함 copies, thumbnails): folders are refused,
   // so a bug or injected script can never wipe a whole tree
   async rm(p, o) {
@@ -286,7 +288,7 @@ const FS = {
     if (st.isDirectory()) throw fsError("EPERM", `refusing to delete a folder: ${p}`);
     await fsp.rm(target, { force: !!o?.force });
   },
-  async copyFile(from, to) { await fsp.copyFile(guarded(from), guarded(to)); },
+  async copyFile(from, to) { await fsp.copyFile(guarded(from, { tree: true }), guarded(to, { tree: true })); },
 };
 
 const IMAGE_EXT = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
@@ -346,12 +348,16 @@ const LABELS = {
     edit: "편집", undo: "실행 취소", redo: "실행 복귀", cut: "오려두기", copy: "복사하기", paste: "붙여넣기", selectAll: "모두 선택",
     window: IS_MAC ? "윈도우" : "창", minimize: "최소화", zoom: "확대/축소", front: "모두 앞으로 가져오기", close: "닫기",
     help: "도움말", repo: "GitHub 저장소", dev: "개발", reload: "새로 고침", devTools: "개발자 도구", images: "이미지", certs: "인증서 (.p12, .pfx)",
+    backupTitle: "봉인 정보 백업 저장", replaceQ: "지금 쓰는 봉인 정보를 바꿀까요?", replaceD: "지금 열쇠로 만든 봉인은 그대로 확인되지만, 앞으로는 새 열쇠로 봉인합니다. 백업이 없으면 지금 열쇠는 되찾을 수 없습니다.",
+    removeQ: "봉인 정보를 지울까요?", removeD: "백업이 없으면 지금 열쇠는 되찾을 수 없습니다.", replaceOk: "바꾸기", removeOk: "지우기", cancel: "취소",
   },
   en: {
     about: (n) => `About ${n}`, services: "Services", hide: (n) => `Hide ${n}`, hideOthers: "Hide Others", unhide: "Show All", quit: (n) => `Quit ${n}`,
     edit: "Edit", undo: "Undo", redo: "Redo", cut: "Cut", copy: "Copy", paste: "Paste", selectAll: "Select All",
     window: "Window", minimize: "Minimize", zoom: "Zoom", front: "Bring All to Front", close: "Close",
     help: "Help", repo: "GitHub repository", dev: "Develop", reload: "Reload", devTools: "Developer Tools", images: "Images", certs: "Certificates (.p12, .pfx)",
+    backupTitle: "Save sealer backup", replaceQ: "Replace your current sealer identity?", replaceD: "Files you already sealed still verify, but new seals will use the new key. Without a backup, the current key can't be recovered.",
+    removeQ: "Delete your sealer identity?", removeD: "Without a backup, the current key can't be recovered.", replaceOk: "Replace", removeOk: "Delete", cancel: "Cancel",
   },
 };
 // the last language the page chose, kept with Electron's own settings so the first menu is already right
@@ -482,8 +488,34 @@ function registerIpc() {
     useOs: !HOME_OVERRIDE || process.env.PDFE_SEAL_SAFESTORAGE === "1",
   });
   const SEAL_OPS = new Set(["identity", "createIdentity", "exportIdentity", "importIdentity", "removeIdentity", "sign", "verify"]);
+  // tests (only with a test home) skip the native panels: confirmations pass, backups go to the default path
+  const NO_DIALOGS = !!HOME_OVERRIDE && process.env.PDFE_TEST_NO_DIALOGS === "1";
+  const confirmNative = async (q, d, ok) => {
+    if (NO_DIALOGS) return true;
+    const o = { type: "warning", message: q, detail: d, buttons: [ok, L().cancel], defaultId: 1, cancelId: 1 };
+    const r = win ? await dialog.showMessageBox(win, o) : await dialog.showMessageBox(o);
+    return r.response === 0;
+  };
   handle("pdfe:seal", async (op, ...args) => {
     if (typeof op !== "string" || !SEAL_OPS.has(op)) throw fsError("EINVAL", `unknown operation ${op}`);
+    // the key backup never reaches the page: main asks where to save it and writes it itself
+    if (op === "exportIdentity") {
+      const o = args[0] || {};
+      const p12 = await seal.exportIdentity({ password: o.password });
+      const name = String(o.defaultName || "sealer-backup.p12").replace(/[\\/:*?"<>|\u0000-\u001f]/g, "_").slice(0, 120);
+      let dir; try { dir = typeof o.start === "string" ? paths.toOs(o.start) : app.getPath("documents"); } catch { dir = app.getPath("documents"); }
+      if (dir === WIN_ROOT) dir = app.getPath("documents");
+      const opts = { title: L().backupTitle, defaultPath: path.join(dir, /\.p12$/i.test(name) ? name : name + ".p12"), filters: [{ name: L().certs, extensions: ["p12"] }] };
+      const r = NO_DIALOGS ? { filePath: opts.defaultPath } : win ? await dialog.showSaveDialog(win, opts) : await dialog.showSaveDialog(opts);
+      if (r.canceled || !r.filePath) return null;
+      const target = guarded(paths.toPage(r.filePath));
+      await fsp.writeFile(target, p12);
+      return { path: paths.toPage(target) };
+    }
+    // replacing or deleting the identity is confirmed outside the page
+    const has = await seal.identity().catch(() => null);
+    if (has && ((op === "createIdentity" && args[0]?.replace) || op === "importIdentity") && !(await confirmNative(L().replaceQ, L().replaceD, L().replaceOk))) throw fsError("ECANCELED", "cancelled");
+    if (has && op === "removeIdentity" && !(await confirmNative(L().removeQ, L().removeD, L().removeOk))) throw fsError("ECANCELED", "cancelled");
     return seal[op](...args);
   });
 }

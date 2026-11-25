@@ -634,6 +634,7 @@ function checkRecord(buf, rec, view, myFingerprint) {
   if (rec.docMdp != null) {
     const p = view?.docMdpObjNum;
     info.certify = !view || p === "direct" || p === rec.objNum;
+    info.docMdp = rec.docMdp;
   }
   return { info, end };
 }
@@ -667,6 +668,8 @@ async function verifyPdf(input, { myFingerprint } = {}) {
   if (!signatures.length) status = "none";
   else if (signatures.some((s) => !s.digestOk || !s.signatureOk)) status = "invalid";
   else if (!signatures[signatures.length - 1].coversWholeFile) status = "modified";
+  // a certification that permits no changes (P=1) is broken by anything added later, even another signature
+  else if (signatures.some((s) => s.certify && s.docMdp === 1 && !s.coversWholeFile)) status = "modified";
   return { status, signatures };
 }
 

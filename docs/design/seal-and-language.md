@@ -60,6 +60,7 @@ type SigInfo = {
   signedAt: number | null;      // CMS signingTime (or /M), ms
   reason?: string; location?: string;
   certify: boolean;             // DocMDP certification signature
+  docMdp?: 1 | 2 | 3;           // its permission level, when certify
   coversWholeFile: boolean;     // ByteRange reaches end of file (no bytes appended after)
   digestOk: boolean;            // message digest matches the covered bytes
   signatureOk: boolean;         // CMS signature verifies with the embedded certificate
@@ -71,9 +72,9 @@ type Verify = { status: "none" | "intact" | "modified" | "invalid"; signatures: 
 
 seal.identity(): Promise<Identity | null>
 seal.createIdentity({ name, org?, email? }): Promise<Identity>     // RSA-2048 + self-signed X.509, 10 years; rejects EEXIST if one exists unless { replace: true }
-seal.exportIdentity({ password }): Promise<Uint8Array>             // PKCS#12 backup (page saves it via a save dialog)
-seal.importIdentity(p12: Uint8Array, { password }): Promise<Identity>  // also how a user brings their own certificate (.pfx/.p12); replaces the current identity
-seal.removeIdentity(): Promise<void>
+seal.exportIdentity({ password, defaultName?, start? }): Promise<{ path } | null>  // main shows a save panel and writes the PKCS#12 itself; the key never reaches the page; null = cancelled
+seal.importIdentity(p12: Uint8Array, { password }): Promise<Identity>  // also how a user brings their own certificate (.pfx/.p12); replaces the current identity after a native confirmation (ECANCELED if declined)
+seal.removeIdentity(): Promise<void>   // native confirmation first (ECANCELED if declined); createIdentity({ replace: true }) asks the same way
 seal.sign(pdf: Uint8Array, { reason?, location?, lang?: "ko"|"en" }): Promise<Uint8Array>
 seal.verify(pdf: Uint8Array): Promise<Verify>
 
@@ -87,7 +88,7 @@ Exported .p12: key in a pkcs8ShroudedKeyBag with pbeWithSHAAnd3-KeyTripleDES-CBC
 SHA-256 MAC), `-legacy` (RC2-40/3DES), RSA and EC P-256/384/521 keys. The page's fs API refuses
 to read or change anything inside `<store>/seal/` (`EPERM`).
 
-Status rules for `verify`: `none` = no signature dictionaries; `invalid` = any signature whose
+Status rules for `verify` (also: a P=1 certification that doesn't reach the end of the file → `modified`, even when a later signature does): `none` = no signature dictionaries; `invalid` = any signature whose
 digest or CMS check fails or can't be parsed; `modified` = all signatures check out but the
 last one doesn't cover the whole file (bytes appended after sealing); `intact` = otherwise.
 

@@ -90,7 +90,7 @@ const opt = (o, keys) => {
 const seal = {
   identity: () => sealCall("identity"),
   createIdentity: (o) => sealCall("createIdentity", opt(o, ["name", "org", "email", "replace"])),
-  exportIdentity: (o) => sealCall("exportIdentity", opt(o, ["password"])),
+  exportIdentity: (o) => sealCall("exportIdentity", opt(o, ["password", "defaultName", "start"])),
   importIdentity: async (p12, o) => sealCall("importIdentity", await bytesOf(p12), opt(o, ["password"])),
   removeIdentity: async () => { await sealCall("removeIdentity"); },
   sign: async (pdf, o) => sealCall("sign", await bytesOf(pdf), opt(o, ["reason", "location", "lang"])),

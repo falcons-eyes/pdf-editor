@@ -2781,28 +2781,22 @@ function sealerCreate() {
   if (!name) { SEALER.msg = t("save.seal.needName"); renderSealer(); return; }
   return sealerRun(async () => {
     try { SEAL.id = await S.seal.createIdentity({ name, ...(org ? { org } : {}), ...(SEAL.id ? { replace: true } : {}) }); SEALER.mode = "main"; SEALER.form = {}; toast(t("sealer.made")); }
-    catch (e) { SEALER.msg = t("seal.createFail", { msg: errMsg(e) }); }
+    catch (e) { if (!isCancel(e)) SEALER.msg = t("seal.createFail", { msg: errMsg(e) }); }
   });
 }
+const isCancel = (e) => /^ECANCELED/.test(String(e?.message || e));
 function sealerBackup() {
   const { pw1 = "", pw2 = "" } = SEALER.form;
   if (pw1.length < 6 || pw1 !== pw2) { SEALER.msg = t(pw1.length < 6 ? "sealer.pw.short" : "sealer.pw.mismatch"); renderSealer(); return; }
   return sealerRun(async () => {
-    let bytes;
-    try { bytes = new Uint8Array(await S.seal.exportIdentity({ password: pw1 })); } catch (e) { SEALER.msg = t("sealer.backup.fail", { msg: errMsg(e) }); return; }
     const fileName = cleanName(t("sealer.backup.file", { name: SEAL.id.name })) + ".p12";
-    if (S.fs) {
-      const picked = await browse({ kind: "folder", title: t("sealer.backup.folder") });
-      if (!picked?.length) return;
-      let path = joinPath(picked[0], fileName);
-      for (let i = 2; await S.fs.exists(path).catch(() => false); i++) path = joinPath(picked[0], fileName.replace(/\.p12$/, ` (${i}).p12`));
-      try { await S.fs.writeFile(path, bytes); } catch (e) { SEALER.msg = t("sealer.backup.fail", { msg: errMsg(e) }); return; }
-      toast(t("sealer.backup.done", { file: basename(path) }), { actions: S.shell ? [{ label: t("showIn"), fn: () => revealPath(path) }] : [] });
-    } else {
-      const a = el("a", { href: URL.createObjectURL(new Blob([bytes], { type: "application/x-pkcs12" })), download: fileName });
-      document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
-      toast(t("sealer.backup.done", { file: fileName }));
-    }
+    // the app asks where to save and writes the backup itself: the key never passes through this page
+    let res;
+    try { res = await S.seal.exportIdentity({ password: pw1, defaultName: fileName, start: S.prefs.lastDir.cert || "~/Documents" }); }
+    catch (e) { if (isCancel(e)) return; SEALER.msg = t("sealer.backup.fail", { msg: errMsg(e) }); return; }
+    if (!res?.path) return;
+    S.prefs.lastDir.cert = dirname(res.path); persistPrefs();
+    toast(t("sealer.backup.done", { file: basename(res.path) }), { actions: S.shell ? [{ label: t("showIn"), fn: () => revealPath(res.path) }] : [] });
     SEALER.mode = "main"; SEALER.form = {};
   });
 }
@@ -2826,7 +2820,7 @@ function sealerImport() {
   if (!SEALER.p12) return;
   return sealerRun(async () => {
     try { SEAL.id = await S.seal.importIdentity(SEALER.p12, { password: SEALER.form.pw || "" }); SEALER.mode = "main"; SEALER.form = {}; SEALER.p12 = null; toast(t("sealer.import.done", { name: SEAL.id.name })); }
-    catch (e) { SEALER.msg = t("sealer.import.fail", { msg: errMsg(e) }); }
+    catch (e) { if (!isCancel(e)) SEALER.msg = t("sealer.import.fail", { msg: errMsg(e) }); }
   });
 }
 // closing forgets typed passwords and the picked backup; whatever showed the sealer refreshes
