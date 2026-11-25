@@ -20,7 +20,7 @@
 // Microsoft Store options (.github/workflows/msstore.yml runs the installed MSIX package):
 //   --expect-msstore     the app runs from an installed package (…\WindowsApps\…): import menu, not sandboxed
 //   --simulate-msstore   PDFE_TEST_MSSTORE=1: a regular build shows the store build's import menu
-import { execFile } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { _electron as electron } from "playwright";
 import { PDFDocument } from "pdf-lib";
 import fs from "node:fs";
@@ -406,6 +406,26 @@ async function main() {
       });
       check("sealed PDF opens and renders in the page (pdf.js)", rendered.path === "~/Out/smoke_sealed.pdf" && rendered.pages === info.pages && rendered.canvases > 0 && rendered.painted, JSON.stringify(rendered));
       await page.screenshot({ path: path.join(OUT, `sealed-${process.platform}.png`) });
+    }
+
+    // ---- a real second launch (single instance): it exits, the running app stays and gets the PDF ----
+    {
+      const second = path.join(home, "Out", "second-launch.pdf");
+      fs.copyFileSync(saved, second);
+      await page.evaluate(() => { window.__smokeOpened = []; });
+      const child = spawn(target.executablePath, [...target.args, second], { env: { ...env, ELECTRON_ENABLE_LOGGING: "1" }, stdio: ["ignore", "pipe", "pipe"] });
+      let log = "";
+      child.stdout.on("data", (b) => { log += b; }); child.stderr.on("data", (b) => { log += b; });
+      const code = await new Promise((res) => {
+        const t = setTimeout(() => { child.kill(); res("timeout"); }, 30_000);
+        child.on("exit", (c) => { clearTimeout(t); res(c); });
+      });
+      await page.waitForFunction(() => window.__smokeOpened.length > 0, null, { timeout: 10_000 }).catch(() => {});
+      const got = await page.evaluate(() => window.__smokeOpened).catch((e) => `page gone: ${e.message}`);
+      const alive = app.process().exitCode === null && app.process().signalCode === null;
+      // macOS passes files through open-file, not argv: only the lock is checked there
+      const ok = code === 0 && alive && (process.platform === "darwin" || (Array.isArray(got) && got[0] === "~/Out/second-launch.pdf"));
+      check("second launch: exits, the running app stays and gets the file (single instance)", ok, JSON.stringify({ code, alive, got }) + (ok ? "" : `\n      second process log:\n${log.trim().split("\n").slice(-25).join("\n")}`));
     }
 
     // README pictures (not checks): a bigger window, a signature and stamp on the opened document,
