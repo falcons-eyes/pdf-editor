@@ -16,7 +16,7 @@
   "main": "src/main.js",
   "scripts": {
     "build:page": "node scripts/build-page.mjs",
-    "icon": "npm run build:page && electron scripts/make-icon.cjs",
+    "icon": "electron scripts/make-icon.cjs",
     "icon:appx": "electron scripts/make-appx-assets.cjs",
     "start": "npm run build:page && electron .",
     "pack": "npm run build:page && electron-builder --dir --publish never",

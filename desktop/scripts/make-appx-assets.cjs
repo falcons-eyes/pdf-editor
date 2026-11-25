@@ -1,4 +1,5 @@
-// Render the Microsoft Store (MSIX/AppX) tile and logo images from build/icon.png into build/appx/
+// Render the Microsoft Store (MSIX/AppX) tile and logo images from build/icon.png (and build/icon-small.png,
+// the 16-32 px cut of the artwork, for images of 48 px and less) into build/appx/
 // (electron-builder's appx target maps every file there to assets\ and builds resources.pri from the
 // .scale-*/.targetsize-* qualifiers; the manifest names the unqualified files).
 //
@@ -16,6 +17,7 @@ const path = require("node:path");
 const DESKTOP = path.resolve(__dirname, "..");
 const OUT = path.join(DESKTOP, "build", "appx");
 const ICON = fs.readFileSync(path.join(DESKTOP, "build", "icon.png")).toString("base64");
+const SMALL = fs.readFileSync(path.join(DESKTOP, "build", "icon-small.png")).toString("base64");
 
 const SCALES = [100, 125, 150, 200, 400];
 const TARGETS = [16, 24, 32, 48, 256];
@@ -41,12 +43,11 @@ app.whenReady().then(async () => {
   const win = new BrowserWindow({ show: false, webPreferences: { offscreen: true } });
   await win.loadURL("about:blank");
   const out = await win.webContents.executeJavaScript(`(async () => {
-    const img = new Image();
-    img.src = "data:image/png;base64,${ICON}";
-    await img.decode();
-    // halve step by step so small sizes stay smooth
+    const load = async (b64) => { const i = new Image(); i.src = "data:image/png;base64," + b64; await i.decode(); return i; };
+    const img = await load("${ICON}"), small = await load("${SMALL}");
+    // halve step by step so small sizes stay smooth; 48 px and less from the small cut
     function scaled(size) {
-      let src = img, w = img.width;
+      let src = size <= 48 ? small : img, w = src.width;
       while (w / 2 >= size) {
         const c = document.createElement("canvas"); c.width = c.height = Math.round(w / 2);
         const g = c.getContext("2d"); g.imageSmoothingQuality = "high"; g.drawImage(src, 0, 0, c.width, c.height);

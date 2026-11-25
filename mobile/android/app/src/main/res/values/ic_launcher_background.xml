@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- sampled from desktop/build/icon.png by scripts/make-icons.mjs -->
+<!-- the tile colours of docs/brand/sealworks-icon.svg (scripts/make-icons.mjs) -->
 <resources>
-    <color name="ic_launcher_background">#314ebd</color>
-    <color name="ic_launcher_background_top">#4562ce</color>
-    <color name="ic_launcher_background_bottom">#213fb0</color>
-    <color name="splash_background">#314ebd</color>
+    <color name="ic_launcher_background">#2c49c3</color>
+    <color name="ic_launcher_background_top">#3d60e6</color>
+    <color name="ic_launcher_background_bottom">#1a31a0</color>
+    <color name="splash_background">#2c49c3</color>
 </resources>
