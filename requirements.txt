@@ -1,7 +1,0 @@
-# Runtime
-pymupdf>=1.24.3,<2   # 2.x pulls in onnxruntime/numpy/layout extras this app doesn't use
-pillow
-tkinterdnd2          # drag & drop
-
-# Build
-pyinstaller
