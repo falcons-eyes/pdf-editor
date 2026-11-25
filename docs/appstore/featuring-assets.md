@@ -6,9 +6,9 @@
 
 | 파일 | 상태 | Apple 자료로 쓸 수 있나 |
 |---|---|---|
-| `docs/images/demo.gif` | 1200×750, 15fps, 18초. 한국어 UI. `docs/tools/demo.cjs`로 **브라우저(dev_server)에서** 찍었습니다. 커서와 창 버튼은 녹화용으로 페이지 안에 그린 가짜입니다 | 스토리보드 참고용으로만 씁니다. 피처링 링크나 앱 미리보기로는 맞지 않습니다 |
+| `docs/images/demo-en.gif`, `demo-ko.gif` (봉인 장면은 `seal-en.gif`, `seal-ko.gif`) | 1200×750, 15fps, 24초. 영어·한국어 UI. `docs/tools/demo.cjs`로 **브라우저(dev_server)에서** 찍었습니다. 커서와 창 버튼은 녹화용으로 페이지 안에 그린 가짜입니다 | 스토리보드 참고용으로만 씁니다. 피처링 링크나 앱 미리보기로는 맞지 않습니다 |
 | 영어판·한국어판 데모 GIF | 다른 작업에서 만드는 중 | 같은 방식이면 위와 같습니다. 컷 구성과 문서 시나리오는 그대로 가져다 쓰면 됩니다 |
-| `docs/images/hero.png`, `features.png`, `steps.png`, `social.png` 등 | README용 합성 이미지입니다 | 언론 자료 묶음에 넣을 수는 있습니다. 제품 페이지 스크린샷으로는 다시 찍어야 합니다 |
+| `docs/images/hero-{en,ko}.png`, `features-{en,ko}.png`, `steps-{en,ko}.png`, `social-{en,ko}.png` 등 | README용 합성 이미지입니다 | 언론 자료 묶음에 넣을 수는 있습니다. 제품 페이지 스크린샷으로는 다시 찍어야 합니다 |
 | `docs/tools/seed-page.js` | 누가 봐도 가짜인 문서와 도장을 만듭니다 (`용역계약서_가나다.pdf` 등) | **그대로 활용합니다.** 실제 고객 데이터가 화면에 나오지 않게 해 줍니다 |
 
 ### Apple용으로 바꿔야 할 것

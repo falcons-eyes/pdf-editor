@@ -1,4 +1,4 @@
-/* Injected into the PDF Editor page by the capture scripts (never shipped).
+/* Injected into the Sealworks page by the capture scripts (never shipped).
    Builds clearly fake documents and stamps so screenshots never show real data.
    All names, companies and numbers below are made up. */
 (() => {
@@ -8,10 +8,11 @@
   const canvasOf = (w, h) => { const c = document.createElement("canvas"); c.width = w; c.height = h; return c; };
   const b64 = (url) => { const b = atob(url.split(",")[1]); const a = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) a[i] = b.charCodeAt(i); return a; };
   const desk = () => window.claude.use("desktop");
+  let LANG = "ko"; // set by setLang(): picks the made-up documents and stamps for that UI language
 
   async function fonts() {
     await Promise.allSettled([
-      document.fonts.load(`600 40px ${FF}`, "가나다계약서"), document.fonts.load(`400 24px ${FF}`, "가나다"),
+      document.fonts.load(`600 40px ${FF}`, "가나다계약서 Agreement"), document.fonts.load(`400 24px ${FF}`, "가나다"),
       document.fonts.load('800 100px "Nanum Myeongjo"', "홍길동인"), document.fonts.load('100px "Nanum Pen Script"', "홍길동"),
     ]);
   }
@@ -24,13 +25,14 @@
     if (spec.title) { g.font = `600 58px ${FF}`; g.textAlign = "center"; g.fillText(spec.title, W / 2, y); g.textAlign = "left"; y += 120; }
     g.font = `400 27px ${FF}`;
     for (const line of spec.lines) { g.fillText(line, 140, y); y += line ? 50 : 26; }
-    if (variant) { g.fillStyle = "#c3302a"; g.font = `600 24px ${FF}`; g.fillText("※ 수정본: 제3조 지급일을 변경함", 140, y + 10); g.fillStyle = "#1a1d24"; y += 40; }
+    if (variant) { g.fillStyle = "#c3302a"; g.font = `600 24px ${FF}`; g.fillText(LANG === "ko" ? "※ 수정본: 내용을 일부 바꿈" : "* Revised version: some terms changed", 140, y + 10); g.fillStyle = "#1a1d24"; y += 40; }
     if (spec.signers) {
       y += 60;
       for (const [who, co, rep] of spec.signers) {
-        g.font = `600 28px ${FF}`; g.fillText(`“${who}”`, 140, y);
-        g.font = `400 27px ${FF}`; const cx = Math.max(240, 140 + Math.ceil(g.measureText(`“${who}”`).width * 1.05) + 26); g.fillText(co, cx, y); g.fillText(rep, cx, y + 50);
-        g.fillText("(인)", 900, y + 50);
+        const label = LANG === "ko" ? `“${who}”` : who;
+        g.font = `600 28px ${FF}`; g.fillText(label, 140, y);
+        g.font = `400 27px ${FF}`; const cx = Math.max(240, 140 + Math.ceil(g.measureText(label).width * 1.05) + 26); g.fillText(co, cx, y); g.fillText(rep, cx, y + 50);
+        if (LANG === "ko") g.fillText("(인)", 900, y + 50); // English contracts: the stamp simply goes next to the signature
         g.strokeStyle = "#9aa1b1"; g.lineWidth = 2; g.beginPath(); g.moveTo(600, y + 60); g.lineTo(880, y + 60); g.stroke();
         marks.push({ who, line: { x0: 600 * K, x1: 880 * K, y: (y + 60) * K }, seal: { x: 925 * K, y: (y + 42) * K } });
         y += 190;
@@ -63,7 +65,7 @@
     return { bytes: new Uint8Array(await doc.save()), marks };
   }
 
-  const DOCS = {
+  const DOCS_KO = {
     contract: [
       { title: "용역 계약서", lines: [
         "발주자 가나다 주식회사(이하 “갑”)와 수급자 라온스튜디오(이하 “을”)는",
@@ -103,6 +105,54 @@
       signers: [["임대인", "", "박 민 수"], ["임차인", "라온스튜디오", "대표  홍 길 동"]] }],
   };
 
+  // English: all people, companies and addresses are made up
+  const DOCS_EN = {
+    contract: [
+      { title: "Service Agreement", lines: [
+        "This agreement is between Brightline Trading Inc. (the “Client”)",
+        "and Lumen Studio (the “Contractor”).", "",
+        "1. Purpose  The Contractor will produce a company video for the Client.", "",
+        "2. Term  From December 1, 2026 to January 31, 2027.", "",
+        "3. Fee  USD 5,000, excluding tax.",
+        "  · 50% deposit within 7 days of signing", "  · 50% within 14 days after the final video is accepted", "",
+        "4. Deliverables  The Contractor delivers the edit project and the",
+        "final video files to the Client.", "",
+        "5. Confidentiality  Neither party will share the other party’s",
+        "confidential information with anyone else.",
+      ] },
+      { title: "", lines: [
+        "6. Termination  If one party breaks this agreement and does not fix it",
+        "within 14 days, the other party may end it in writing.", "",
+        "7. Disputes  Any dispute about this agreement will be settled in the",
+        "courts of Sampletown County.", "",
+        "Signed in two copies. Each party keeps one.", "", "",
+        "November 25, 2026",
+      ], signers: [["Client", "Brightline Trading Inc.", "Sam Carter, CEO"], ["Contractor", "Lumen Studio", "Jordan Lee, Owner"]] },
+    ],
+    quote: [{ title: "Quote", lines: ["To: Brightline Trading Inc.", "Date: November 20, 2026", ""],
+      box: [["Item", "Qty", "Amount (USD)"], ["Company video (3 min)", "1", "4,000.00"], ["Subtitles and translation", "1", "600.00"], ["Camera rental", "2 days", "400.00"], ["Total (excluding tax)", "", "5,000.00"]],
+      after: ["", "Thank you for considering us.", "", "Lumen Studio  ·  Jordan Lee, Owner"] }],
+    employ: [{ title: "Employment Verification", lines: [
+      "Name: Casey Park", "Department: Design, Brightline Trading Inc.", "Position: Senior Designer", "Employed since: March 2, 2023", "",
+      "Purpose: for submission to a bank", "", "We confirm that the person above is currently employed by us.", "", "", "November 18, 2026", "", "Brightline Trading Inc.  ·  Sam Carter, CEO"] }],
+    nda: [{ title: "Non-Disclosure Agreement", lines: [
+      "I agree to protect the information I learn while working on a project", "with Brightline Trading Inc., as follows.", "",
+      "1. I will not share work information without the company’s consent.", "2. When the project ends, I will return or delete all materials.", "3. This agreement stays in effect for 2 years after the project ends.", ""],
+      signers: [["Signed by", "Lumen Studio", "Jordan Lee, Owner"]] }],
+    proxy: [{ title: "Power of Attorney", lines: [
+      "Principal: Jordan Lee", "Agent: Morgan Bae", "", "Scope: requesting and collecting business registration documents", "", "I grant the authority described above.", "", "November 10, 2026"],
+      signers: [["Principal", "", "Jordan Lee"]] }],
+    lease: [{ title: "Office Lease Agreement", lines: [
+      "Landlord Pat Rivera and tenant Lumen Studio agree to lease the office below.", "",
+      "Address: 12 Example Street, Suite 300, Sampletown", "Deposit: USD 10,000", "Monthly rent: USD 800, due on the 25th", "Term: 2 years from December 1, 2026"],
+      signers: [["Landlord", "", "Pat Rivera"], ["Tenant", "Lumen Studio", "Jordan Lee, Owner"]] }],
+  };
+  // the NDA as rewritten "outside the app" (the shots show the app noticing the change)
+  const NDA_REVISED = {
+    ko: [{ title: "비밀 유지 서약서", lines: ["본인은 가나다 주식회사와의 프로젝트를 하면서 알게 된 정보를", "다음과 같이 지킬 것을 서약합니다.", "", "1. 업무로 알게 된 정보를 회사 허락 없이 외부에 알리지 않습니다.", "2. 프로젝트가 끝나면 받은 자료를 돌려주거나 지웁니다.", "3. 이 서약은 프로젝트 종료 후 3년 동안 유효합니다.", ""], signers: [["서약자", "라온스튜디오", "대표  홍 길 동"]] }],
+    en: [{ title: "Non-Disclosure Agreement", lines: ["I agree to protect the information I learn while working on a project", "with Brightline Trading Inc., as follows.", "", "1. I will not share work information without the company’s consent.", "2. When the project ends, I will return or delete all materials.", "3. This agreement stays in effect for 3 years after the project ends.", ""], signers: [["Signed by", "Lumen Studio", "Jordan Lee, Owner"]] }],
+  };
+
   async function writeHome(path, bytes) {
     const d = await desk();
     await d.fs.mkdir(path.slice(0, path.lastIndexOf("/")), { recursive: true });
@@ -111,7 +161,7 @@
     return { size: st.size, mtime: st.mtimeMs };
   }
   async function createDoc(key, path, variant = 0) {
-    const { bytes, marks } = await makePdf(DOCS[key], variant);
+    const { bytes, marks } = await makePdf((LANG === "ko" ? DOCS_KO : DOCS_EN)[key], variant);
     await writeHome(path, bytes);
     return marks;
   }
@@ -122,8 +172,8 @@
     await new Promise((r) => setTimeout(r, 700)); // thumbnail
   }
 
-  // red seal, photographed on off-white paper (so "흰 종이 배경 지우기" has something to do)
-  function sealPhoto(chars = ["홍", "길", "동", "인"]) {
+  // red seal, photographed on off-white paper (so "remove white paper background" has something to do)
+  function sealPhoto() {
     const N = 420, c = canvasOf(N, N), g = c.getContext("2d");
     g.fillStyle = "#f7f5f0"; g.fillRect(0, 0, N, N);
     for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(120,110,90,${Math.random() * 0.04})`; g.fillRect(Math.random() * N, Math.random() * N, 2, 2); }
@@ -131,22 +181,45 @@
     g.fillStyle = grd; g.fillRect(0, 0, N, N);
     g.save(); g.translate(N / 2, N / 2); g.rotate(-0.06);
     g.strokeStyle = "#c62a22"; g.lineWidth = 15; g.beginPath(); g.arc(0, 0, 160, 0, Math.PI * 2); g.stroke();
-    g.fillStyle = "#c62a22"; g.font = '800 104px "Nanum Myeongjo", serif'; g.textAlign = "center"; g.textBaseline = "middle";
-    for (const [ch, dx, dy] of [[chars[0], 54, -52], [chars[1], 54, 56], [chars[2], -54, -52], [chars[3], -54, 56]]) g.fillText(ch, dx, dy);
+    g.fillStyle = "#c62a22"; g.textAlign = "center"; g.textBaseline = "middle";
+    if (LANG === "ko") {
+      g.font = '800 104px "Nanum Myeongjo", serif';
+      for (const [ch, dx, dy] of [["홍", 54, -52], ["길", 54, 56], ["동", -54, -52], ["인", -54, 56]]) g.fillText(ch, dx, dy);
+    } else { // a Latin-letter name seal: JORDAN over LEE
+      g.font = '800 46px "Nanum Myeongjo", serif'; g.fillText("JORDAN", 0, -40);
+      g.lineWidth = 6; g.beginPath(); g.moveTo(-112, 4); g.lineTo(112, 4); g.stroke();
+      g.font = '800 92px "Nanum Myeongjo", serif'; g.fillText("LEE", 0, 62);
+    }
     g.restore();
     // worn ink
     g.globalCompositeOperation = "lighter";
     for (let i = 0; i < 500; i++) { g.fillStyle = `rgba(60,60,60,${Math.random() * 0.35})`; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 2.5 + 0.4, 0, Math.PI * 2); g.fill(); }
     return c.toDataURL("image/jpeg", 0.9);
   }
-  // square company seal (직인)
+  // company seal: square 직인 (ko) or a round "official seal" with lettering around the edge (en)
   function companySeal() {
     const N = 360, c = canvasOf(N, N), g = c.getContext("2d");
-    g.strokeStyle = "#c3302a"; g.lineWidth = 14; g.strokeRect(22, 22, N - 44, N - 44);
-    g.lineWidth = 4; g.strokeRect(42, 42, N - 84, N - 84);
-    g.fillStyle = "#c3302a"; g.font = '800 70px "Nanum Myeongjo", serif'; g.textAlign = "center"; g.textBaseline = "middle";
-    const cols = [["가", "나", "다"], ["주", "식", "회"], ["사", "지", "인"]]; // read right column first
-    cols.forEach((col, ci) => col.forEach((ch, ri) => g.fillText(ch, N - 98 - ci * 82, 98 + ri * 82)));
+    g.strokeStyle = "#c3302a"; g.fillStyle = "#c3302a"; g.textAlign = "center"; g.textBaseline = "middle";
+    if (LANG === "ko") {
+      g.lineWidth = 14; g.strokeRect(22, 22, N - 44, N - 44);
+      g.lineWidth = 4; g.strokeRect(42, 42, N - 84, N - 84);
+      g.font = '800 70px "Nanum Myeongjo", serif';
+      const cols = [["가", "나", "다"], ["주", "식", "회"], ["사", "지", "인"]]; // read right column first
+      cols.forEach((col, ci) => col.forEach((ch, ri) => g.fillText(ch, N - 98 - ci * 82, 98 + ri * 82)));
+    } else {
+      const R = N / 2;
+      g.lineWidth = 12; g.beginPath(); g.arc(R, R, R - 16, 0, Math.PI * 2); g.stroke();
+      g.lineWidth = 4; g.beginPath(); g.arc(R, R, R - 80, 0, Math.PI * 2); g.stroke();
+      const ring = (text, mid, dir) => { // letters along the ring between the two circles
+        g.font = '800 34px "Nanum Myeongjo", serif';
+        const r = R - 48, step = 0.168, a0 = mid - (dir * step * (text.length - 1)) / 2;
+        [...text].forEach((ch, i) => { const a = a0 + dir * i * step; g.save(); g.translate(R + r * Math.cos(a), R + r * Math.sin(a)); g.rotate(a + (dir > 0 ? Math.PI / 2 : -Math.PI / 2)); g.fillText(ch, 0, 0); g.restore(); });
+      };
+      ring("BRIGHTLINE TRADING", -Math.PI / 2, 1);
+      ring("INC.", Math.PI / 2, -1);
+      g.font = '800 30px "Nanum Myeongjo", serif'; g.fillText("OFFICIAL", R, R - 22); g.fillText("SEAL", R, R + 22);
+      g.beginPath(); for (const dx of [-112, 112]) { g.moveTo(R + dx, R - 9); g.lineTo(R + dx + 9, R); g.lineTo(R + dx, R + 9); g.lineTo(R + dx - 9, R); g.closePath(); } g.fill();
+    }
     g.globalCompositeOperation = "destination-out";
     for (let i = 0; i < 700; i++) { g.globalAlpha = Math.random() * 0.5; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 2.6 + 0.4, 0, Math.PI * 2); g.fill(); }
     return c.toDataURL("image/png");
@@ -183,5 +256,6 @@
     return strokes;
   }
 
-  window.__seed = { fonts, makePdf, createDoc, openPath, writeHome, sealPhoto, companySeal, addImageAsset, signatureStrokes, K };
+  const setLang = (l) => { LANG = l === "en" ? "en" : "ko"; };
+  window.__seed = { setLang, fonts, makePdf, createDoc, openPath, writeHome, sealPhoto, companySeal, addImageAsset, signatureStrokes, NDA_REVISED: () => NDA_REVISED[LANG], K };
 })();

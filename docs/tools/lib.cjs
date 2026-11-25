@@ -1,4 +1,4 @@
-// Shared helpers for the README image scripts. Run them through render.sh.
+// Shared helpers for the README image scripts (English and Korean UI). Run them through render.sh.
 // Privacy: everything runs against a sandbox "home" folder (FAKE_HOME) filled with made-up documents.
 const fs = require("fs");
 const path = require("path");
@@ -6,10 +6,42 @@ const { chromium } = require("playwright");
 
 const ROOT = path.resolve(__dirname, "..", "..");
 const OUT = path.join(__dirname, "out");
-const RAW = path.join(OUT, "raw");
 const IMAGES = path.join(ROOT, "docs", "images");
-const URL_APP = process.env.PDFE_URL || "http://localhost:4320/?desktop=1";
+// standalone=1: the Electron app's code paths (seal UI with the dev server's stand-in seal, language switch)
+const URL_APP = process.env.PDFE_URL || "http://localhost:4320/?desktop=1&standalone=1";
 const MARK = ".pdfe-fake-home";
+const LANGS = ["en", "ko"];
+// language of this run: first CLI argument (en | ko), else PDFE_LANG, else en
+const LANG = LANGS.includes(process.argv[2]) ? process.argv[2] : LANGS.includes(process.env.PDFE_LANG) ? process.env.PDFE_LANG : "en";
+const rawDir = (lang = LANG) => path.join(OUT, "raw-" + lang);
+const RAW = rawDir();
+
+// Everything the scripts type or name, per UI language. All people, companies and files are made up.
+const SCENARIOS = {
+  ko: {
+    sig: "내 서명", seal: "홍길동 도장", corp: "회사 직인", date: "오늘 날짜", dateText: "2026. 11. 25.",
+    sealer: { name: "홍길동", org: "라온스튜디오" },
+    docs: {
+      proxy: "~/Downloads/위임장.pdf", lease: "~/Documents/임대차계약서.pdf", employ: "~/Documents/재직증명서.pdf",
+      nda: "~/Desktop/비밀유지서약서.pdf", quote: "~/Downloads/견적서_라온스튜디오.pdf", contract: "~/Documents/용역계약서_가나다.pdf",
+    },
+    folders: ["~/Documents/2025 정산", "~/Documents/견적서 모음"],
+  },
+  en: {
+    sig: "My signature", seal: "Jordan's stamp", corp: "Company seal", date: "Today's date", dateText: "Nov 25, 2026",
+    sealer: { name: "Jordan Lee", org: "Lumen Studio" },
+    docs: {
+      proxy: "~/Downloads/Power_of_Attorney.pdf", lease: "~/Documents/Office_Lease.pdf", employ: "~/Documents/Employment_Verification.pdf",
+      nda: "~/Desktop/NDA_Brightline.pdf", quote: "~/Downloads/Quote_Lumen_Studio.pdf", contract: "~/Documents/Service_Agreement_Brightline.pdf",
+    },
+    folders: ["~/Documents/2025 Taxes", "~/Documents/Quotes"],
+  },
+};
+const SC = SCENARIOS[LANG];
+const SUFFIX = { ko: "_서명", en: "_signed" }[LANG];
+const base = (p) => p.slice(p.lastIndexOf("/") + 1);
+const stem = (p) => base(p).replace(/\.pdf$/i, "");
+const signedPath = (p) => p.replace(/\.pdf$/i, SUFFIX + ".pdf");
 
 function fakeHome() {
   const h = process.env.FAKE_HOME;
@@ -42,7 +74,10 @@ async function launch() {
 }
 
 async function newPage(browser, { scale = 2, width = 1440, height = 900 } = {}) {
-  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: "light", locale: "ko-KR", timezoneId: "Asia/Seoul" });
+  const ctx = await browser.newContext({ viewport: { width, height }, deviceScaleFactor: scale, colorScheme: "light",
+    locale: LANG === "ko" ? "ko-KR" : "en-US", timezoneId: LANG === "ko" ? "Asia/Seoul" : "America/New_York" });
+  // first paint already in the right language (the page reads this hint before its storage loads)
+  await ctx.addInitScript((l) => { try { localStorage.setItem("pdfe.lang", l); } catch {} }, LANG);
   const page = await ctx.newPage();
   page.on("pageerror", (e) => console.warn("[pageerror]", e.message));
   return page;
@@ -57,6 +92,7 @@ async function openApp(page) {
     } catch (e) { if (i === 2) throw e; console.warn("reload:", e.message); }
   }
   await page.addScriptTag({ path: path.join(__dirname, "seed-page.js") });
+  await page.evaluate(async (l) => { window.__seed.setLang(l); await window.__pdfe.setLang(l); }, LANG);
   await page.evaluate(() => window.__seed.fonts());
   await page.evaluate(() => document.fonts.ready);
   // no blinking caret / hover tips in captures
@@ -82,7 +118,7 @@ async function drawSignature(page, { onFrame } = {}) {
   }
 }
 
-// Build the sandbox: library (signature, seal photo, company seal, date stamp) and a 보관함 with documents in several states.
+// Build the sandbox: library (signature, seal photo, company seal, date stamp) and a Library with documents in several states.
 // opts.keepMainClean: leave the main contract without overlays (for the demo)
 async function seed(page, { keepMainClean = false, shots = null } = {}) {
   // show the library panel on the home screen
@@ -97,40 +133,39 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
   if (shots?.pad) await shots.pad();
   await page.locator("#pad-save").click();
   await sleep(400);
-  await page.evaluate(async () => {
+  await page.evaluate(async (SC) => {
     const S = window.__pdfe.S; const a = [...S.assets.values()].find((x) => x.kind === "draw" && !x.sample);
-    a.name = "내 서명"; await window.__pdfe.addToLibrary(a);
-  });
+    a.name = SC.sig; await window.__pdfe.addToLibrary(a);
+  }, SC);
 
   // 2) seal photo (off-white paper -> background removal), company seal, date stamp
-  await page.evaluate(async () => {
+  await page.evaluate(async (SC) => {
     const s = window.__seed;
-    await s.addImageAsset(s.companySeal(), "회사 직인");
-    await s.addImageAsset(s.sealPhoto(), "홍길동 도장");
-  });
+    await s.addImageAsset(s.companySeal(), SC.corp);
+    await s.addImageAsset(s.sealPhoto(), SC.seal);
+  }, SC);
   await page.locator('#home .add-btn[data-add="text"]').click();
   await sleep(300);
-  await page.locator("#txt-input").fill("2026. 11. 25.");
+  await page.locator("#txt-input").fill(SC.dateText);
   await page.locator("#txt-input").dispatchEvent("input");
   await sleep(500);
   if (shots?.text) await shots.text();
   await page.locator("#txt-save").click();
   await sleep(400);
-  await page.evaluate(async () => {
+  await page.evaluate(async (SC) => {
     const S = window.__pdfe.S; const a = [...S.assets.values()].find((x) => x.kind === "text" && !x.sample);
-    if (a) { a.name = "오늘 날짜"; await window.__pdfe.addToLibrary(a); }
-  });
-  // library order: signature first, then seal, company seal, date
-  await page.evaluate(async () => {
-    const S = window.__pdfe.S; const now = Date.now(); const order = ["내 서명", "홍길동 도장", "회사 직인", "오늘 날짜"];
-    for (const a of S.assets.values()) if (!a.sample) { const i = order.indexOf(a.name); a.lastUsed = now - (i < 0 ? 9 : i) * 1000; await window.__pdfe.addToLibrary(a); }
-  });
+    if (a) { a.name = SC.date; await window.__pdfe.addToLibrary(a); }
+    // library order: signature first, then seal, company seal, date
+    const now = Date.now(); const order = [SC.sig, SC.seal, SC.corp, SC.date];
+    for (const x of S.assets.values()) if (!x.sample) { const i = order.indexOf(x.name); x.lastUsed = now - (i < 0 ? 9 : i) * 1000; await window.__pdfe.addToLibrary(x); }
+  }, SC);
 
   // 3) documents
-  const marks = await page.evaluate(async ({ keepMainClean }) => {
-    const p = window.__pdfe, s = window.__seed, S = p.S;
+  const marks = await page.evaluate(async ({ keepMainClean, SC, SUFFIX }) => {
+    const p = window.__pdfe, s = window.__seed, S = p.S, D = SC.docs;
+    const base = (x) => x.slice(x.lastIndexOf("/") + 1), signed = (x) => base(x).replace(/\.pdf$/i, SUFFIX + ".pdf");
     const id = (name) => [...S.assets.values()].find((a) => a.name === name && !a.sample).id;
-    const SIG = id("내 서명"), SEAL = id("홍길동 도장"), CORP = id("회사 직인");
+    const SIG = id(SC.sig), SEAL = id(SC.seal), CORP = id(SC.corp);
     const place = (assetId, page, cx, cy, w, h, rot = 0) => {
       p.placeAsset(assetId, page, { x: cx, y: cy });
       const o = S.overlays[S.overlays.length - 1];
@@ -145,53 +180,79 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
     const save = async (name) => { const src = S.rec.source.path; await p.performSave(name, src.slice(0, src.lastIndexOf("/")), false); };
     const out = {};
 
-    // 위임장: opened, nothing placed yet
-    await s.createDoc("proxy", "~/Downloads/위임장.pdf"); await s.openPath("~/Downloads/위임장.pdf");
-    // 임대차계약서: signed + saved, then the saved file was deleted in Finder
-    let m = await s.createDoc("lease", "~/Documents/임대차계약서.pdf"); await s.openPath("~/Documents/임대차계약서.pdf");
-    sign(m[1]); await save("임대차계약서_서명.pdf");
-    // 재직증명서: company seal, saved
-    await s.createDoc("employ", "~/Documents/재직증명서.pdf"); await s.openPath("~/Documents/재직증명서.pdf");
-    place(CORP, 0, 470, 655, 62, 62, 0); await save("재직증명서_서명.pdf");
-    // 비밀유지서약서: signed + saved, then the original was edited outside the app
-    m = await s.createDoc("nda", "~/Desktop/비밀유지서약서.pdf"); await s.openPath("~/Desktop/비밀유지서약서.pdf");
-    sign(m[0]); await save("비밀유지서약서_서명.pdf");
-    // 견적서: stamped, not saved yet
-    await s.createDoc("quote", "~/Downloads/견적서_라온스튜디오.pdf"); await s.openPath("~/Downloads/견적서_라온스튜디오.pdf");
+    // power of attorney: opened, nothing placed yet
+    await s.createDoc("proxy", D.proxy); await s.openPath(D.proxy);
+    // lease: signed + saved, then the saved file was deleted in Finder
+    let m = await s.createDoc("lease", D.lease); await s.openPath(D.lease);
+    sign(m[1]); await save(signed(D.lease));
+    // employment letter: company seal, saved
+    await s.createDoc("employ", D.employ); await s.openPath(D.employ);
+    place(CORP, 0, 470, 655, 62, 62, 0); await save(signed(D.employ));
+    // NDA: signed + saved, then the original was edited outside the app
+    m = await s.createDoc("nda", D.nda); await s.openPath(D.nda);
+    sign(m[0]); await save(signed(D.nda));
+    // quote: stamped, not saved yet
+    await s.createDoc("quote", D.quote); await s.openPath(D.quote);
     place(SEAL, 0, 360, 676, 46, 46, 352);
-    // 용역계약서: the main document
-    m = await s.createDoc("contract", "~/Documents/용역계약서_가나다.pdf"); await s.openPath("~/Documents/용역계약서_가나다.pdf");
+    // service agreement: the main document
+    m = await s.createDoc("contract", D.contract); await s.openPath(D.contract);
     out.contract = m;
-    const d = await window.claude.use("desktop"); for (const f of ["~/Documents/2025 정산", "~/Documents/견적서 모음"]) await d.fs.mkdir(f, { recursive: true });
+    const d = await window.claude.use("desktop"); for (const f of SC.folders) await d.fs.mkdir(f, { recursive: true });
     if (!keepMainClean) sign(m[1]);
     return out;
-  }, { keepMainClean });
+  }, { keepMainClean, SC, SUFFIX });
   await sleep(600);
 
   // outside-the-app changes (what Finder would do)
   const h = fakeHome();
-  fs.rmSync(path.join(h, "Documents", "임대차계약서_서명.pdf"));
-  await page.evaluate(async () => {
+  fs.rmSync(path.join(h, signedPath(SC.docs.lease).slice(2)));
+  await page.evaluate(async (ndaPath) => {
     // rewrite the original NDA with a visibly different version
     const s = window.__seed;
-    const pages = [{ title: "비밀 유지 서약서", lines: ["본인은 가나다 주식회사와의 프로젝트를 하면서 알게 된 정보를", "다음과 같이 지킬 것을 서약합니다.", "", "1. 업무로 알게 된 정보를 회사 허락 없이 외부에 알리지 않습니다.", "2. 프로젝트가 끝나면 받은 자료를 돌려주거나 지웁니다.", "3. 이 서약은 프로젝트 종료 후 3년 동안 유효합니다.", ""], signers: [["서약자", "라온스튜디오", "대표  홍 길 동"]] }];
-    const { bytes } = await s.makePdf(pages, 1);
+    const { bytes } = await s.makePdf(s.NDA_REVISED(), 1);
     await new Promise((r) => setTimeout(r, 1600)); // newer mtime
-    await s.writeHome("~/Desktop/비밀유지서약서.pdf", bytes);
-  });
+    await s.writeHome(ndaPath, bytes);
+  }, SC.docs.nda);
 
   // believable times in the list
-  await page.evaluate(async () => {
+  await page.evaluate(async (D) => {
     const p = window.__pdfe, S = p.S, now = Date.now(), min = 60e3, hr = 3600e3, day = 86400e3;
-    const T = { "용역계약서_가나다.pdf": [2 * min, 1 * min], "견적서_라온스튜디오.pdf": [2 * hr, 2 * hr - 4 * min], "비밀유지서약서.pdf": [day + 3 * hr, day + 3 * hr], "재직증명서.pdf": [3 * day, 3 * day], "임대차계약서.pdf": [5 * day, 5 * day], "위임장.pdf": [8 * day, null] };
+    const base = (x) => x.slice(x.lastIndexOf("/") + 1);
+    const T = { [base(D.contract)]: [2 * min, 1 * min], [base(D.quote)]: [2 * hr, 2 * hr - 4 * min], [base(D.nda)]: [day + 3 * hr, day + 3 * hr], [base(D.employ)]: [3 * day, 3 * day], [base(D.lease)]: [5 * day, 5 * day], [base(D.proxy)]: [8 * day, null] };
     for (const r of S.docs) {
       const t = T[r.name]; if (!t) continue;
       r.openedAt = now - t[0]; r.editedAt = t[1] == null ? null : now - t[1];
       if (r.export) { r.export.at = now - t[1] + 20e3; for (const e of r.exportLog || []) e.at = r.export.at; }
     }
     await p.Store.saveDocs(S.docs);
-  });
+  }, SC.docs);
   return marks;
+}
+
+// a sealer identity in the stand-in seal (the real app keeps it in the Keychain / DPAPI)
+async function makeSealer(page) {
+  await page.evaluate(async (who) => {
+    const p = window.__pdfe; const st = p.S.seal;
+    p.SEAL.id = (await st.identity()) || (await st.createIdentity(who));
+  }, SC.sealer);
+}
+// read a file of the fake home / append bytes to it (a change made "outside the app")
+async function readHome(page, p) { return page.evaluate(async (p) => [...new Uint8Array(await (await window.claude.use("desktop")).fs.readFile(p))], p); }
+async function appendToFile(page, p, text = "\n% edited in another app\n") {
+  await page.evaluate(async ([p, text]) => {
+    const fsx = (await window.claude.use("desktop")).fs;
+    const a = new Uint8Array(await fsx.readFile(p)), b = new TextEncoder().encode(text), out = new Uint8Array(a.length + b.length);
+    out.set(a); out.set(b, a.length); await fsx.writeFile(p, out);
+  }, [p, text]);
+}
+// open the Verify seal dialog on a file of the fake home (what "Choose file…" does after the native panel)
+async function verifyPath(page, p) {
+  await page.evaluate(async (p) => {
+    const x = window.__pdfe; x.openVerify();
+    const bytes = new Uint8Array(await x.S.fs.readFile(p));
+    await x.verifyBytes(bytes, p.slice(p.lastIndexOf("/") + 1));
+  }, p);
+  await sleep(500);
 }
 
 async function shot(page, name, { clip, keepToasts = false } = {}) {
@@ -202,4 +263,4 @@ async function shot(page, name, { clip, keepToasts = false } = {}) {
   return file;
 }
 
-module.exports = { ROOT, OUT, RAW, IMAGES, fakeHome, wipeFakeHome, launch, newPage, openApp, seed, drawSignature, shot, sleep };
+module.exports = { ROOT, OUT, RAW, IMAGES, LANG, LANGS, SC, SCENARIOS, SUFFIX, rawDir, base, stem, signedPath, fakeHome, wipeFakeHome, launch, newPage, openApp, seed, makeSealer, readHome, appendToFile, verifyPath, drawSignature, shot, sleep };

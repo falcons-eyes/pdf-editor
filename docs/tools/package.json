@@ -1,7 +1,7 @@
 {
-  "name": "pdf-editor-readme-images",
-  "version": "1.0.0",
-  "description": "Generates the README images from the real app UI",
+  "name": "sealworks-readme-images",
+  "version": "1.1.0",
+  "description": "Generates the README images (English and Korean) from the real app UI",
   "scripts": {
     "render": "./render.sh",
     "compose": "./render.sh compose"
