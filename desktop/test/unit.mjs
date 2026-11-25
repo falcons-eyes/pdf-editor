@@ -59,7 +59,8 @@ const eq = (a, b) => JSON.stringify(a) === JSON.stringify(b);
   const log = [];
   let active = 0;
   const startAccess = (b) => { log.push(`start ${b}`); active++; return () => { log.push(`stop ${b}`); active--; }; };
-  const bm = createBookmarks({ file, enabled: true, startAccess });
+  // bookmarks exist only in the Mac App Store build: macOS paths on every test runner
+  const bm = createBookmarks({ file, enabled: true, startAccess, pathImpl: path.posix });
 
   check("bookmarks: empty store, lookup null", bm.lookup("/Users/u/a.pdf") === null && bm.size() === 0 && !fs.existsSync(file));
   check("bookmarks: refuses empty bookmark data", bm.remember("/Users/u/a.pdf", "", false) === false && bm.size() === 0);
