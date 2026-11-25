@@ -728,7 +728,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
   <header class="titlebar">
     <button class="btn outline back" id="btn-back" data-i18n-tip="nav.back" data-k="⇧⌘H" data-i18n-label="nav.back.label" hidden><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M10 3.5 5.5 8l4.5 4.5"/></svg><span class="hide-narrow" data-i18n="lib.name"></span></button>
     <div class="brand">
-      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="2" width="14" height="19" rx="2" fill="var(--paper)" stroke="var(--line-strong)"/><path d="M6.5 15.5c1.6-2.8 2.4-.2 3.4-1.6s1.6-2.2 2.4-.4 2.2-.8 3.2-1.4" fill="none" stroke="var(--accent)" stroke-width="1.5" stroke-linecap="round"/><circle cx="17.5" cy="17.5" r="4" fill="none" stroke="var(--seal)" stroke-width="1.6"/></svg>
+      <svg class="brand-mark" viewBox="0 0 24 24" aria-hidden="true"><g transform="translate(-3.6 -3.4) scale(.02933)"><path d="M230 150H536L656 270V478.6A226 226 0 0 0 467.4 800H230a34 34 0 0 1-34-34V184a34 34 0 0 1 34-34Z" fill="var(--accent)"/><path d="M536 150V236a34 34 0 0 0 34 34H656Z" fill="#fff" fill-opacity=".5"/><circle cx="672" cy="704" r="196" fill="var(--seal)"/><path d="M556 722C583 687 611 694 619 714S641 750 659 767L778 633" fill="none" stroke="#fff" stroke-width="40" stroke-linecap="round" stroke-linejoin="round"/></g></svg>
       <div class="doc-name"><strong id="doc-title">Sealworks</strong><span id="doc-sub"></span></div>
     </div>
     <div class="grow"></div>
@@ -4404,17 +4404,26 @@ async function loadSample() {
    Desktop app integration (Install as app, file access, menus)
    ================================================================ */
 function drawAppIcon() {
-  const N = 256, c = canvasOf(N, N), g = c.getContext("2d"), r = 56;
-  g.fillStyle = "#2446c7"; g.beginPath(); g.roundRect(8, 8, N - 16, N - 16, r); g.fill();
-  const grd = g.createLinearGradient(0, 8, 0, N); grd.addColorStop(0, "rgba(255,255,255,.16)"); grd.addColorStop(1, "rgba(0,0,0,.12)");
-  g.fillStyle = grd; g.beginPath(); g.roundRect(8, 8, N - 16, N - 16, r); g.fill();
-  g.fillStyle = "#fff"; g.beginPath(); g.moveTo(66, 44); g.lineTo(162, 44); g.lineTo(196, 78); g.lineTo(196, 214); g.lineTo(66, 214); g.closePath(); g.fill();
-  g.fillStyle = "#d7ddf2"; g.beginPath(); g.moveTo(162, 44); g.lineTo(162, 78); g.lineTo(196, 78); g.closePath(); g.fill();
-  g.strokeStyle = "#c9d0e6"; g.lineWidth = 7; g.lineCap = "round";
-  for (const y of [96, 118, 140]) { g.beginPath(); g.moveTo(88, y); g.lineTo(y === 140 ? 140 : 174, y); g.stroke(); }
-  g.strokeStyle = "#1d3fb8"; g.lineWidth = 7; g.beginPath(); g.moveTo(84, 186); g.bezierCurveTo(104, 150, 116, 196, 130, 172); g.bezierCurveTo(142, 152, 150, 190, 170, 170); g.stroke();
-  g.strokeStyle = "#d33a2f"; g.lineWidth = 9; g.beginPath(); g.arc(186, 190, 30, 0, Math.PI * 2); g.stroke();
-  g.fillStyle = "#d33a2f"; g.font = "800 30px 'Nanum Myeongjo', serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText("印", 186, 192);
+  // the Sealworks icon (docs/brand/sealworks-icon.svg, 1024 units): a page closed with a wax seal whose signature runs into a tick
+  const N = 256, k = N / 1024, c = canvasOf(N, N), g = c.getContext("2d");
+  g.scale(k, k);
+  const lin = (y0, y1, a, b) => { const l = g.createLinearGradient(0, y0, 0, y1); l.addColorStop(0, a); l.addColorStop(1, b); return l; };
+  const wax = (R) => { const p = new Path2D(); for (let i = 0; i < 360; i++) { const a = i * Math.PI / 180, r = R * (1 + 0.032 * Math.cos(9 * a) + 0.008 * Math.sin(4 * a + 0.7)); p.lineTo(672 + r * Math.cos(a), 704 + r * Math.sin(a)); } p.closePath(); return p; };
+  const shadow = (on) => { g.shadowColor = on ? "rgba(0,0,0,.28)" : "transparent"; g.shadowBlur = 36 * k; g.shadowOffsetY = 14 * k; };
+  const tile = new Path2D(); tile.roundRect(0, 0, 1024, 1024, 230);
+  g.fillStyle = lin(0, 1024, "#3d60e6", "#1a31a0"); g.fill(tile);
+  const glow = g.createRadialGradient(307, 0, 0, 307, 0, 922); glow.addColorStop(0, "rgba(255,255,255,.16)"); glow.addColorStop(1, "rgba(255,255,255,0)");
+  g.fillStyle = glow; g.fill(tile);
+  g.save(); const bite = wax(226); bite.rect(0, 0, 1024, 1024); g.clip(bite, "evenodd");
+  shadow(true); g.fillStyle = lin(150, 800, "#fff", "#eef1fb"); g.fill(new Path2D("M230 150H536L656 270V766a34 34 0 0 1-34 34H230a34 34 0 0 1-34-34V184a34 34 0 0 1 34-34Z"));
+  shadow(false); g.fillStyle = "#c3cdf1"; g.fill(new Path2D("M536 150V236a34 34 0 0 0 34 34H656Z"));
+  g.strokeStyle = "#d4dbf3"; g.lineWidth = 40; g.lineCap = "round"; g.stroke(new Path2D("M266 300H470M266 390H560M266 480H420"));
+  g.restore();
+  shadow(true); g.fillStyle = lin(500, 908, "#e2463b", "#b2241e"); g.fill(wax(196)); shadow(false);
+  g.translate(672, 704); g.scale(1.96, 1.96);
+  g.fillStyle = lin(-76, 76, "#a81d18", "#d43a30"); g.beginPath(); g.arc(0, 0, 76, 0, Math.PI * 2); g.fill();
+  g.strokeStyle = "rgba(255,255,255,.22)"; g.lineWidth = 3; g.stroke();
+  g.strokeStyle = "#fff"; g.lineWidth = 18; g.lineCap = g.lineJoin = "round"; g.stroke(new Path2D("M-59 9C-45-9-31-5-27 5C-23 16-16 23-7 32L54-36"));
   return c.toDataURL("image/png");
 }
 const WINDOW_OPTIONS = { titleBarStyle: "hiddenInset", trafficLightPosition: { x: 18, y: 19 }, dragHeight: 8, minWidth: 880, minHeight: 600 };

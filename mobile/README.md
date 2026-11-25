@@ -12,7 +12,7 @@ npm run apk           # sync + ./gradlew assembleDebug  -> android/app/build/out
 npm run aab           # sync + ./gradlew bundleRelease  -> android/app/build/outputs/bundle/release/app-release.aab
 npm run test:seal     # seal bundle in plain Node (no device)
 npm run test:android  # emulator test (boots the Pixel_7 AVD headless, see below)
-npm run icons         # re-render launcher/splash icons from desktop/build/icon.png
+npm run icons         # re-render launcher/splash icons from docs/brand/*.svg
 ```
 
 Gradle needs **JDK 21** (Capacitor 8 compiles for Java 21). Android Studio's bundled JBR works:
@@ -162,8 +162,9 @@ Release is not minified (R8 off): Capacitor finds plugin methods by reflection.
 
 ## Icons and splash
 
-`npm run icons` renders from `desktop/build/icon.png`: legacy `ic_launcher`/`ic_launcher_round` (48 dp,
-all densities), adaptive icon = gradient background drawable (colors sampled from the icon) + foreground
-(the page and seal cut out along their outlines, inside the 66 dp safe zone) + the same as monochrome,
+`npm run icons` renders from the brand masters in `docs/brand/` (see its README): legacy
+`ic_launcher`/`ic_launcher_round` (48 dp, all densities), adaptive icon = gradient background drawable
+(the tile's colours) + foreground (the page and wax seal without the tile, inside the 66 dp safe zone)
++ `ic_launcher_monochrome` (the one-colour mark, for themed icons),
 `ic_splash` for the SplashScreen API (`windowSplashScreenAnimatedIcon` on the icon blue; kept until the page
 has loaded, at most 3 s), and `store/play-icon-512.png`.

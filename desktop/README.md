@@ -25,7 +25,7 @@ npm run dist:win     # dist/Sealworks-<v>-setup-x64.exe (NSIS) and -portable-x64
 npm run dist:mas     # dist/mas-universal/Sealworks-<v>-mas-universal.pkg (needs the Apple certificates, below)
 npm run dist:mas-dev # dist/mas-dev-universal/Sealworks.app, development-signed (needs a dev profile)
 npm run test:sandbox # local App Sandbox test without certificates (macOS, below)
-npm run icon         # re-render build/icon.{png,icns,ico} from the page's drawAppIcon() (macOS, python3 + Pillow)
+npm run icon         # re-render build/icon.{png,icns,ico} and the site icons from docs/brand/*.svg (icns needs macOS)
 ```
 
 CI: `.github/workflows/build.yml` builds and smoke-tests on macos-latest and windows-latest for every
