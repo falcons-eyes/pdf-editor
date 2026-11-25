@@ -1,6 +1,9 @@
 // Smoke test: launches the app with Playwright's Electron driver against an isolated home folder
 // (PDFE_HOME_OVERRIDE), checks the desktop API, opens the sample, places an asset, saves a signed
-// PDF through the page's own save path and verifies it with pdf-lib. Screenshots go to test/out/.
+// PDF through the page's own save path and verifies it with pdf-lib, then seals it (desktop.seal),
+// checks every verify status, the .p12 backup round trip, the private key folder guard and
+// desktop.setLanguage, and opens the sealed file in the page (pdf.js). Screenshots and the sealed
+// sample (sealed-<platform>.pdf + -cert.pem, for test/validate_pyhanko.py) go to test/out/.
 //
 //   node test/smoke.mjs                 # the unpacked build in dist/ (npm run pack)
 //   node test/smoke.mjs --dev           # electron . (needs npm run build:page)
@@ -35,6 +38,20 @@ function resolveTarget() {
   if (p.endsWith(".app")) p = path.join(p, "Contents", "MacOS", path.basename(p, ".app"));
   return { executablePath: p, args: [], label: p };
 }
+
+/** a classic incremental update after the seal: new /Info object, xref section, trailer with /Prev */
+function appendUpdate(pdf) {
+  const s = pdf.toString("latin1");
+  const trailer = s.slice(s.lastIndexOf("trailer"));
+  const prev = +/startxref\s+(\d+)\s+%%EOF\s*$/.exec(s)[1];
+  const root = /\/Root\s+(\d+\s+\d+\s+R)/.exec(trailer)[1];
+  const size = +/\/Size\s+(\d+)/.exec(trailer)[1];
+  const head = `\n${size} 0 obj\n<< /Producer (edited after sealing) >>\nendobj\n`;
+  const xrefAt = pdf.length + Buffer.byteLength(head);
+  const tail = `xref\n${size} 1\n${String(pdf.length + 1).padStart(10, "0")} 00000 n \ntrailer\n<< /Size ${size + 1} /Root ${root} /Info ${size} 0 R /Prev ${prev} >>\nstartxref\n${xrefAt}\n%%EOF\n`;
+  return Buffer.concat([pdf, Buffer.from(head + tail, "latin1")]);
+}
+const menuLabels = (app) => app.evaluate(({ Menu }) => (Menu.getApplicationMenu()?.items || []).map((i) => ({ label: i.label, items: (i.submenu?.items || []).map((s) => s.label) })));
 
 const results = [];
 const check = (name, ok, detail = "") => {
@@ -122,8 +139,10 @@ async function main() {
     check("files written into the override home", fs.existsSync(path.join(home, "api", "a", "t.txt")));
 
     // menus: the page's template reached the native menu, and clicks come back to the page
-    const labels = await app.evaluate(({ Menu }) => Menu.getApplicationMenu()?.items.map((i) => i.label) || []);
-    check("application menu from the page", labels.includes("파일") && labels.includes("편집") && labels.includes("도움말"), labels.join(" | "));
+    // (the page picks Korean or English from the system language; either is fine here)
+    const labels = (await menuLabels(app)).map((m) => m.label);
+    const has = (ko, en) => labels.includes(ko) || labels.includes(en);
+    check("application menu from the page", has("파일", "File") && has("편집", "Edit") && has("도움말", "Help"), labels.join(" | "));
 
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(OUT, `home-${process.platform}.png`) });
@@ -152,10 +171,127 @@ async function main() {
     await page.waitForTimeout(800);
     await page.screenshot({ path: path.join(OUT, `editor-${process.platform}.png`) });
 
-    // ---- menu click round trip: 파일 > 보관함으로 돌아가기 ----
+    // ---- seal: identity, sign, verify statuses, backup, key folder guard ----
+    const sealed = await page.evaluate(async () => {
+      const d = await window.claude.use("desktop");
+      const err = async (p) => { try { await p; return "resolved"; } catch (e) { return String(e.message); } };
+      const r = { api: !!d.seal && typeof d.setLanguage === "function" };
+      if (!r.api) return r;
+      // the page may already have made one (it shouldn't without the user); start clean
+      await d.seal.removeIdentity();
+      r.before = await d.seal.identity();
+      r.created = await d.seal.createIdentity({ name: "홍길동", org: "Smoke", email: "smoke@example.com" });
+      r.again = await err(d.seal.createIdentity({ name: "someone else" }));
+      r.identity = await d.seal.identity();
+      const pdf = await d.fs.readFile("~/Out/smoke_signed.pdf");
+      const out = await d.seal.sign(pdf, { reason: "smoke", location: "Seoul", lang: "ko" });
+      r.isBytes = out instanceof Uint8Array && out.length > pdf.length;
+      await d.fs.writeFile("~/Out/smoke_sealed.pdf", out);
+      r.v = await d.seal.verify(out);
+      r.unsigned = (await d.seal.verify(pdf)).status;
+      r.garbage = (await d.seal.verify(new Uint8Array([37, 80, 68, 70, 1, 2, 3]))).status;
+      const p12 = await d.seal.exportIdentity({ password: "smoke-비밀" });
+      r.p12 = p12 instanceof Uint8Array && p12.length > 1000;
+      await d.seal.removeIdentity();
+      r.afterRemove = await d.seal.identity();
+      r.noIdentity = [await err(d.seal.sign(pdf)), await err(d.seal.exportIdentity({ password: "x" }))];
+      r.notMine = (await d.seal.verify(out)).signatures[0]?.mine;
+      r.wrong = await err(d.seal.importIdentity(p12, { password: "wrong" }));
+      r.imported = await d.seal.importIdentity(p12.buffer, { password: "smoke-비밀" });
+      r.mineAgain = (await d.seal.verify(out)).signatures[0]?.mine;
+      const sealDir = "~/Library/Application Support/PDF Editor/seal";
+      r.guard = [
+        await err(d.fs.readFile(`${sealDir}/key.bin`)),
+        await err(d.fs.writeFile(`${sealDir}/cert.pem`, "x")),
+        await err(d.fs.copyFile(`${sealDir}/key.bin`, "~/Out/stolen.bin")),
+        // case-insensitive file systems (macOS, Windows): another spelling is the same folder
+        ...(d.platform === "linux" ? [] : [await err(d.fs.readFile("~/library/application support/pdf editor/SEAL/key.bin"))]),
+        await err(d.fs.rm(`${sealDir}/identity.json`)),
+      ];
+      r.listOk = Array.isArray(await d.fs.readdir(sealDir));
+      return r;
+    });
+    if (check("desktop.seal and setLanguage exposed", sealed.api)) {
+      const s0 = sealed.v?.signatures?.[0] || {};
+      check("seal: no identity at first, createIdentity", sealed.before === null && sealed.created?.name === "홍길동" && sealed.created.org === "Smoke" && /^[0-9A-F]{4}( [0-9A-F]{4}){15}$/.test(sealed.created.fingerprint) && sealed.created.imported === false && ["os", "file"].includes(sealed.created.protected), JSON.stringify(sealed.created));
+      check("seal: second createIdentity -> EEXIST", /^EEXIST: /.test(sealed.again), sealed.again);
+      check("seal: sign returns bytes", sealed.isBytes);
+      check("seal: verify -> intact, mine, certify", sealed.v.status === "intact" && s0.mine && s0.certify && s0.digestOk && s0.signatureOk && s0.coversWholeFile && s0.name === "홍길동" && s0.fingerprint === sealed.created.fingerprint, JSON.stringify(sealed.v));
+      check("seal: unsigned -> none, garbage -> none", sealed.unsigned === "none" && sealed.garbage === "none", `${sealed.unsigned} ${sealed.garbage}`);
+      check("seal: export .p12, remove, import -> same fingerprint", sealed.p12 && sealed.afterRemove === null && sealed.notMine === false && sealed.imported?.fingerprint === sealed.created.fingerprint && sealed.mineAgain === true);
+      check("seal: sign/export without an identity -> ENOENT", sealed.noIdentity.every((m) => /^ENOENT: /.test(m)), sealed.noIdentity.join(" | "));
+      check("seal: import with a wrong password -> EPASSWORD", /^EPASSWORD: /.test(sealed.wrong), sealed.wrong);
+      check("seal: the page can't read or change the key folder", sealed.guard.every((g) => /^EPERM: /.test(g)) && sealed.listOk, sealed.guard.join(" | "));
+      const sealDisk = path.join(storeDir, "seal");
+      check("seal: key stored encrypted under the data store", fs.existsSync(path.join(sealDisk, "key.bin")) && !fs.readFileSync(path.join(sealDisk, "key.bin")).includes("PRIVATE KEY") && fs.existsSync(path.join(sealDisk, "cert.pem")));
+
+      const sealedPath = path.join(home, "Out", "smoke_sealed.pdf");
+      const sealedBytes = fs.readFileSync(sealedPath);
+      const flipped = Buffer.from(sealedBytes); flipped[40] ^= 0x01;
+      fs.writeFileSync(path.join(home, "Out", "flipped.pdf"), flipped);
+      fs.writeFileSync(path.join(home, "Out", "appended.pdf"), appendUpdate(sealedBytes));
+      const st = await page.evaluate(async () => {
+        const d = await window.claude.use("desktop");
+        const v = async (p) => (await d.seal.verify(await d.fs.readFile(p))).status;
+        return { flipped: await v("~/Out/flipped.pdf"), appended: await v("~/Out/appended.pdf") };
+      });
+      check("seal: one byte flipped -> invalid", st.flipped === "invalid", st.flipped);
+      check("seal: incremental update appended -> modified", st.appended === "modified", st.appended);
+      check("seal: sealed PDF parses with pdf-lib", (await PDFDocument.load(sealedBytes)).getPageCount() === info.pages);
+      fs.copyFileSync(sealedPath, path.join(OUT, `sealed-${process.platform}.pdf`));
+      fs.writeFileSync(path.join(OUT, `sealed-${process.platform}-cert.pem`), fs.readFileSync(path.join(sealDisk, "cert.pem")));
+
+      // ---- desktop.setLanguage: main's own menus follow, and the choice is kept ----
+      const startLang = labels.includes("편집") ? "ko" : "en";
+      const langOf = async (l) => { await page.evaluate((x) => window.claude.use("desktop").then((d) => d.setLanguage(x)), l); return menuLabels(app); };
+      const en = await langOf("en");
+      const enTop = en.map((m) => m.label);
+      const help = en.find((m) => m.label === "Help");
+      const appItems = process.platform === "darwin" ? en[0].items : [];
+      check("setLanguage(\"en\"): Edit / Window / Help menus in English", enTop.includes("Edit") && enTop.includes("Window") && help?.items.includes("GitHub repository") && (process.platform !== "darwin" || appItems.includes("Quit PDF Editor")), enTop.join(" | "));
+      const ko = await langOf("ko");
+      const koTop = ko.map((m) => m.label);
+      check("setLanguage(\"ko\"): back to Korean", koTop.includes("편집") && koTop.includes("도움말") && ko.find((m) => m.label === "도움말")?.items.includes("GitHub 저장소"), koTop.join(" | "));
+      const bad = await page.evaluate(() => window.claude.use("desktop").then((d) => d.setLanguage("fr")).then(() => "resolved", (e) => e.message));
+      const saved = JSON.parse(fs.readFileSync(path.join(home, ".pdfe-electron", "settings.json"), "utf8"));
+      check("setLanguage: persisted, unknown language -> EINVAL", saved.lang === "ko" && /^EINVAL: /.test(bad), `${JSON.stringify(saved)} ${bad}`);
+      await langOf(startLang);
+    }
+    // ---- the page's own flow: save dialog with "Seal and save" (first use makes the identity), then Verify seal ----
+    if (sealed.api) {
+      await page.evaluate(async () => {
+        const d = await window.claude.use("desktop");
+        await d.seal.removeIdentity();
+        window.__pdfe.SEAL.id = undefined;
+        await window.__pdfe.openSaveDialog();
+      });
+      await page.fill("#save-name", "e2e_sealed");
+      if (!(await page.isChecked("#save-seal"))) await page.click("#save-seal");
+      await page.fill("#save-seal-name", "E2E Sealer");
+      await page.click("#save-ok");
+      const e2ePath = path.join(home, "Out", "e2e_sealed.pdf");
+      for (let i = 0; i < 100 && !fs.existsSync(e2ePath); i++) await page.waitForTimeout(100);
+      await page.waitForTimeout(300);
+      const e2e = await page.evaluate(async () => {
+        const d = await window.claude.use("desktop");
+        const bytes = await d.fs.readFile("~/Out/e2e_sealed.pdf");
+        await window.__pdfe.openVerify?.();
+        await window.__pdfe.verifyBytes(bytes, "e2e_sealed.pdf");
+        const box = document.querySelector("#v-result .v-status");
+        const v = await d.seal.verify(bytes);
+        return { id: await d.seal.identity(), status: v.status, sig: v.signatures[0], ui: box ? { cls: box.className, text: box.innerText.split("\n")[0] } : null };
+      });
+      check("page flow: Seal and save created the identity and wrote a sealed PDF", fs.existsSync(e2ePath) && e2e.id?.name === "E2E Sealer", JSON.stringify(e2e.id));
+      check("page flow: Verify seal shows intact (mine, certified)", e2e.status === "intact" && e2e.sig?.mine && e2e.sig?.certify && /\bok\b/.test(e2e.ui?.cls || ""), `${e2e.status} · ${e2e.ui?.text}`);
+      await page.screenshot({ path: path.join(OUT, `verify-${process.platform}.png`) });
+      await page.keyboard.press("Escape");
+      await page.evaluate(() => document.querySelectorAll("dialog[open]").forEach((dl) => dl.close()));
+    }
+
+    // ---- menu click round trip: 파일/File > 보관함으로 돌아가기 (⇧⌘H) ----
     await app.evaluate(({ Menu }) => {
-      const file = Menu.getApplicationMenu().items.find((i) => i.label === "파일");
-      file.submenu.items.find((i) => i.label === "보관함으로 돌아가기").click();
+      const file = Menu.getApplicationMenu().items.find((i) => i.label === "파일" || i.label === "File");
+      file.submenu.items.find((i) => i.accelerator === "CmdOrCtrl+Shift+H").click();
     });
     await page.waitForFunction(() => window.__pdfe.S.view === "home", null, { timeout: 10_000 }).catch(() => {});
     check("menu click reaches the page", (await page.evaluate(() => window.__pdfe.S.view)) === "home");
@@ -179,6 +315,25 @@ async function main() {
     check("page opened the PDF from the OS", src.view === "editor" && src.path === "~/Out/smoke_signed.pdf" && src.pages === info.pages, JSON.stringify(src));
     await page.waitForTimeout(1000);
     await page.screenshot({ path: path.join(OUT, `opened-${process.platform}.png`) });
+
+    // ---- the sealed file opens and renders in the page (pdf.js) ----
+    const sealedFile = path.join(home, "Out", "smoke_sealed.pdf");
+    if (fs.existsSync(sealedFile)) {
+      await app.evaluate(({ app: a }, file) => {
+        if (process.platform === "darwin") a.emit("open-file", { preventDefault() {} }, file);
+        else a.emit("second-instance", {}, [process.execPath, ...(a.isPackaged ? [] : ["."]), file], process.cwd());
+      }, sealedFile);
+      await page.waitForFunction(() => window.__pdfe.S.view === "editor" && window.__pdfe.S.rec?.source?.path === "~/Out/smoke_sealed.pdf" && window.__pdfe.S.pages.length > 0, null, { timeout: 15_000 }).catch(() => {});
+      await page.waitForTimeout(1200);
+      const rendered = await page.evaluate(() => {
+        const S = window.__pdfe.S;
+        const canvases = [...document.querySelectorAll("canvas")].filter((c) => c.width > 0 && c.height > 0);
+        const painted = canvases.some((c) => { try { const g = c.getContext("2d"); const { data } = g.getImageData(0, 0, Math.min(c.width, 64), Math.min(c.height, 64)); return data.some((v, i) => i % 4 !== 3 && v !== 0); } catch { return false; } });
+        return { path: S.rec?.source?.path, pages: S.pages.length, canvases: canvases.length, painted };
+      });
+      check("sealed PDF opens and renders in the page (pdf.js)", rendered.path === "~/Out/smoke_sealed.pdf" && rendered.pages === info.pages && rendered.canvases > 0 && rendered.painted, JSON.stringify(rendered));
+      await page.screenshot({ path: path.join(OUT, `sealed-${process.platform}.png`) });
+    }
 
     // README pictures (not checks): a bigger window, a signature and stamp on the opened document,
     // then the 보관함 listing it. On Windows also a real screen grab so the window buttons show.

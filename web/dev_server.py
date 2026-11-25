@@ -10,8 +10,10 @@ Open http://localhost:4310/?desktop=1 to test the installed-app code paths:
 the page then gets a stand-in for Claude's `desktop` capability whose file
 calls are served from a sandbox folder (PDFE_DEV_HOME, used as "~"). Add
 &perm=prompt to start without file access granted, &os=win32 for Windows
-wording and layout, &standalone=1 for the Electron app's extra hooks. This stand-in exists
-only here; it is never part of the published artifact.
+wording and layout, &standalone=1 for the Electron app's extra hooks (native dialogs,
+setLanguage, and a clearly fake in-memory `seal` so the seal UI can be exercised; the real
+signing lives in desktop/). This stand-in exists only here; it is never part of the
+published artifact.
 """
 
 import base64
@@ -73,7 +75,73 @@ DESKTOP_SHIM = r"""<script>
     dialog: { open: async (o) => { log("dialog.open", o); const r = window.__shimDialogNext ?? null; window.__shimDialogNext = undefined; return r; } },
     pathForFile: () => null,
     onOpenFile: (cb) => { window.__shimOpenFile = cb; },
+    setLanguage: async (lang) => { log("setLanguage", lang); window.__shimLang = lang; },
+    seal: mockSeal(),
   });
+  // MOCK of desktop.seal (docs/design/seal-and-language.md) for exercising the page UI in a browser.
+  // NOT a signature: "sign" appends a marker line with a SHA-256 of the bytes before it; "verify" reports
+  // intact if that marker is present and the bytes before it are unchanged, modified otherwise, none without it.
+  // The identity lives in memory only (a reload forgets it). Tests: window.__shimSealFail = "EIO: ..." makes
+  // the next seal call reject; window.__shimSeal exposes the state.
+  function mockSeal() {
+    const MARK = "\n%PDFE-MOCK-SEAL ";
+    const enc = new TextEncoder(), dec = new TextDecoder();
+    const st = (window.__shimSeal = { id: null });
+    const sha = async (u8) => [...new Uint8Array(await crypto.subtle.digest("SHA-256", u8))].map((b) => b.toString(16).padStart(2, "0")).join("").toUpperCase();
+    const fail = () => { const f = window.__shimSealFail; if (f) { window.__shimSealFail = undefined; throw new Error(f); } };
+    const lastIndexOf = (hay, needle) => { outer: for (let i = hay.length - needle.length; i >= 0; i--) { for (let j = 0; j < needle.length; j++) if (hay[i + j] !== needle[j]) continue outer; return i; } return -1; };
+    const make = async ({ name, org, email }, imported = false) => {
+      const fp = (await sha(enc.encode(name + "|" + (org || "") + "|" + Math.random()))).slice(0, 64).match(/.{4}/g).join(" ");
+      const now = Date.now();
+      return { name, org: org || undefined, email: email || undefined, fingerprint: fp, createdAt: now, notAfter: now + 10 * 365 * 864e5, imported };
+    };
+    return {
+      identity: async () => (log("seal.identity"), st.id && { ...st.id }),
+      createIdentity: async (o = {}) => {
+        log("seal.createIdentity", o); fail();
+        if (st.id && !o.replace) throw new Error("EEXIST: an identity already exists");
+        if (!o.name) throw new Error("EINVAL: name is required");
+        await new Promise((r) => setTimeout(r, 300)); // key generation takes a moment
+        st.id = await make(o); return { ...st.id };
+      },
+      exportIdentity: async ({ password } = {}) => {
+        log("seal.exportIdentity"); fail();
+        if (!st.id) throw new Error("ENOENT: no identity");
+        return enc.encode("MOCK-P12 " + JSON.stringify({ password, id: st.id }));
+      },
+      importIdentity: async (p12, { password } = {}) => {
+        log("seal.importIdentity"); fail();
+        const s = dec.decode(p12);
+        if (!s.startsWith("MOCK-P12 ")) throw new Error("EINVAL: not a PKCS#12 file (mock reads only its own backups)");
+        const j = JSON.parse(s.slice(9));
+        if (j.password !== password) throw new Error("EPASSWORD: wrong password");
+        st.id = { ...j.id, imported: true }; return { ...st.id };
+      },
+      removeIdentity: async () => { log("seal.removeIdentity"); st.id = null; },
+      sign: async (pdf, o = {}) => {
+        log("seal.sign", { bytes: pdf.byteLength, ...o }); fail();
+        if (!st.id) throw new Error("ENOENT: no identity");
+        const body = new Uint8Array(pdf);
+        const info = { name: st.id.name, org: st.id.org, fingerprint: st.id.fingerprint, signedAt: Date.now(), reason: o.reason, len: body.length, sum: await sha(body) };
+        const tail = enc.encode(MARK + JSON.stringify(info) + "\n");
+        const out = new Uint8Array(body.length + tail.length); out.set(body); out.set(tail, body.length);
+        await new Promise((r) => setTimeout(r, 200));
+        return out;
+      },
+      verify: async (pdf) => {
+        log("seal.verify", { bytes: pdf.byteLength }); fail();
+        const u8 = new Uint8Array(pdf), at = lastIndexOf(u8, enc.encode(MARK));
+        if (at < 0) return { status: "none", signatures: [] };
+        let info; try { info = JSON.parse(dec.decode(u8.subarray(at + MARK.length)).split("\n")[0]); } catch { return { status: "invalid", signatures: [] }; }
+        // unchanged before the marker, and nothing appended after its line (a re-save in another app appends)
+        const before = u8.subarray(0, at), end = at + MARK.length + enc.encode(JSON.stringify(info)).length + 1;
+        const ok = before.length === info.len && (await sha(before)) === info.sum && end === u8.length;
+        const sig = { name: info.name, org: info.org, fingerprint: info.fingerprint, signedAt: info.signedAt, reason: info.reason, certify: true,
+          coversWholeFile: ok, digestOk: true, signatureOk: true, mine: !!st.id && st.id.fingerprint === info.fingerprint, selfSigned: true };
+        return { status: ok ? "intact" : "modified", signatures: [sig] };
+      },
+    };
+  }
   get fs() {}
 })();
 </script>"""

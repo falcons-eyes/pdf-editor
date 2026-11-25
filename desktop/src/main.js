@@ -1,10 +1,11 @@
 "use strict";
-const { app, BrowserWindow, Menu, dialog, ipcMain, nativeTheme, protocol, screen, session, shell } = require("electron");
+const { app, BrowserWindow, Menu, dialog, ipcMain, nativeTheme, protocol, safeStorage, screen, session, shell } = require("electron");
 const path = require("node:path");
 const fs = require("node:fs");
 const fsp = fs.promises;
 const os = require("node:os");
 const { createPathMapper, fsError, WIN_ROOT } = require("./paths");
+const { createSeal } = require("./seal");
 
 const IS_MAC = process.platform === "darwin";
 function realpath(p) { try { return fs.realpathSync.native(p); } catch { return p; } }
@@ -27,6 +28,9 @@ const HOME = HOME_OVERRIDE || os.homedir();
 // so Electron's own caches and settings must live elsewhere: a hidden subfolder.
 app.setPath("userData", HOME_OVERRIDE ? path.join(HOME_OVERRIDE, ".pdfe-electron") : path.join(app.getPath("appData"), "PDF Editor", ".electron"));
 const paths = createPathMapper({ platform: process.platform, home: HOME, appData: app.getPath("appData"), override: !!HOME_OVERRIDE });
+// the page's data store and the sealer key folder inside it
+const STORE_DIR = paths.toOs("~/Library/Application Support/PDF Editor");
+const SEAL_DIR = path.join(STORE_DIR, "seal");
 
 protocol.registerSchemesAsPrivileged([
   { scheme: SCHEME, privileges: { standard: true, secure: true, supportFetchAPI: true, corsEnabled: true, codeCache: true } },
@@ -214,10 +218,26 @@ async function winDrives() {
 const dirStat = () => ({ size: 0, mtimeMs: 0, isFile: false, isDirectory: true, isSymbolicLink: false });
 const noRoot = (p) => { throw fsError("EPERM", `operation not permitted on the drive list: ${p}`); };
 const osPath = (p) => { const o = paths.toOs(p); return o === WIN_ROOT ? noRoot(p) : o; };
+// The sealer key folder is main's alone: the page may list it, never read or change what is in it.
+const canon = (p) => {
+  let probe = path.resolve(p), rest = [];
+  for (let i = 0; i < 64; i++) {
+    try { probe = path.join(fs.realpathSync.native(probe), ...rest); break; }
+    catch { const up = path.dirname(probe); if (up === probe) break; rest.unshift(path.basename(probe)); probe = up; }
+  }
+  probe = probe.normalize("NFC");
+  return IS_MAC || IS_WIN ? probe.toLowerCase() : probe;
+};
+function guarded(p) {
+  const o = osPath(p);
+  const seal = canon(SEAL_DIR), c = canon(o);
+  if (c === seal || c.startsWith(seal + path.sep)) throw fsError("EPERM", `the sealer key folder is private: ${p}`);
+  return o;
+}
 
 const FS = {
   async readFile(p, enc) {
-    const buf = await fsp.readFile(osPath(p));
+    const buf = await fsp.readFile(guarded(p));
     if (enc === "utf8" || enc === "utf-8") return buf.toString("utf8");
     if (enc === "base64") return buf.toString("base64");
     return new Uint8Array(buf.buffer, buf.byteOffset, buf.byteLength);
@@ -227,7 +247,7 @@ const FS = {
     if (typeof data === "string") buf = Buffer.from(data, enc === "base64" ? "base64" : "utf8");
     else if (data instanceof Uint8Array) buf = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
     else throw fsError("EINVAL", "data must be a string or bytes");
-    await fsp.writeFile(osPath(p), buf);
+    await fsp.writeFile(guarded(p), buf);
   },
   async readdir(p) {
     const o = paths.toOs(p);
@@ -255,27 +275,28 @@ const FS = {
       await fsp.access(o); return true;
     } catch { return false; }
   },
-  async mkdir(p, o) { await fsp.mkdir(osPath(p), { recursive: !!o?.recursive }); },
-  async rename(from, to) { await fsp.rename(osPath(from), osPath(to)); },
+  async mkdir(p, o) { await fsp.mkdir(guarded(p), { recursive: !!o?.recursive }); },
+  async rename(from, to) { await fsp.rename(guarded(from), guarded(to)); },
   // the page only deletes its own single files (保管함 copies, thumbnails): folders are refused,
   // so a bug or injected script can never wipe a whole tree
   async rm(p, o) {
-    const target = osPath(p);
+    const target = guarded(p);
     const st = await fsp.lstat(target).catch((e) => { if (e.code === "ENOENT" && o?.force) return null; throw e; });
     if (!st) return;
     if (st.isDirectory()) throw fsError("EPERM", `refusing to delete a folder: ${p}`);
     await fsp.rm(target, { force: !!o?.force });
   },
-  async copyFile(from, to) { await fsp.copyFile(osPath(from), osPath(to)); },
+  async copyFile(from, to) { await fsp.copyFile(guarded(from), guarded(to)); },
 };
 
 const IMAGE_EXT = ["png", "jpg", "jpeg", "webp", "gif", "bmp"];
 async function openDialog(o = {}) {
-  const kind = ["pdf", "image", "folder"].includes(o?.kind) ? o.kind : "pdf";
+  const kind = ["pdf", "image", "folder", "cert"].includes(o?.kind) ? o.kind : "pdf";
   const props = kind === "folder" ? ["openDirectory", "createDirectory"] : ["openFile"];
   if (o.multiple && kind !== "folder") props.push("multiSelections");
   const filters = kind === "pdf" ? [{ name: "PDF", extensions: ["pdf"] }]
-    : kind === "image" ? [{ name: "이미지", extensions: IMAGE_EXT }] : undefined;
+    : kind === "image" ? [{ name: L().images, extensions: IMAGE_EXT }]
+    : kind === "cert" ? [{ name: L().certs, extensions: ["p12", "pfx"] }] : undefined;
   let defaultPath;
   if (typeof o.start === "string") { try { const s = paths.toOs(o.start); if (s !== WIN_ROOT) defaultPath = s; } catch {} }
   const opts = { title: typeof o.title === "string" ? o.title : undefined, defaultPath, properties: props, filters };
@@ -318,35 +339,71 @@ function getWindowOptions() {
   return { titleBarStyle: IS_MAC ? "hiddenInset" : "hidden", minWidth, minHeight };
 }
 
-/* ---------------- menus ---------------- */
-const KO = {
-  edit: { label: "편집", submenu: [
-    { role: "undo", label: "실행 취소" }, { role: "redo", label: "실행 복귀" }, { type: "separator" },
-    { role: "cut", label: "오려두기" }, { role: "copy", label: "복사하기" }, { role: "paste", label: "붙여넣기" },
-    { role: "selectAll", label: "모두 선택" },
-  ] },
-  window: IS_MAC
-    ? { label: "윈도우", role: "window", submenu: [{ role: "minimize", label: "최소화" }, { role: "zoom", label: "확대/축소" }, { type: "separator" }, { role: "front", label: "모두 앞으로 가져오기" }] }
-    : { label: "창", submenu: [{ role: "minimize", label: "최소화" }, { role: "close", label: "닫기" }] },
+/* ---------------- language and menus ---------------- */
+const LABELS = {
+  ko: {
+    about: (n) => `${n}에 관하여`, services: "서비스", hide: (n) => `${n} 가리기`, hideOthers: "기타 가리기", unhide: "모두 보기", quit: (n) => `${n} 종료`,
+    edit: "편집", undo: "실행 취소", redo: "실행 복귀", cut: "오려두기", copy: "복사하기", paste: "붙여넣기", selectAll: "모두 선택",
+    window: IS_MAC ? "윈도우" : "창", minimize: "최소화", zoom: "확대/축소", front: "모두 앞으로 가져오기", close: "닫기",
+    help: "도움말", repo: "GitHub 저장소", dev: "개발", reload: "새로 고침", devTools: "개발자 도구", images: "이미지", certs: "인증서 (.p12, .pfx)",
+  },
+  en: {
+    about: (n) => `About ${n}`, services: "Services", hide: (n) => `Hide ${n}`, hideOthers: "Hide Others", unhide: "Show All", quit: (n) => `Quit ${n}`,
+    edit: "Edit", undo: "Undo", redo: "Redo", cut: "Cut", copy: "Copy", paste: "Paste", selectAll: "Select All",
+    window: "Window", minimize: "Minimize", zoom: "Zoom", front: "Bring All to Front", close: "Close",
+    help: "Help", repo: "GitHub repository", dev: "Develop", reload: "Reload", devTools: "Developer Tools", images: "Images", certs: "Certificates (.p12, .pfx)",
+  },
 };
+// the last language the page chose, kept with Electron's own settings so the first menu is already right
+const settingsFile = () => path.join(app.getPath("userData"), "settings.json");
+function loadLang() {
+  try { const l = JSON.parse(fs.readFileSync(settingsFile(), "utf8")).lang; if (l === "ko" || l === "en") return l; } catch {}
+  let sys = "";
+  try { sys = (app.getPreferredSystemLanguages?.()[0] || app.getLocale() || "").toLowerCase(); } catch {}
+  return sys.startsWith("ko") ? "ko" : "en";
+}
+let lang = null;
+const L = () => LABELS[lang || (lang = loadLang())];
+function setLanguage(next) {
+  if (next !== "ko" && next !== "en") throw fsError("EINVAL", `unsupported language: ${String(next)}`);
+  lang = next;
+  try {
+    let cur = {};
+    try { cur = JSON.parse(fs.readFileSync(settingsFile(), "utf8")) || {}; } catch {}
+    fs.mkdirSync(path.dirname(settingsFile()), { recursive: true });
+    fs.writeFileSync(settingsFile(), JSON.stringify({ ...cur, lang: next }));
+  } catch {}
+  setMenu(lastPageTemplate);
+  return lang;
+}
+
+const editMenu = () => { const l = L(); return { label: l.edit, submenu: [
+  { role: "undo", label: l.undo }, { role: "redo", label: l.redo }, { type: "separator" },
+  { role: "cut", label: l.cut }, { role: "copy", label: l.copy }, { role: "paste", label: l.paste },
+  { role: "selectAll", label: l.selectAll },
+] }; };
+const windowMenu = () => { const l = L(); return IS_MAC
+  ? { label: l.window, role: "window", submenu: [{ role: "minimize", label: l.minimize }, { role: "zoom", label: l.zoom }, { type: "separator" }, { role: "front", label: l.front }] }
+  : { label: l.window, submenu: [{ role: "minimize", label: l.minimize }, { role: "close", label: l.close }] }; };
 function appMenu() {
-  return { label: app.name, submenu: [
-    { role: "about", label: `${app.name}에 관하여` }, { type: "separator" },
-    { role: "services", label: "서비스" }, { type: "separator" },
-    { role: "hide", label: `${app.name} 가리기` }, { role: "hideOthers", label: "기타 가리기" }, { role: "unhide", label: "모두 보기" },
-    { type: "separator" }, { role: "quit", label: `${app.name} 종료` },
+  const l = L(), n = app.name;
+  return { label: n, submenu: [
+    { role: "about", label: l.about(n) }, { type: "separator" },
+    { role: "services", label: l.services }, { type: "separator" },
+    { role: "hide", label: l.hide(n) }, { role: "hideOthers", label: l.hideOthers }, { role: "unhide", label: l.unhide },
+    { type: "separator" }, { role: "quit", label: l.quit(n) },
   ] };
 }
-const helpMenu = () => ({ label: "도움말", role: "help", submenu: [{ label: "GitHub 저장소", click: () => shell.openExternal(REPO_URL) }] });
-const devMenu = () => ({ label: "개발", submenu: [{ role: "reload", label: "새로 고침" }, { role: "toggleDevTools", label: "개발자 도구" }] });
+const helpMenu = () => ({ label: L().help, role: "help", submenu: [{ label: L().repo, click: () => shell.openExternal(REPO_URL) }] });
+const devMenu = () => ({ label: L().dev, submenu: [{ role: "reload", label: L().reload }, { role: "toggleDevTools", label: L().devTools }] });
 const ALLOWED_ROLES = new Set(["undo", "redo", "cut", "copy", "paste", "pasteAndMatchStyle", "delete", "selectAll", "reload", "forceReload",
   "togglefullscreen", "minimize", "close", "zoom", "front", "resetZoom", "zoomIn", "zoomOut", "editMenu", "windowMenu", "viewMenu", "fileMenu", "appMenu", "help", "window", "services", "about", "hide", "hideOthers", "unhide", "quit"]);
 function fromPage(items, depth = 0) {
   if (!Array.isArray(items) || depth > 4) return [];
   return items.slice(0, 80).map((it) => {
     if (!it || typeof it !== "object") return null;
-    if (it.role === "editMenu") return KO.edit;
-    if (it.role === "windowMenu") return KO.window;
+    if (it.role === "editMenu") return editMenu();
+    if (it.role === "windowMenu") return windowMenu();
     const out = {};
     if (typeof it.label === "string") out.label = it.label.slice(0, 120);
     if (["normal", "separator", "submenu", "checkbox", "radio"].includes(it.type)) out.type = it.type;
@@ -361,11 +418,13 @@ function fromPage(items, depth = 0) {
     return out;
   }).filter(Boolean);
 }
+let lastPageTemplate = null;
 function setMenu(pageTemplate) {
+  lastPageTemplate = pageTemplate || null;
   const t = [];
   if (IS_MAC) t.push(appMenu());
-  t.push(...(pageTemplate ? fromPage(pageTemplate) : [KO.edit]));
-  if (!t.some((m) => m.role === "window" || m === KO.window)) t.push(KO.window);
+  t.push(...(pageTemplate ? fromPage(pageTemplate) : [editMenu()]));
+  if (!t.some((m) => m.role === "window" || m.label === L().window)) t.push(windowMenu());
   if (!app.isPackaged) t.push(devMenu());
   t.push(helpMenu());
   Menu.setApplicationMenu(Menu.buildFromTemplate(t));
@@ -390,14 +449,14 @@ function registerIpc() {
   handle("pdfe:shell", async (op, p) => {
     // open only folders and documents/images, never programs or scripts
     if (op === "openPath") {
-      const target = osPath(p);
+      const target = guarded(p);
       const st = await fsp.stat(target);
       if (!st.isDirectory() && !OPENABLE.test(target)) throw fsError("EPERM", `not a document: ${p}`);
       const r = await shell.openPath(target); if (r) throw fsError("EIO", r); return;
     }
     if (op === "showItemInFolder") return shell.showItemInFolder(osPath(p));
     if (op === "trashItem") {
-      const target = osPath(p);
+      const target = guarded(p);
       if ((await fsp.stat(target)).isDirectory()) throw fsError("EPERM", `refusing to trash a folder: ${p}`);
       return shell.trashItem(target);
     }
@@ -414,6 +473,19 @@ function registerIpc() {
   handle("pdfe:dialog", async (o) => openDialog(o));
   handle("pdfe:open-external", async (url) => { await openExternal(url); return true; });
   handle("pdfe:open-file-ready", async () => { openListening = true; return pendingOpen.splice(0); });
+  handle("pdfe:lang", async (l) => { setLanguage(l); return null; });
+
+  // desktop.seal: identity, sign, verify (the private key stays in this process)
+  const seal = createSeal({
+    dir: SEAL_DIR, safeStorage, appVersion: app.getVersion(), lang: () => (L(), lang),
+    // test homes never touch the login keychain unless asked to
+    useOs: !HOME_OVERRIDE || process.env.PDFE_SEAL_SAFESTORAGE === "1",
+  });
+  const SEAL_OPS = new Set(["identity", "createIdentity", "exportIdentity", "importIdentity", "removeIdentity", "sign", "verify"]);
+  handle("pdfe:seal", async (op, ...args) => {
+    if (typeof op !== "string" || !SEAL_OPS.has(op)) throw fsError("EINVAL", `unknown operation ${op}`);
+    return seal[op](...args);
+  });
 }
 
 /* ---------------- hardening ---------------- */

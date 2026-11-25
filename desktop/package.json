@@ -19,7 +19,14 @@
     "pack": "npm run build:page && electron-builder --dir --publish never",
     "dist:mac": "npm run build:page && electron-builder --mac dmg --arm64 --x64 --publish never",
     "dist:win": "npm run build:page && electron-builder --win nsis portable --x64 --publish never",
-    "test": "node test/smoke.mjs"
+    "test": "node test/seal.mjs && node test/smoke.mjs",
+    "test:seal": "node test/seal.mjs"
+  },
+  "dependencies": {
+    "@signpdf/signpdf": "4.0.0",
+    "@signpdf/utils": "4.0.0",
+    "node-forge": "1.4.4",
+    "pdf-lib": "1.17.1"
   },
   "devDependencies": {
     "@fontsource/ibm-plex-mono": "5.3.0",
@@ -28,7 +35,6 @@
     "@fontsource/nanum-pen-script": "5.3.0",
     "electron": "45.5.0",
     "electron-builder": "26.18.0",
-    "pdf-lib": "1.17.1",
     "pdfjs-dist": "3.11.174",
     "playwright": "1.65.1"
   },
@@ -44,7 +50,12 @@
       "src/**/*",
       "app/**/*",
       "package.json",
-      "!**/*.map"
+      "!**/*.map",
+      "!node_modules/pdf-lib/{es,src,dist}/**",
+      "!node_modules/node-forge/{dist,flash}/**",
+      "!node_modules/pako/dist/**",
+      "!node_modules/**/*.d.ts",
+      "!node_modules/**/*.md"
     ],
     "asar": true,
     "electronLanguages": [

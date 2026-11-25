@@ -75,6 +75,28 @@ function onOpenFile(cb) {
   return () => { const i = openCallbacks.indexOf(cb); if (i >= 0) openCallbacks.splice(i, 1); };
 }
 
+// desktop.seal (contract: docs/design/seal-and-language.md). Bytes cross IPC as Uint8Array.
+const sealCall = (op, ...args) => call("pdfe:seal", op, ...args);
+const bytesOf = async (data) => {
+  const w = await toWire(data);
+  if (typeof w === "string") throw new Error("EINVAL: bytes expected");
+  return w;
+};
+const opt = (o, keys) => {
+  const out = {};
+  if (o && typeof o === "object") for (const k of keys) if (o[k] !== undefined && o[k] !== null) out[k] = typeof o[k] === "boolean" ? o[k] : String(o[k]);
+  return out;
+};
+const seal = {
+  identity: () => sealCall("identity"),
+  createIdentity: (o) => sealCall("createIdentity", opt(o, ["name", "org", "email", "replace"])),
+  exportIdentity: (o) => sealCall("exportIdentity", opt(o, ["password"])),
+  importIdentity: async (p12, o) => sealCall("importIdentity", await bytesOf(p12), opt(o, ["password"])),
+  removeIdentity: async () => { await sealCall("removeIdentity"); },
+  sign: async (pdf, o) => sealCall("sign", await bytesOf(pdf), opt(o, ["reason", "location", "lang"])),
+  verify: async (pdf) => sealCall("verify", await bytesOf(pdf)),
+};
+
 const desktop = {
   standalone: true,
   platform: info.platform || process.platform,
@@ -119,6 +141,8 @@ const desktop = {
   },
   onOpenFile,
   openExternal: (url) => call("pdfe:open-external", String(url)),
+  seal,
+  setLanguage: async (lang) => { await call("pdfe:lang", String(lang)); },
 };
 
 contextBridge.exposeInMainWorld("claude", {
