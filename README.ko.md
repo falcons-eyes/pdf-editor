@@ -8,7 +8,7 @@ Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로�
 
 [**다운로드 (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [사용법](#3단계면-끝) · [봉인](#봉인-고치면-티가-나는-pdf) · [처음 열 때 안내](#처음-열-때-안내) · [English](README.md)
 
-<img src="docs/images/demo-ko.gif" alt="보관함에서 계약서를 열고, 서명과 도장을 서명란에 끌어다 놓은 뒤 '봉인해서 저장'으로 저장하고, '봉인 확인'에서 '봉인 그대로'가 나오는 모습" width="900">
+<img src="docs/images/demo-ko.gif" alt="집주인이 보낸 월세 계약서를 보관함에서 열고, 서명과 도장을 끌어다 놓은 뒤 간인을 찍고 새 파일로 저장하는 모습" width="900">
 
 </div>
 
@@ -33,7 +33,7 @@ Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로�
 
 ## 봉인: 고치면 티가 나는 PDF
 
-<img src="docs/images/seal-ko.gif" alt="봉인한 파일을 '봉인 확인'하면 '봉인 그대로'. 다른 앱에서 파일을 고친 뒤 다시 확인하면 '봉인 뒤 수정됨'" width="900">
+<img src="docs/images/seal-ko.gif" alt="서명한 합의서를 '봉인해서 저장'하고 '봉인 확인'하면 '봉인 그대로', 고쳐서 돌아온 파일은 '봉인 뒤 수정됨'" width="900">
 
 **무엇을 하나요.** `봉인해서 저장`으로 저장하면, 완성된 PDF에 디지털 서명(PAdES)을 넣습니다. 봉인은 파일의 모든 바이트를 덮습니다. 그 뒤로 누가 파일을 한 글자라도 고치면 봉인이 맞지 않게 되어 바로 드러납니다. 봉인이 사본을 고치지 못하게 막지는 못합니다. 고친 것을 숨길 수 없게 할 뿐입니다.
 
@@ -86,7 +86,7 @@ Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로�
 
 macOS
 
-<img src="docs/images/hero-ko.png" alt="macOS에서 계약서 서명란에 서명과 도장을 놓은 편집 화면" width="900">
+<img src="docs/images/hero-ko.png" alt="macOS에서 월세 계약서에 서명과 도장, 간인을 넣은 편집 화면" width="900">
 
 Windows (1.1 버전, Windows 빌드 서버에서 찍은 영어 화면)
 

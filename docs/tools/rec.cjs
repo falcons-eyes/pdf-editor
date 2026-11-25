@@ -18,10 +18,12 @@ const OVERLAY = `(() => {
     #rec-ghost { position: fixed; z-index: 2147483645; pointer-events: none; opacity: .85; transform: translate(-50%,-50%); filter: drop-shadow(0 6px 14px rgba(20,28,52,.25)); }
     #rec-lights { position: fixed; left: 18px; top: 19px; display: flex; gap: 8px; z-index: 2147483640; pointer-events: none; }
     #rec-lights i { width: 12px; height: 12px; border-radius: 50%; box-shadow: inset 0 0 0 .5px rgba(0,0,0,.18); }
-    #rec-caption { position: fixed; left: 50%; bottom: 64px; transform: translate(-50%, 12px); z-index: 2147483644; pointer-events: none; opacity: 0;
+    #rec-caption { position: fixed; left: 50%; bottom: 104px; transform: translate(-50%, 12px); z-index: 2147483644; pointer-events: none; opacity: 0;
       padding: 12px 22px; border-radius: 12px; background: rgba(23,26,34,.92); color: #fff; font: 600 19px/1.35 "IBM Plex Sans KR", system-ui, sans-serif;
       box-shadow: 0 12px 30px rgba(0,0,0,.25); transition: opacity .25s, transform .25s; white-space: nowrap; }
     #rec-caption.on { opacity: 1; transform: translate(-50%, 0); }
+    #rec-caption.top { bottom: auto; top: 6px; transform: translate(-50%, -12px); }
+    #rec-caption.top.on { transform: translate(-50%, 0); }
     #rec-root { position: fixed; inset: 0; width: 100vw; height: 100vh; margin: 0; padding: 0; border: 0; background: transparent; overflow: visible; pointer-events: none; }
     .tip { display: none !important; }\`;
   document.head.append(st);
@@ -40,7 +42,7 @@ const OVERLAY = `(() => {
     click(x, y) { r.style.left = x + "px"; r.style.top = y + "px"; r.classList.add("on"); requestAnimationFrame(() => requestAnimationFrame(() => r.classList.remove("on"))); },
     ghost(src, w, x, y) { const g = document.createElement("img"); g.id = "rec-ghost"; g.src = src; g.style.width = w + "px"; g.style.left = x + "px"; g.style.top = y + "px"; root.append(g); },
     drop() { document.getElementById("rec-ghost")?.remove(); },
-    caption(text) { if (text) { cap.textContent = text; cap.classList.add("on"); } else cap.classList.remove("on"); },
+    caption(text, top) { if (text) { cap.textContent = text; cap.classList.toggle("top", !!top); cap.classList.add("on"); } else cap.classList.remove("on"); },
   };
   window.addEventListener("mousemove", (e) => window.__rec.move(e.clientX, e.clientY), true);
 })();`;
@@ -71,7 +73,7 @@ async function recorder(page, name) {
   async function dragReal(x, y, ms = 700) { await page.mouse.down(); await sleep(60); await glide(x, y, ms); await sleep(60); await page.mouse.up(); }
   const box = async (sel) => { const b = await page.locator(sel).first().boundingBox(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, b }; };
   async function clickSel(sel, ms) { const b = await box(sel); await click(b.x, b.y, ms); return b; }
-  const caption = (text) => P((t) => window.__rec.caption(t), text || "");
+  const caption = (text, { top = false } = {}) => P(([t, top]) => window.__rec.caption(t, top), [text || "", top]); // top: above an open dialog
 
   return {
     P, glide, click, clickSel, dragReal, box, ripple, caption,
@@ -84,9 +86,9 @@ async function recorder(page, name) {
   };
 }
 
-// resample the screencast frames to a constant frame rate and encode a looping GIF
-function toGif(frames, name, out, { fps = 15, width = 1200, maxS = 24 } = {}) {
-  const seq = path.join(OUT, name + "-seq");
+// resample the screencast frames to a constant frame rate (holds repeat the last frame) into out/<name>-seq[-fps]/
+function resample(frames, name, fps, maxS) {
+  const seq = path.join(OUT, `${name}-seq-${fps}`);
   fs.rmSync(seq, { recursive: true, force: true }); fs.mkdirSync(seq, { recursive: true });
   const t0 = frames[0].t, rec = frames[frames.length - 1].t - t0 + 1;
   const speed = Math.min(1, maxS / rec); // play a bit faster if the recording ran long
@@ -95,9 +97,31 @@ function toGif(frames, name, out, { fps = 15, width = 1200, maxS = 24 } = {}) {
     while (k + 1 < frames.length && (frames[k + 1].t - t0) * speed <= t) k++;
     fs.copyFileSync(frames[k].file, path.join(seq, String(n++).padStart(5, "0") + ".jpg"));
   }
-  const vf = `scale=${width}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=256:stats_mode=full:reserve_transparent=0[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`;
+  return { seq, rec, outS, n, t0, speed };
+}
+
+// frames -> looping GIF (README)
+function toGif(frames, name, out, { fps = 15, width = 1200, maxS = 24, colors = 256 } = {}) {
+  const { seq, rec, outS, n } = resample(frames, name, fps, maxS);
+  const vf = `scale=${width}:-1:flags=lanczos,split[a][b];[a]palettegen=max_colors=${colors}:stats_mode=full:reserve_transparent=0[p];[b][p]paletteuse=dither=bayer:bayer_scale=4:diff_mode=rectangle`;
   execFileSync(FFMPEG, ["-loglevel", "error", "-y", "-framerate", String(fps), "-i", path.join(seq, "%05d.jpg"), "-vf", vf, "-loop", "0", out], { stdio: "inherit" });
   console.log(`${path.basename(out)}: ${frames.length} frames, ${rec.toFixed(1)} s recorded -> ${outS.toFixed(1)} s (${n} frames @ ${fps} fps), ${(fs.statSync(out).size / 1048576).toFixed(2)} MB`);
 }
 
-module.exports = { recorder, toGif };
+// frames -> H.264 MP4 for the website (1200x750, 25 fps, no audio, fast start) and a WebP poster
+// (posterAt: seconds into the output, or a negative number counted from the end; posterWall: wall-clock seconds)
+async function toMp4(frames, name, out, { fps = 25, width = 1200, maxS = 24, crf = 30, poster = null, posterAt = -0.5, posterWall = null } = {}) {
+  const { seq, rec, outS, n, t0, speed } = resample(frames, name, fps, maxS);
+  if (posterWall) posterAt = (posterWall - t0) * speed; // a moment taken with Date.now() / 1000 during the recording
+  execFileSync(FFMPEG, ["-loglevel", "error", "-y", "-framerate", String(fps), "-i", path.join(seq, "%05d.jpg"),
+    "-vf", `scale=${width}:-2:flags=lanczos:in_range=pc:out_range=tv,format=yuv420p`, "-color_range", "tv", "-c:v", "libx264", "-preset", "veryslow", "-tune", "animation", "-crf", String(crf),
+    "-profile:v", "high", "-movflags", "+faststart", "-an", out], { stdio: "inherit" });
+  console.log(`${path.basename(out)}: ${rec.toFixed(1)} s recorded -> ${outS.toFixed(1)} s (${n} frames @ ${fps} fps), ${(fs.statSync(out).size / 1024).toFixed(0)} KB`);
+  if (poster) {
+    const i = Math.max(0, Math.min(n - 1, Math.round((posterAt < 0 ? outS + posterAt : posterAt) * fps)));
+    await require("sharp")(path.join(seq, String(i).padStart(5, "0") + ".jpg")).resize({ width, kernel: "lanczos3" }).webp({ quality: 80, effort: 6 }).toFile(poster);
+    console.log(`${path.basename(poster)}: ${(fs.statSync(poster).size / 1024).toFixed(0)} KB`);
+  }
+}
+
+module.exports = { recorder, toGif, toMp4 };

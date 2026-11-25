@@ -8,7 +8,7 @@ Free and source-available for Mac and Windows. No printing, no scanning, no uplo
 
 [**Download (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [How it works](#three-steps) · [Seal](#seal-tamper-evident-pdfs) · [First launch](#first-launch) · [한국어](README.ko.md)
 
-<img src="docs/images/demo-en.gif" alt="Opening a contract from the Library, dragging a signature and a stamp onto the signing line, saving it with Seal and save turned on, then Verify seal shows Seal intact" width="900">
+<img src="docs/images/demo-en.gif" alt="Opening the lease a landlord emailed from the Library, dragging a signature and the date onto it, initialing every page at once, then saving it as a new file" width="900">
 
 </div>
 
@@ -33,7 +33,7 @@ If signing one page of a contract means any of these, Sealworks can help.
 
 ## Seal: tamper-evident PDFs
 
-<img src="docs/images/seal-en.gif" alt="Verify seal on a sealed file shows Seal intact. After the file is changed in another app, Verify seal shows Modified after sealing" width="900">
+<img src="docs/images/seal-en.gif" alt="Saving a signed settlement agreement with Seal and save; Verify seal shows Seal intact, and the copy that came back edited shows Modified after sealing" width="900">
 
 **What it does.** When you save with `Seal and save`, Sealworks adds a digital signature (PAdES) to the finished PDF. The seal covers every byte of the file. If anyone changes the file afterwards, even by one character, the seal no longer matches and the change shows. The seal can't stop anyone from editing a copy. It makes edits impossible to hide.
 
@@ -86,7 +86,7 @@ The result also shows who sealed it, when, and the certificate **fingerprint**.
 
 macOS
 
-<img src="docs/images/hero-en.png" alt="Sealworks on macOS: a contract with a signature and a stamp placed on the signing line" width="900">
+<img src="docs/images/hero-en.png" alt="Sealworks on macOS: a residential lease with the tenant’s signature, the date and initials on every page" width="900">
 
 Windows (version 1.1, taken on a Windows runner)
 

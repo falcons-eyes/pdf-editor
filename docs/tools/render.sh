@@ -4,10 +4,13 @@
 #   docs/tools/render.sh compose      # only re-compose the PNGs from existing raw shots
 #   docs/tools/render.sh appstore     # only the Mac App Store screenshots -> docs/appstore/screenshots/<l>/ (2880x1800, no alpha)
 #   LANGS=en docs/tools/render.sh     # one language
-# Output per language (<l> = en | ko): demo-<l>.gif, seal-<l>.gif, hero-<l>.png, steps-<l>.png, features-<l>.png,
-# before-after-<l>.png, social-<l>.png, seal-states-<l>.png.
-# Runs web/dev_server.py (standalone mode, with its stand-in seal) against a throwaway "home" folder filled with
-# made-up documents, so no real files are ever opened. Needs Node 18+, python3 and ffmpeg.
+# Output per language (<l> = en | ko): docs/images/ demo-<l>.gif, seal-<l>.gif, hero-<l>.png, steps-<l>.png, features-<l>.png,
+# before-after-<l>.png, social-<l>.png, seal-states-<l>.png; and for the website, site/assets/ app-<l>-{1600,960}.webp
+# (hero screenshot), demo-<l>.mp4 + demo-<l>-poster.webp, seal-<l>.mp4 + seal-<l>-poster.webp (1200x750 H.264, 25 fps)
+# and social-<l>.png (og:image, same picture as docs/images/social-<l>.png).
+# Runs web/dev_server.py (standalone mode, with its stand-in seal) against a throwaway "home" folder. The documents in it
+# are the app's own examples (window.__pdfe.loadExample, docs/design/scenarios.md) saved under a person's file names,
+# so no real files are ever opened. Needs Node 18+, python3 and ffmpeg (with libx264).
 set -euo pipefail
 cd "$(dirname "$0")"
 PORT="${PORT:-4320}"

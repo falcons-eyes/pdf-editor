@@ -11,7 +11,6 @@ const { ROOT, OUT, IMAGES, LANGS, rawDir, launch } = require("./lib.cjs");
 const VW = 1440, VH = 900;
 let L = "en", RAWD = rawDir("en"), R = {};
 const raw = (n) => "file://" + path.join(RAWD, n + ".png");
-const APP_ICON = "file://" + path.join(ROOT, "desktop", "build", "icon.png");
 
 // every caption, per language (UI words match web/pdf-editor.html's STR table)
 const TXT = {
@@ -34,8 +33,8 @@ const TXT = {
       notes: ["You need a printer and a scanner.", "Scans often come out crooked or blurry.", "Or a paid app, or a website you upload files to."] },
     after: { tag: "Sealworks", title: "Drop it on and save", flow: ["Open<br>a PDF", "Place<br>signature", "Save a<br>new file"],
       notes: ["Right on your computer, no printer or scanner.", "Your files are never uploaded.", "Original untouched. Seal it, and later edits show."] },
-    social: { head: "Sign and stamp PDFs.<br><span>Seal them, too.</span>", sub: "Free and source-available for Mac and Windows.<br>Your files never leave your computer.",
-      chips: ["Free · source available", "Nothing uploaded", "macOS · Windows"] },
+    social: { head: "Sign and stamp PDFs.<br><span>Seal them, too.</span>", sub: "Free on Mac, Windows and Android.<br>Your files never leave your device.",
+      chips: ["Free", "Source available", "Nothing uploaded"], platforms: ["Mac", "Windows", "Android"], sep: "·" },
     states: ["The file is exactly as it was sealed.", "Something was added or changed after sealing.", "There’s no seal, so changes can’t be detected."],
   },
   ko: {
@@ -57,8 +56,8 @@ const TXT = {
       notes: ["프린터와 스캐너가 있어야 합니다.", "스캔본은 기울거나 흐릿해지기 쉽습니다.", "아니면 유료 프로그램이나, 파일을 올려야 하는 웹사이트."] },
     after: { tag: "Sealworks", title: "끌어다 놓고 저장", flow: ["PDF<br>열기", "서명·도장<br>놓기", "새 파일로<br>저장"],
       notes: ["프린터·스캐너 없이 내 컴퓨터에서 바로.", "파일은 인터넷에 올라가지 않습니다.", "원본은 그대로. 봉인하면 나중에 고친 티가 납니다."] },
-    social: { head: "PDF에 서명·도장,<br><span>봉인까지.</span>", sub: "Mac·Windows용 무료 소스 공개 앱.<br>파일은 내 컴퓨터 밖으로 나가지 않습니다.",
-      chips: ["무료 · 소스 공개", "업로드 없음", "macOS · Windows"] },
+    social: { head: "PDF에 서명과 도장,<br><span>봉인까지.</span>", sub: "Mac과 Windows, Android에서 무료로 써요.<br>파일은 내 기기 밖으로 나가지 않아요.",
+      chips: ["무료", "소스 공개", "업로드 없음"], platforms: ["Mac", "Windows", "Android"], sep: null },
     states: ["봉인한 그대로입니다.", "봉인한 뒤에 무언가 덧붙거나 바뀌었습니다.", "봉인이 없어서 바뀌었는지 알 수 없습니다."],
   },
 };
@@ -123,8 +122,10 @@ function steps() {
       <div style="position:absolute;right:22px;top:26px;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px rgba(20,28,52,.10),0 10px 24px rgba(20,28,52,.22)">${crop("home", ob, obW)}</div>
       ${CURSOR(pw - 22 - obW / 2 + 8, 26 + Math.round(ob[3] * 1.9 / 2) + 2)}</div>`;
   // 2: signature and stamp on the line, cursor on the stamp
-  const er = [360, 120, 1080, 720];
-  const two = `<div style="position:relative">${fit("editor-signed", er, pw, ph, "#dfe3eb")}${CURSOR(Math.round(((840 - 360) * pw) / 1080), Math.round(((480 - 120) * pw) / 1080))}</div>`;
+  // the signing spot in the upper middle of the crop, cursor on the selected item
+  const sa = R.signArea, so = R.selOv, ex = Math.max(0, Math.min(VW - 1080, Math.round(sa[0] + sa[2] / 2 - 420))), ey = Math.max(0, Math.min(VH - 720, Math.round(sa[1] - 260)));
+  const er = [ex, ey, 1080, 720];
+  const two = `<div style="position:relative">${fit("editor-signed", er, pw, ph, "#dfe3eb")}${CURSOR(Math.round(((so[0] + so[2] * 0.6 - ex) * pw) / 1080), Math.round(((so[1] + so[3] * 0.6 - ey) * pw) / 1080))}</div>`;
   // 3: the save dialog with "Seal and save" on, and the saved toast
   const sr = pad(R.save, 0);
   const three = `<div style="position:relative">${fit("save-dialog", [sr[0] - 60, sr[1] - 14, sr[2] + 120, sr[3] + 14 + 96], pw, ph, "#dfe3eb")}
@@ -211,7 +212,7 @@ function beforeAfter() {
   const right = card(`${tag(A.tag, true)}<h2 style="font-size:30px;margin:14px 0 26px;font-weight:700">${A.title}</h2>
     <div style="display:flex;gap:22px;align-items:flex-start">
       ${flow(["open", "drag", "save"].map((i, k) => ({ i, t: A.flow[k], w: 84 })), "#2446c7", "var(--accent-soft)")}
-      <div style="flex:none;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px rgba(20,28,52,.10),0 6px 16px rgba(20,28,52,.10);margin-top:2px">${crop("editor-signed", [600, 380, 290, 125], 232)}</div>
+      <div style="flex:none;border-radius:10px;overflow:hidden;box-shadow:0 0 0 1px rgba(20,28,52,.10),0 6px 16px rgba(20,28,52,.10);margin-top:2px">${crop("editor-signed", ((a) => { const w = Math.max(290, a[2] + 40), h = Math.round(w * 125 / 290); return [Math.round(a[0] + a[2] / 2 - w / 2), Math.round(a[1] + a[3] / 2 - h / 2), w, h]; })(R.signArea), 232)}</div>
     </div>
     ${notes(A.notes, true)}`, true);
   const html = `<div style="position:absolute;left:${(W - cw * 2 - 60) / 2}px;top:44px;display:flex;align-items:center;gap:0">
@@ -219,18 +220,23 @@ function beforeAfter() {
   return { w: W, h: 470 + 88, html };
 }
 
-/* ---------------- social preview (1280x640) ---------------- */
+/* ---------------- social preview (1280x640): docs/images/social-<l>.png and the website's og:image ---------------- */
+const BRAND_ICON = "file://" + path.join(ROOT, "docs", "brand", "sealworks-icon.svg");
+const SEAL_MARK = "file://" + path.join(ROOT, "site", "assets", "seal-mark.svg");
 function social() {
   const S = TXT[L].social, W = 1280, H = 640;
-  const chip = (t) => `<span style="padding:7px 14px;border-radius:999px;background:#fff;box-shadow:0 0 0 1px rgba(20,28,52,.10);font-size:17px;font-weight:600;color:#3a404c">${t}</span>`;
+  const chip = (t) => `<span style="padding:7px 15px;border-radius:999px;background:#fff;box-shadow:0 0 0 1px rgba(20,28,52,.10);font-size:18px;font-weight:600;color:#3a404c">${t}</span>`;
+  // platforms: one line, kept apart by space and thin rules (English also shows the dots: "Mac · Windows · Android")
+  const plat = S.platforms.map((p) => `<span>${p}</span>`).join(S.sep ? `<span style="color:#9aa1b1">${S.sep}</span>` : `<i style="width:1.5px;height:18px;background:#c3c8d4;display:block"></i>`);
   const html = `
-    <div style="position:absolute;left:70px;top:84px;width:560px">
-      <div style="display:flex;align-items:center;gap:20px"><img src="${APP_ICON}" width="92" height="92"><span style="font-size:58px;font-weight:700;letter-spacing:-.5px">Sealworks</span></div>
-      <p style="font-size:40px;font-weight:700;line-height:1.3;margin-top:34px;letter-spacing:-.3px">${S.head.replace("<span>", '<span style="color:var(--accent)">')}</p>
-      <p style="font-size:20px;color:var(--muted);margin-top:18px;line-height:1.5">${S.sub}</p>
-      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:30px">${S.chips.map(chip).join("")}</div>
+    <div style="position:absolute;left:72px;top:72px;width:560px">
+      <div style="display:flex;align-items:center;gap:18px"><img src="${BRAND_ICON}" width="76" height="76" style="border-radius:17px;box-shadow:0 6px 16px rgba(20,28,52,.14)"><span style="font-size:50px;font-weight:700;letter-spacing:-.5px">Sealworks</span></div>
+      <p style="font-size:${L === "ko" ? 56 : 54}px;font-weight:700;line-height:1.18;margin-top:40px;letter-spacing:-1px">${S.head.replace("<span>", '<span style="white-space:nowrap">').replace("</span>", `<img src="${SEAL_MARK}" width="60" height="60" style="vertical-align:-8px;margin-left:10px"></span>`)}</p>
+      <p style="font-size:22px;color:var(--muted);margin-top:22px;line-height:1.5">${S.sub}</p>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-top:28px">${S.chips.map(chip).join("")}</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-top:18px;font-size:19px;font-weight:600;color:#3a404c">${plat}</div>
     </div>
-    <div style="position:absolute;left:660px;top:92px">${win("editor-signed", 860)}</div>`;
+    <div style="position:absolute;left:680px;top:96px">${win("editor-signed", 880)}</div>`;
   return { w: W, h: H, html, outW: W, outH: H };
 }
 
@@ -270,6 +276,10 @@ async function render(browser, name, spec, scale) {
   if (spec.outW) img = img.resize(spec.outW, spec.outH);
   await img.png({ palette: true, quality: 92, effort: 10, dither: 0.6 }).toFile(dest);
   console.log(`${name}-${L}`, (fs.statSync(dest).size / 1024).toFixed(0) + " KB");
+  if (name === "social") { // the website's og:image is the same picture
+    const site = path.join(ROOT, "site", "assets", `social-${L}.png`);
+    fs.copyFileSync(dest, site); console.log(`site/assets/social-${L}.png`);
+  }
 }
 
 (async () => {

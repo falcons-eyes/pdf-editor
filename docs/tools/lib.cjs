@@ -16,27 +16,31 @@ const LANG = LANGS.includes(process.argv[2]) ? process.argv[2] : LANGS.includes(
 const rawDir = (lang = LANG) => path.join(OUT, "raw-" + lang);
 const RAW = rawDir();
 
-// Everything the scripts type or name, per UI language. All people, companies and files are made up.
+// Everything the scripts type or name, per UI language. The documents are the app's own examples
+// (docs/design/scenarios.md), saved under the names a person would give them. All people and companies are made up.
+// One person throughout: 홍길동 / Jordan Lee rents a flat, runs a small design studio, has a child in primary school
+// and settled a bicycle accident; the power of attorney waits for a parent's signature.
 const SCENARIOS = {
   ko: {
-    sig: "내 서명", seal: "홍길동 도장", corp: "회사 직인", date: "오늘 날짜", dateText: "2026. 11. 25.",
-    sealer: { name: "홍길동", org: "라온스튜디오" },
+    sig: "내 서명", seal: "홍길동 도장", ini: null, corp: "회사 직인", date: "오늘 날짜", check: "체크 표시", dateText: "2026. 11. 25.",
+    sealer: { name: "홍길동", org: "주식회사 새솔디자인" },
     docs: {
-      proxy: "~/Downloads/위임장.pdf", lease: "~/Documents/임대차계약서.pdf", employ: "~/Documents/재직증명서.pdf",
-      nda: "~/Desktop/비밀유지서약서.pdf", quote: "~/Downloads/견적서_라온스튜디오.pdf", contract: "~/Documents/용역계약서_가나다.pdf",
+      lease: "~/Downloads/월세계약서_성미산로_201호.pdf", agreement: "~/Documents/합의서_자전거사고.pdf",
+      quote: "~/Documents/새솔디자인/견적서_한빛상사.pdf", school: "~/Downloads/현장체험학습_참가동의서.pdf", proxy: "~/Downloads/위임장_주민센터.pdf",
     },
-    folders: ["~/Documents/2025 정산", "~/Documents/견적서 모음"],
+    folders: ["~/Documents/새솔디자인", "~/Documents/집 계약"],
   },
   en: {
-    sig: "My signature", seal: "Jordan's stamp", corp: "Company seal", date: "Today's date", dateText: "Nov 25, 2026",
-    sealer: { name: "Jordan Lee", org: "Lumen Studio" },
+    sig: "Signature", seal: null, ini: "Initials", corp: "Studio stamp", date: "Today's date", check: "Check mark", dateText: "Nov 25, 2026",
+    sealer: { name: "Jordan Lee", org: "Northwind Design Ltd." },
     docs: {
-      proxy: "~/Downloads/Power_of_Attorney.pdf", lease: "~/Documents/Office_Lease.pdf", employ: "~/Documents/Employment_Verification.pdf",
-      nda: "~/Desktop/NDA_Brightline.pdf", quote: "~/Downloads/Quote_Lumen_Studio.pdf", contract: "~/Documents/Service_Agreement_Brightline.pdf",
+      lease: "~/Downloads/Lease_48_Maple_St_Apt_3B.pdf", agreement: "~/Documents/Settlement_Agreement_Avery.pdf",
+      quote: "~/Documents/Northwind/Quote_Q-2026-118_Brightline.pdf", school: "~/Downloads/Field_Trip_Permission_Slip.pdf", proxy: "~/Downloads/Power_of_Attorney_Mom.pdf",
     },
-    folders: ["~/Documents/2025 Taxes", "~/Documents/Quotes"],
+    folders: ["~/Documents/Northwind", "~/Documents/Home"],
   },
 };
+for (const L of Object.values(SCENARIOS)) L.docs.contract = L.docs.lease; // the main document (older scripts call it contract)
 const SC = SCENARIOS[LANG];
 const SUFFIX = { ko: "_서명", en: "_signed" }[LANG];
 const base = (p) => p.slice(p.lastIndexOf("/") + 1);
@@ -118,14 +122,31 @@ async function drawSignature(page, { onFrame } = {}) {
   }
 }
 
-// Build the sandbox: library (signature, seal photo, company seal, date stamp) and a Library with documents in several states.
-// opts.keepMainClean: leave the main contract without overlays (for the demo)
+// Build the sandbox: the user's Library (drawn signature, personal stamp or initials, company stamp scan, date stamp,
+// check mark) and the Library's documents, taken from the app's examples and left in believable states:
+//   lease      the main document: signature, stamp, 간인 and date (en: signature, date, initials on every page)
+//   agreement  signed, not saved yet (seal.cjs seals and saves it)
+//   quote      company stamp and date, saved          school  ticks, signature and date, saved
+//   proxy      opened, nothing placed (waiting for the parent's signature)
+// opts.keepMainClean: leave the lease without items (for the demo)
 async function seed(page, { keepMainClean = false, shots = null } = {}) {
+  // 1) the examples' clean PDFs, written into the sandbox home under the user's own file names
+  const ex = {};
+  for (const [key, id] of [["lease", "lease"], ["agreement", "agreement"], ["quote", "quote"], ["school", "school"], ["proxy", "proxy"]]) {
+    ex[key] = await page.evaluate(async ([id, dest]) => {
+      const d = await window.__seed.exampleDoc(id);
+      await window.__seed.writeHome(dest, d.bytes);
+      return { pages: d.pages, items: d.items, assets: d.assets };
+    }, [id, SC.docs[key]]);
+    await page.evaluate(() => { document.querySelectorAll("dialog[open]").forEach((d) => d.close()); document.querySelectorAll("#toasts .toast").forEach((t) => t.remove()); });
+  }
+  await page.evaluate(() => window.__pdfe.showHome());
+  await sleep(300);
   // show the library panel on the home screen
   await page.evaluate(() => { const S = window.__pdfe.S; if (!S.prefs.homeSide) document.querySelector("#btn-side").click(); });
   await sleep(200);
 
-  // 1) signature drawn in the pad
+  // 2) signature drawn in the pad
   await page.locator('#home .add-btn[data-add="draw"]').click();
   await sleep(300);
   await drawSignature(page);
@@ -135,15 +156,24 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
   await sleep(400);
   await page.evaluate(async (SC) => {
     const S = window.__pdfe.S; const a = [...S.assets.values()].find((x) => x.kind === "draw" && !x.sample);
-    a.name = SC.sig; await window.__pdfe.addToLibrary(a);
+    a.name = SC.sig; a.lastW = 100; await window.__pdfe.addToLibrary(a);
   }, SC);
 
-  // 2) seal photo (off-white paper -> background removal), company seal, date stamp
-  await page.evaluate(async (SC) => {
-    const s = window.__seed;
-    await s.addImageAsset(s.companySeal(), SC.corp);
-    await s.addImageAsset(s.sealPhoto(), SC.seal);
-  }, SC);
+  // 3) stamps the user keeps: personal stamp (ko) or initials (en), the studio's stamp scanned on paper, a check mark
+  const pick = (exKey, re) => ex[exKey].assets.find((a) => re.test(a.name));
+  const copies = [
+    SC.seal && [pick("lease", /도장/), SC.seal, 42],
+    SC.ini && [pick("lease", /Initials/), SC.ini, 44],
+    [pick("quote", /직인|stamp/i), SC.corp, 62],
+    [pick("school", /✓/), SC.check, 14],
+  ].filter(Boolean);
+  await page.evaluate(async (copies) => {
+    for (const [a, name, lastW] of copies) {
+      const id = await window.__seed.copyAsset(a.src, a.kind, name);
+      const x = window.__pdfe.S.assets.get(id); x.lastW = lastW; await window.__pdfe.addToLibrary(x);
+    }
+  }, copies);
+  // date stamp typed in the text dialog
   await page.locator('#home .add-btn[data-add="text"]').click();
   await sleep(300);
   await page.locator("#txt-input").fill(SC.dateText);
@@ -155,70 +185,54 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
   await page.evaluate(async (SC) => {
     const S = window.__pdfe.S; const a = [...S.assets.values()].find((x) => x.kind === "text" && !x.sample);
     if (a) { a.name = SC.date; await window.__pdfe.addToLibrary(a); }
-    // library order: signature first, then seal, company seal, date
-    const now = Date.now(); const order = [SC.sig, SC.seal, SC.corp, SC.date];
+    // library order: signature first, then stamp or initials, date, company stamp, check mark
+    const now = Date.now(); const order = [SC.sig, SC.seal || SC.ini, SC.date, SC.corp, SC.check];
     for (const x of S.assets.values()) if (!x.sample) { const i = order.indexOf(x.name); x.lastUsed = now - (i < 0 ? 9 : i) * 1000; await window.__pdfe.addToLibrary(x); }
   }, SC);
 
-  // 3) documents
-  const marks = await page.evaluate(async ({ keepMainClean, SC, SUFFIX }) => {
+  // 4) open each document and put the user's items where the example had its own
+  await page.evaluate(async ({ keepMainClean, SC, SUFFIX, ex }) => {
     const p = window.__pdfe, s = window.__seed, S = p.S, D = SC.docs;
     const base = (x) => x.slice(x.lastIndexOf("/") + 1), signed = (x) => base(x).replace(/\.pdf$/i, SUFFIX + ".pdf");
-    const id = (name) => [...S.assets.values()].find((a) => a.name === name && !a.sample).id;
-    const SIG = id(SC.sig), SEAL = id(SC.seal), CORP = id(SC.corp);
-    const place = (assetId, page, cx, cy, w, h, rot = 0) => {
-      p.placeAsset(assetId, page, { x: cx, y: cy });
-      const o = S.overlays[S.overlays.length - 1];
-      p.act(() => { const a = S.assets.get(assetId); const hh = h ?? (w * a.h) / a.w; o.w = w; o.h = hh; o.x = cx - w / 2; o.y = cy - hh / 2; o.rot = rot; });
-      return o;
-    };
-    const sign = (m, { seal = true } = {}) => {
-      const a = S.assets.get(SIG); const w = 112, h = (w * a.h) / a.w;
-      place(SIG, m.page, (m.line.x0 + m.line.x1) / 2, m.line.y - h / 2 + 6, w);
-      if (seal) place(SEAL, m.page, m.seal.x, m.seal.y, 50, 50, 354);
+    const mine = (name) => name && [...S.assets.values()].find((a) => a.name === name && !a.sample);
+    const role = (it) => it.kind === "draw" ? (/Initials/.test(it.name) ? SC.ini : SC.sig) : it.kind === "seal" ? SC.seal : it.kind === "image" ? SC.corp : it.kind === "mark" ? SC.check : it.kind === "text" && /날짜|date/i.test(it.name) ? SC.date : null;
+    const fill = (items) => {
+      let ganFrom = null;
+      for (const it of items) {
+        const a = mine(role(it)); if (!a) continue;
+        if (it.gan) { ganFrom = ganFrom || a; continue; }
+        const r = a.h / a.w; let w, h, x, y;
+        if (a.kind === "text") { h = it.h; w = h / r; x = it.x; y = it.y; }
+        else if (a.kind === "draw") { w = it.w * (/Initials/.test(it.name) ? 1 : 1.12); h = w * r; x = it.x + it.w / 2 - w / 2; y = it.y + it.h * 0.7 - h * 0.7; }
+        else { w = it.w; h = w * r; x = it.x + it.w / 2 - w / 2; y = it.y + it.h / 2 - h / 2; }
+        p.placeAsset(a.id, it.page, { x: x + w / 2, y: y + h / 2 });
+        const o = S.overlays[S.overlays.length - 1];
+        p.act(() => { o.w = w; o.h = h; o.x = x; o.y = y; o.rot = it.rot || 0; o.opacity = it.opacity ?? 1; });
+      }
+      if (ganFrom) { // 간인 with the same stamp, the way the inspector's button does it
+        const o = S.overlays.find((x) => x.assetId === ganFrom.id && !x.gan);
+        if (o) { p.select(o.id); p.ganinSel(); }
+      }
+      p.select(null);
     };
     const save = async (name) => { const src = S.rec.source.path; await p.performSave(name, src.slice(0, src.lastIndexOf("/")), false); };
-    const out = {};
 
-    // power of attorney: opened, nothing placed yet
-    await s.createDoc("proxy", D.proxy); await s.openPath(D.proxy);
-    // lease: signed + saved, then the saved file was deleted in Finder
-    let m = await s.createDoc("lease", D.lease); await s.openPath(D.lease);
-    sign(m[1]); await save(signed(D.lease));
-    // employment letter: company seal, saved
-    await s.createDoc("employ", D.employ); await s.openPath(D.employ);
-    place(CORP, 0, 470, 655, 62, 62, 0); await save(signed(D.employ));
-    // NDA: signed + saved, then the original was edited outside the app
-    m = await s.createDoc("nda", D.nda); await s.openPath(D.nda);
-    sign(m[0]); await save(signed(D.nda));
-    // quote: stamped, not saved yet
-    await s.createDoc("quote", D.quote); await s.openPath(D.quote);
-    place(SEAL, 0, 360, 676, 46, 46, 352);
-    // service agreement: the main document
-    m = await s.createDoc("contract", D.contract); await s.openPath(D.contract);
-    out.contract = m;
+    await s.openPath(D.proxy);
+    await s.openPath(D.school); fill(ex.school.items); await save(signed(D.school));
+    await s.openPath(D.quote); fill(ex.quote.items); await save(signed(D.quote));
+    await s.openPath(D.agreement); fill(ex.agreement.items);
     const d = await window.claude.use("desktop"); for (const f of SC.folders) await d.fs.mkdir(f, { recursive: true });
-    if (!keepMainClean) sign(m[1]);
-    return out;
-  }, { keepMainClean, SC, SUFFIX });
+    await s.openPath(D.lease);
+    if (!keepMainClean) fill(ex.lease.items);
+  }, { keepMainClean, SC, SUFFIX, ex });
   await sleep(600);
-
-  // outside-the-app changes (what Finder would do)
-  const h = fakeHome();
-  fs.rmSync(path.join(h, signedPath(SC.docs.lease).slice(2)));
-  await page.evaluate(async (ndaPath) => {
-    // rewrite the original NDA with a visibly different version
-    const s = window.__seed;
-    const { bytes } = await s.makePdf(s.NDA_REVISED(), 1);
-    await new Promise((r) => setTimeout(r, 1600)); // newer mtime
-    await s.writeHome(ndaPath, bytes);
-  }, SC.docs.nda);
+  await page.evaluate(() => document.querySelectorAll("#toasts .toast").forEach((t) => t.remove()));
 
   // believable times in the list
   await page.evaluate(async (D) => {
     const p = window.__pdfe, S = p.S, now = Date.now(), min = 60e3, hr = 3600e3, day = 86400e3;
     const base = (x) => x.slice(x.lastIndexOf("/") + 1);
-    const T = { [base(D.contract)]: [2 * min, 1 * min], [base(D.quote)]: [2 * hr, 2 * hr - 4 * min], [base(D.nda)]: [day + 3 * hr, day + 3 * hr], [base(D.employ)]: [3 * day, 3 * day], [base(D.lease)]: [5 * day, 5 * day], [base(D.proxy)]: [8 * day, null] };
+    const T = { [base(D.lease)]: [3 * min, 2 * min], [base(D.agreement)]: [2 * hr, 2 * hr - 6 * min], [base(D.quote)]: [day + 2 * hr, day + 2 * hr - 5 * min], [base(D.school)]: [3 * day, 3 * day - 4 * min], [base(D.proxy)]: [5 * day, null] };
     for (const r of S.docs) {
       const t = T[r.name]; if (!t) continue;
       r.openedAt = now - t[0]; r.editedAt = t[1] == null ? null : now - t[1];
@@ -226,7 +240,7 @@ async function seed(page, { keepMainClean = false, shots = null } = {}) {
     }
     await p.Store.saveDocs(S.docs);
   }, SC.docs);
-  return marks;
+  return { ex };
 }
 
 // a sealer identity in the stand-in seal (the real app keeps it in the Keychain / DPAPI)
