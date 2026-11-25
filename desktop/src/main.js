@@ -8,6 +8,7 @@ const { createPathMapper, fsError, WIN_ROOT } = require("./paths");
 const { createSeal } = require("./seal");
 const { createBookmarks } = require("./bookmarks");
 const { packageOfExe, packageDataDir } = require("./msstore");
+const { createWriteGuard, makeCanon } = require("./writeguard");
 
 const IS_MAC = process.platform === "darwin";
 function realpath(p) { try { return fs.realpathSync.native(p); } catch { return p; } }
@@ -102,6 +103,8 @@ function pdfsFromArgv(argv, cwd = process.cwd()) {
 function openFromOs(osPath) {
   const pagePath = paths.toPage(osPath);
   if (!pagePath) return;
+  // opened by the user through the OS: the page may save over it or create a new PDF next to it
+  writes.grantFile(osPath, { siblings: true });
   if (win && !win.isDestroyed() && openListening) win.webContents.send("pdfe:open-file", pagePath);
   else pendingOpen.push(pagePath);
   if (app.isReady()) showWindow();
@@ -272,20 +275,17 @@ const dirStat = () => ({ size: 0, mtimeMs: 0, isFile: false, isDirectory: true, 
 const noRoot = (p) => { throw fsError("EPERM", `operation not permitted on the drive list: ${p}`); };
 const osPath = (p) => { const o = paths.toOs(p); return o === WIN_ROOT ? noRoot(p) : o; };
 // The sealer key folder is main's alone: the page may list it, never read or change what is in it.
-const canon = (p) => {
-  let probe = path.resolve(p), rest = [];
-  for (let i = 0; i < 64; i++) {
-    try { probe = path.join(fs.realpathSync.native(probe), ...rest); break; }
-    catch { const up = path.dirname(probe); if (up === probe) break; rest.unshift(path.basename(probe)); probe = up; }
-  }
-  probe = probe.normalize("NFC");
-  return IS_MAC || IS_WIN ? probe.toLowerCase() : probe;
-};
-// main's private files: the sealer key folder and the bookmark store
+const canon = makeCanon({ caseInsensitive: IS_MAC || IS_WIN });
+// main's private files: the sealer key folder, the bookmark store and Electron's own data
+// (userData; inside the data store except with a test home)
 const PRIVATE = [
   { dir: SEAL_DIR, inside: "the sealer key folder is private", holds: "this folder holds the sealer key" },
   { dir: bookmarks.file, inside: "this file is private to the app", holds: "this folder holds private app data" },
+  { dir: app.getPath("userData"), inside: "Electron's own data is private to the app", holds: "this folder holds private app data" },
 ];
+// Where the page's writes, renames and deletes may land (src/writeguard.js): the data store, and
+// what the user picked or opened in this session (granted below, never from a page-supplied path).
+const writes = createWriteGuard({ roots: [STORE_DIR], canon });
 // while "Import data from the previous version" replaces the store, the page can't write into it
 let storeFrozen = false;
 const insideOf = (base, c) => c === base || c.startsWith(base + path.sep);
@@ -300,6 +300,12 @@ function guarded(p, { tree = false, write = false } = {}) {
   }
   if (write && storeFrozen && insideOf(canon(STORE_DIR), c)) throw fsError("EBUSY", `importing data from the previous version: ${p}`);
   return o;
+}
+// a page path the page wants to change: private files first, then the write allowlist
+// op: "write" | "mkdir" | "remove" | "replace" (see writeguard.check)
+function writeTarget(p, op, { tree = false } = {}) {
+  const o = guarded(p, { tree, write: true });
+  return [o, writes.check(o, op, p)];
 }
 
 // The save panel with securityScopedBookmarks creates an empty file at the chosen path (store build).
@@ -338,10 +344,17 @@ const FS = {
     if (typeof data === "string") buf = Buffer.from(data, enc === "base64" ? "base64" : "utf8");
     else if (data instanceof Uint8Array) buf = Buffer.from(data.buffer, data.byteOffset, data.byteLength);
     else throw fsError("EINVAL", "data must be a string or bytes");
-    const o = guarded(p, { write: true });
-    try { await withAccess(o, () => fsp.writeFile(o, buf)); }
-    catch (err) { await dropPlaceholder(o); throw err; }
+    const [o, allow] = writeTarget(p, "write");
+    // next to an opened file only a new file may be created, never an existing one replaced
+    try { await withAccess(o, () => fsp.writeFile(o, buf, { flag: allow.exclusive ? "wx" : "w" })); }
+    catch (err) {
+      await dropPlaceholder(o);
+      if (allow.exclusive && err?.code === "EEXIST") throw fsError("EPERM", `replacing an existing file needs the save panel: ${p}`);
+      throw err;
+    }
     placeholders.delete(path.resolve(o));
+    // made by the app this session: it may be saved again
+    if (allow.exclusive) writes.grantFile(o);
   },
   async readdir(p) {
     const o = paths.toOs(p);
@@ -376,15 +389,15 @@ const FS = {
       await withAccess(o, async () => { await fsp.access(o); await readable(o); }); return true;
     } catch { return false; }
   },
-  async mkdir(p, o) { const t = guarded(p, { write: true }); await withAccess(t, () => fsp.mkdir(t, { recursive: !!o?.recursive })); },
+  async mkdir(p, o) { const [t] = writeTarget(p, "mkdir"); await withAccess(t, () => fsp.mkdir(t, { recursive: !!o?.recursive })); },
   async rename(from, to) {
-    const a = guarded(from, { tree: true, write: true }), b = guarded(to, { tree: true, write: true });
+    const [a] = writeTarget(from, "remove", { tree: true }), [b] = writeTarget(to, "replace", { tree: true });
     await bookmarks.withAccess2(a, b, () => fsp.rename(a, b));
   },
   // the page only deletes its own single files (保管함 copies, thumbnails): folders are refused,
   // so a bug or injected script can never wipe a whole tree
   async rm(p, o) {
-    const target = guarded(p, { write: true });
+    const [target] = writeTarget(p, "remove");
     await withAccess(target, async () => {
       const st = await fsp.lstat(target).catch((e) => { if (e.code === "ENOENT" && o?.force) return null; throw e; });
       if (!st) return;
@@ -393,7 +406,7 @@ const FS = {
     });
   },
   async copyFile(from, to) {
-    const a = guarded(from, { tree: true }), b = guarded(to, { tree: true, write: true });
+    const a = guarded(from, { tree: true }), [b] = writeTarget(to, "replace", { tree: true });
     await bookmarks.withAccess2(a, b, () => fsp.copyFile(a, b));
   },
 };
@@ -415,6 +428,9 @@ async function openDialog(o = {}) {
   const r = await showOpen(opts);
   if (r.canceled || !r.filePaths?.length) return null;
   rememberPicked(r, kind === "folder");
+  // picked by the user in main's panel: a folder to save into, or a PDF to work on
+  if (kind === "folder") r.filePaths.forEach((p) => writes.grantFolder(p));
+  else if (kind === "pdf") r.filePaths.forEach((p) => writes.grantFile(p, { siblings: true }));
   return r.filePaths.map((p) => paths.toPage(p));
 }
 const showOpen = (opts) => (win ? dialog.showOpenDialog(win, opts) : dialog.showOpenDialog(opts));
@@ -440,11 +456,13 @@ async function saveDialog(o = {}) {
   };
   if (IS_MAC) opts.message = opts.title;
   if (SANDBOXED) opts.securityScopedBookmarks = true;
-  if (NO_DIALOGS) return paths.toPage(defaultPath);
+  // test mode: the user "accepted" the prefilled path
+  if (NO_DIALOGS) { writes.grantFile(defaultPath); return paths.toPage(defaultPath); }
   const shownAt = Date.now();
   const r = await showSave(opts);
   if (r.canceled || !r.filePath) return null;
   const chosen = path.resolve(r.filePath);
+  writes.grantFile(chosen);
   if (r.bookmark) bookmarks.remember(chosen, r.bookmark, false);
   if (SANDBOXED) {
     try { const st = fs.statSync(chosen); if (st.size === 0 && st.birthtimeMs >= shownAt - 2000) placeholders.add(chosen); } catch {}
@@ -465,10 +483,12 @@ async function requestAccess(p, o = {}) {
     filters: kind === "pdf" ? [{ name: "PDF", extensions: ["pdf"] }] : undefined,
   };
   if (SANDBOXED) opts.securityScopedBookmarks = true;
-  if (NO_DIALOGS) return target ? paths.toPage(target) : null;
+  const grant = (p) => (kind === "folder" ? writes.grantFolder(p) : writes.grantFile(p, { siblings: true }));
+  if (NO_DIALOGS) { if (target) grant(target); return target ? paths.toPage(target) : null; }
   const r = await showOpen(opts);
   if (r.canceled || !r.filePaths?.length) return null;
   rememberPicked(r, kind === "folder");
+  grant(r.filePaths[0]);
   return paths.toPage(r.filePaths[0]);
 }
 
@@ -730,7 +750,7 @@ function registerIpc() {
     }
     if (op === "showItemInFolder") { const target = osPath(p); return withAccess(target, async () => shell.showItemInFolder(target)); }
     if (op === "trashItem") {
-      const target = guarded(p, { write: true });
+      const [target] = writeTarget(p, "remove");
       return withAccess(target, async () => {
         if ((await fsp.stat(target)).isDirectory()) throw fsError("EPERM", `refusing to trash a folder: ${p}`);
         return shell.trashItem(target);
@@ -776,7 +796,8 @@ function registerIpc() {
       const opts = { title: L().backupTitle, defaultPath: path.join(startDir(o.start), /\.p12$/i.test(name) ? name : name + ".p12"), filters: [{ name: L().certs, extensions: ["p12"] }] };
       const r = NO_DIALOGS ? { filePath: opts.defaultPath } : await showSave(opts);
       if (r.canceled || !r.filePath) return null;
-      const target = guarded(paths.toPage(r.filePath), { write: true });
+      writes.grantFile(path.resolve(r.filePath));
+      const [target] = writeTarget(paths.toPage(r.filePath), "write");
       await withAccess(target, () => fsp.writeFile(target, p12));
       return { path: paths.toPage(target) };
     }

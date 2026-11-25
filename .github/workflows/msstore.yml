@@ -37,9 +37,11 @@ jobs:
       MSSTORE_PUBLISHER: ${{ vars.MSSTORE_PUBLISHER }}
       MSSTORE_PUBLISHER_DISPLAY_NAME: ${{ vars.MSSTORE_PUBLISHER_DISPLAY_NAME }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
@@ -50,9 +52,11 @@ jobs:
       - name: Unit tests
         run: npm run test:unit
 
-      # x64 + arm64 .appx in dist/msstore/, plus dist/msstore/win-unpacked
-      - name: Build (npm run dist:msstore)
-        run: npm run dist:msstore
+      # x64 + arm64 .appx in dist/msstore/, plus dist/msstore/win-unpacked. Test packages only: the
+      # EnableNodeCliInspectArguments fuse stays on so Playwright can drive the installed app (the
+      # Store build, `npm run dist:msstore` without this flag, has it off; package.json build.electronFuses)
+      - name: Build (npm run dist:msstore, test build with the inspector fuse on)
+        run: npm run dist:msstore -- -c.electronFuses.enableNodeCliInspectArguments=true
 
       # the same app as version x.y.z.1, to test an in-place update
       - name: Build an update package (4th version part 1)
@@ -175,14 +179,14 @@ jobs:
           foreach ($x in $rows | Where-Object { $_.Result -eq "FAIL" }) { Write-Host "::warning title=WACK FAIL::$($x.Name): $($x.Detail)" }
           if ($overall -ne "PASS") { exit 1 }
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: msstore-screenshots
           path: desktop/test/out/
           if-no-files-found: ignore
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         if: always()
         with:
           name: msstore-wack-report
@@ -190,7 +194,7 @@ jobs:
           if-no-files-found: ignore
 
       # test-signed (CN of the test certificate): install the .cer into Local Machine › Trusted People to sideload
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: msstore-appx-test-signed
           path: |

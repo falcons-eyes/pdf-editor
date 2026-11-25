@@ -66,6 +66,8 @@ if (!SKIP_BUILD) {
   run("npm", ["run", "build:page"]);
   run(path.join(DESKTOP, "node_modules", ".bin", "electron-builder"), [
     "--config", "electron-builder.mas.cjs", "--mac", "mas-dev", `--${ARCH}`, "--publish", "never", `-c.mas.appId=${ID}`,
+    // a local test build: Playwright drives the app through --inspect, which the shipped fuses turn off
+    "-c.electronFuses.enableNodeCliInspectArguments=true",
   ], { env: { ...process.env, MAS_DEV_IDENTITY: "none" } });
 }
 if (!fs.existsSync(APP)) { console.error(`missing ${APP}`); process.exit(2); }

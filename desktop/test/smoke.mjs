@@ -57,7 +57,45 @@ function resolveTarget() {
     if (!p) throw new Error(`no unpacked build found in ${dist}; run npm run pack or pass --app`);
   }
   if (p.endsWith(".app")) p = path.join(p, "Contents", "MacOS", path.basename(p, ".app"));
-  return { executablePath: p, args: [], label: p };
+  return { executablePath: p, args: [], label: p, packaged: true };
+}
+
+// The packaged build has its Electron fuses set (package.json build.electronFuses). Playwright drives
+// the app through the Node inspector (--inspect=0), which the EnableNodeCliInspectArguments fuse
+// switches off; then the test runs a copy of the build with only that fuse flipped back on (macOS:
+// re-signed ad hoc, entitlements kept). Builds that can't be copied (the installed MSIX package, the
+// sandboxed run) must be built with -c.electronFuses.enableNodeCliInspectArguments=true instead.
+const FUSES_WANTED = {
+  RunAsNode: false, EnableCookieEncryption: true, EnableNodeOptionsEnvironmentVariable: false, EnableNodeCliInspectArguments: false,
+  EnableEmbeddedAsarIntegrityValidation: true, OnlyLoadAppFromAsar: true, LoadBrowserProcessSpecificV8Snapshot: false, GrantFileProtocolExtraPrivileges: false,
+};
+let fuseCopyDir = null;
+async function prepareTarget(t) {
+  if (!t.packaged) return t;
+  const { getCurrentFuseWire, flipFuses, FuseV1Options, FuseVersion } = require("@electron/fuses");
+  const bundle = /^(.*\.app)\/Contents\/MacOS\/[^/]+$/.exec(t.executablePath)?.[1];
+  const wire = await getCurrentFuseWire(bundle || t.executablePath);
+  const state = (name) => ({ 48: false, 49: true })[wire[FuseV1Options[name]]];
+  const now = Object.fromEntries(Object.keys(FUSES_WANTED).map((k) => [k, state(k)]));
+  const off = Object.entries(FUSES_WANTED).filter(([k, v]) => k !== "EnableNodeCliInspectArguments" && now[k] !== v).map(([k]) => `${k}=${now[k]}`);
+  check("Electron fuses of the packaged build (package.json build.electronFuses)", !off.length, off.length ? `unexpected: ${off.join(", ")}` : `ok; EnableNodeCliInspectArguments=${now.EnableNodeCliInspectArguments}${now.EnableNodeCliInspectArguments ? " (a test build)" : " (testing a copy with it on)"}`);
+  if (now.EnableNodeCliInspectArguments) return t;
+  if (EXPECT_MSSTORE || EXPECT_MAS || EXPECT_SANDBOX) throw new Error("this build has the EnableNodeCliInspectArguments fuse off, so Playwright can't drive it; build the test package with -c.electronFuses.enableNodeCliInspectArguments=true");
+  fuseCopyDir = fs.realpathSync.native(fs.mkdtempSync(path.join(os.tmpdir(), "pdfe-fusetest-")));
+  let exe;
+  if (bundle) {
+    const app = path.join(fuseCopyDir, path.basename(bundle));
+    await new Promise((res, rej) => execFile("ditto", [bundle, app], (e) => (e ? rej(e) : res())));
+    exe = path.join(app, path.relative(bundle, t.executablePath));
+    await flipFuses(app, { version: FuseVersion.V1, [FuseV1Options.EnableNodeCliInspectArguments]: true, resetAdHocDarwinSignature: true });
+  } else {
+    const dir = path.dirname(t.executablePath);
+    fs.cpSync(dir, path.join(fuseCopyDir, path.basename(dir)), { recursive: true, verbatimSymlinks: true });
+    exe = path.join(fuseCopyDir, path.basename(dir), path.basename(t.executablePath));
+    await flipFuses(exe, { version: FuseVersion.V1, [FuseV1Options.EnableNodeCliInspectArguments]: true });
+  }
+  console.log(`test copy with the inspector fuse on: ${exe}`);
+  return { ...t, executablePath: exe, label: `${t.label} (copy, inspector fuse on)` };
 }
 
 /** a classic incremental update after the seal: new /Info object, xref section, trailer with /Prev */
@@ -87,7 +125,12 @@ async function main() {
   fs.mkdirSync(homeBase, { recursive: true });
   const home = fs.realpathSync.native(fs.mkdtempSync(path.join(homeBase, "pdfe-smoke-")));
   fs.mkdirSync(path.join(home, "Out"));
-  const target = resolveTarget();
+  // the write allowlist: a folder never picked, a file in it, and a symlink from ~/Out out of it
+  fs.mkdirSync(path.join(home, "NotGranted"));
+  fs.writeFileSync(path.join(home, "NotGranted", "keep.pdf"), "%PDF-1.4\n%%EOF\n");
+  fs.mkdirSync(path.join(home, "Elsewhere"));
+  try { fs.symlinkSync(path.join(home, "Elsewhere"), path.join(home, "Out", "link-out"), process.platform === "win32" ? "junction" : "dir"); } catch {}
+  const target = await prepareTarget(resolveTarget());
   console.log(`app:  ${target.label}\nhome: ${home}`);
   // a copy of the store to bring back with "Import data from the previous version" (sandboxed runs)
   const legacyStore = path.join(home, "legacy", "PDF Editor");
@@ -137,23 +180,45 @@ async function main() {
       const r = { standalone: d.standalone, platform: d.platform, version: d.version, other: await window.claude.use("nope") };
       const err = async (p) => { try { await p; return "resolved"; } catch (e) { return String(e.message); } };
       r.enoent = await err(d.fs.stat("~/does-not-exist"));
-      await d.fs.mkdir("~/api/a/b", { recursive: true });
-      await d.fs.writeFile("~/api/a/t.txt", "안녕 hello");
-      r.text = await d.fs.readFile("~/api/a/t.txt", "utf8");
-      const bin = await d.fs.readFile("~/api/a/t.txt");
+      // writes land only in the data store or where the user chose this session: before ~/Out is
+      // picked (test mode: access.request "picks" it) the page can't write there
+      r.beforeGrant = await err(d.fs.mkdir("~/Out/api/a/b", { recursive: true }));
+      r.grant = await d.access.request("~/Out", { kind: "folder" });
+      await d.fs.mkdir("~/Out/api/a/b", { recursive: true });
+      await d.fs.writeFile("~/Out/api/a/t.txt", "안녕 hello");
+      r.text = await d.fs.readFile("~/Out/api/a/t.txt", "utf8");
+      const bin = await d.fs.readFile("~/Out/api/a/t.txt");
       r.binIsU8 = bin instanceof Uint8Array; r.binLen = bin.length;
-      r.b64 = await d.fs.readFile("~/api/a/t.txt", "base64");
-      await d.fs.writeFile("~/api/a/b.bin", new Uint8Array([1, 2, 3]).buffer);
-      r.stat = await d.fs.stat("~/api/a/b.bin");
-      await d.fs.copyFile("~/api/a/b.bin", "~/api/a/c.bin");
-      await d.fs.rename("~/api/a/c.bin", "~/api/a/d.bin");
-      r.list = (await d.fs.readdir("~/api/a")).map((e) => `${e.name}:${e.isDirectory ? "d" : "f"}`);
-      r.exists = [await d.fs.exists("~/api/a/d.bin"), await d.fs.exists("~/api/a/c.bin")];
-      r.rmFolder = await err(d.fs.rm("~/api", { force: true }));   // folders are never deleted
-      await d.fs.rm("~/api/a/d.bin");
-      r.gone = !(await d.fs.exists("~/api/a/d.bin")) && (await d.fs.exists("~/api/a/t.txt"));
-      r.rmMissing = await err(d.fs.rm("~/api/a/d.bin"));
-      r.rmForce = await err(d.fs.rm("~/api/a/d.bin", { force: true }));
+      r.b64 = await d.fs.readFile("~/Out/api/a/t.txt", "base64");
+      await d.fs.writeFile("~/Out/api/a/b.bin", new Uint8Array([1, 2, 3]).buffer);
+      r.stat = await d.fs.stat("~/Out/api/a/b.bin");
+      await d.fs.copyFile("~/Out/api/a/b.bin", "~/Out/api/a/c.bin");
+      await d.fs.rename("~/Out/api/a/c.bin", "~/Out/api/a/d.bin");
+      r.list = (await d.fs.readdir("~/Out/api/a")).map((e) => `${e.name}:${e.isDirectory ? "d" : "f"}`);
+      r.exists = [await d.fs.exists("~/Out/api/a/d.bin"), await d.fs.exists("~/Out/api/a/c.bin")];
+      r.rmFolder = await err(d.fs.rm("~/Out/api", { force: true }));   // folders are never deleted
+      await d.fs.rm("~/Out/api/a/d.bin");
+      r.gone = !(await d.fs.exists("~/Out/api/a/d.bin")) && (await d.fs.exists("~/Out/api/a/t.txt"));
+      r.rmMissing = await err(d.fs.rm("~/Out/api/a/d.bin"));
+      r.rmForce = await err(d.fs.rm("~/Out/api/a/d.bin", { force: true }));
+      // the write allowlist: anywhere else is EPERM, also via "..", a symlink, rename or copy
+      r.store = await err(d.fs.writeFile("~/Library/Application Support/PDF Editor/smoke-probe.txt", "x"));
+      r.deny = {
+        home: await err(d.fs.writeFile("~/planted.txt", "x")),
+        dotdot: await err(d.fs.writeFile("~/Out/../planted.txt", "x")),
+        storeDotdot: await err(d.fs.writeFile("~/Library/Application Support/PDF Editor/../planted.txt", "x")),
+        symlink: await err(d.fs.writeFile("~/Out/link-out/planted.txt", "x")),
+        mkdir: await err(d.fs.mkdir("~/NotGranted/sub", { recursive: true })),
+        renameOut: await err(d.fs.rename("~/Out/api/a/t.txt", "~/planted.txt")),
+        renameIn: await err(d.fs.rename("~/NotGranted/keep.pdf", "~/Out/taken.pdf")),
+        copyOut: await err(d.fs.copyFile("~/Out/api/a/t.txt", "~/NotGranted/planted.txt")),
+        rm: await err(d.fs.rm("~/NotGranted/keep.pdf")),
+        trash: await err(d.shell.trashItem("~/NotGranted/keep.pdf")),
+      };
+      // a save-panel pick grants exactly that file
+      r.picked = await d.dialog.save({ start: "~/NotGranted", name: "picked" });
+      r.pickedWrite = await err(d.fs.writeFile(r.picked, "%PDF-1.4"));
+      r.pickedNeighbour = await err(d.fs.writeFile("~/NotGranted/neighbour.pdf", "x"));
       r.perm = [await d.permissions.state("full-access"), await d.permissions.state(), await d.permissions.request(["full-access"])];
       r.win = await d.window.setOptions({ minWidth: 880, minHeight: 600, titleBarStyle: "hiddenInset" });
       r.os = [await d.os.platform(), await d.os.arch()];
@@ -182,9 +247,14 @@ async function main() {
     check("os / dock / install", api.os[0] === process.platform && api.os[1] && api.dock.written === false && api.install === "installed");
     check("pathForFile on an in-memory File is null", api.pathForBlobFile === null);
     check("openExternal refuses non-https", /^EPERM/.test(api.badUrl), api.badUrl);
-    check("files written into the override home", fs.existsSync(path.join(home, "api", "a", "t.txt")));
+    check("files written into the override home", fs.existsSync(path.join(home, "Out", "api", "a", "t.txt")));
     check("desktop.sandboxed matches the build", api.sandboxed === EXPECT_SANDBOX, String(api.sandboxed));
     check("desktop.links: privacy, support, repo (https)", /^https:\/\/github\.com\/falcons-eyes\/pdf-editor\/blob\/main\/PRIVACY\.md$/.test(api.links?.privacy) && /^https:\/\/github\.com\/falcons-eyes\/pdf-editor\/issues$/.test(api.links?.support) && api.links?.repo === "https://github.com/falcons-eyes/pdf-editor", JSON.stringify(api.links));
+    const linked = (() => { try { return fs.lstatSync(path.join(home, "Out", "link-out")).isSymbolicLink(); } catch { return false; } })();
+    const denied = Object.entries(api.deny).filter(([k, m]) => !/^EPERM: /.test(m) && (k !== "symlink" || linked));
+    check("write allowlist: nothing outside the store before the user picks it", /^EPERM: /.test(api.beforeGrant) && api.grant === "~/Out" && api.store === "resolved", `${api.beforeGrant} | ${api.store}`);
+    check("write allowlist: other places, .., a symlink out, rename/copy/rm/trash -> EPERM", !denied.length && !fs.existsSync(path.join(home, "planted.txt")) && !fs.existsSync(path.join(home, "Elsewhere", "planted.txt")) && !fs.existsSync(path.join(home, "NotGranted", "planted.txt")) && fs.existsSync(path.join(home, "NotGranted", "keep.pdf")) && fs.existsSync(path.join(home, "Out", "api", "a", "t.txt")), denied.map(([k, m]) => `${k}: ${m}`).join(" | ") || "all EPERM");
+    check("write allowlist: a save-panel pick grants that file only", api.picked === "~/NotGranted/picked.pdf" && api.pickedWrite === "resolved" && fs.existsSync(path.join(home, "NotGranted", "picked.pdf")) && /^EPERM: /.test(api.pickedNeighbour), `${api.pickedWrite} | ${api.pickedNeighbour}`);
     check("dialog.save / access.request return page paths", api.save === "~/Out/named.pdf" && api.saveKeepsPdf === "~/Out/a_b_c.pdf" && api.access[0] === "~/Out" && api.access[1] === "~/Out/x.pdf", JSON.stringify([api.save, api.saveKeepsPdf, ...api.access]));
     check("the bookmark store is private to main", [api.bookmarkStore, api.bookmarkWrite, api.bookmarkMove].every((m) => /^EPERM: /.test(m)), [api.bookmarkStore, api.bookmarkWrite, api.bookmarkMove].join(" | "));
 
@@ -450,6 +520,42 @@ async function main() {
       check("second launch: exits, the running app stays and gets the file (single instance)", ok, JSON.stringify({ code, alive, got }) + (ok ? "" : `\n      second process log:\n${log.trim().split("\n").slice(-25).join("\n")}`));
     }
 
+    // ---- write allowlist, page flows: next to a PDF opened from the OS only NEW .pdf files; a save
+    // into a folder nobody picked falls back to the save panel (the page's EPERM path) ----
+    {
+      const opened = path.join(home, "Opened");
+      fs.mkdirSync(opened, { recursive: true });
+      fs.copyFileSync(saved, path.join(opened, "original.pdf"));
+      fs.writeFileSync(path.join(opened, "existing.pdf"), "%PDF-1.4\n%%EOF\n");
+      await page.evaluate(() => { window.__smokeOpened = []; });
+      await app.evaluate(({ app: a }, file) => {
+        if (process.platform === "darwin") a.emit("open-file", { preventDefault() {} }, file);
+        else a.emit("second-instance", {}, [process.execPath, ...(a.isPackaged ? [] : ["."]), file], process.cwd());
+      }, path.join(opened, "original.pdf"));
+      await page.waitForFunction(() => window.__smokeOpened.length > 0, null, { timeout: 10_000 }).catch(() => {});
+      await page.waitForFunction(() => window.__pdfe.S.view === "editor" && window.__pdfe.S.rec?.source?.path === "~/Opened/original.pdf" && window.__pdfe.S.pages.length > 0, null, { timeout: 15_000 }).catch(() => {});
+      const w = await page.evaluate(async () => {
+        const d = await window.claude.use("desktop");
+        const err = async (p) => { try { await p; return "resolved"; } catch (e) { return String(e.message); } };
+        const r = {
+          opened: window.__smokeOpened[0],
+          newPdf: await err(d.fs.writeFile("~/Opened/next-to-it.pdf", "%PDF-1.4")),
+          again: await err(d.fs.writeFile("~/Opened/next-to-it.pdf", "%PDF-1.4 again")),
+          existing: await err(d.fs.writeFile("~/Opened/existing.pdf", "x")),
+          other: await err(d.fs.writeFile("~/Opened/notes.txt", "x")),
+          rm: await err(d.fs.rm("~/Opened/existing.pdf")),
+          sub: await err(d.fs.mkdir("~/Opened/sub")),
+        };
+        // the page's own save into a folder nobody picked: EPERM, then the save panel (test mode: accepts the prefilled path)
+        await window.__pdfe.performSave("fallback.pdf", "~/NotGranted", false);
+        return r;
+      });
+      check("write allowlist: next to a PDF opened from the OS -> new .pdf files only", w.opened === "~/Opened/original.pdf" && w.newPdf === "resolved" && w.again === "resolved" && fs.readFileSync(path.join(opened, "next-to-it.pdf"), "utf8") === "%PDF-1.4 again" && [w.existing, w.other, w.rm, w.sub].every((m) => /^EPERM: /.test(m)) && fs.readFileSync(path.join(opened, "existing.pdf"), "utf8").startsWith("%PDF") && !fs.existsSync(path.join(opened, "notes.txt")), JSON.stringify(w));
+      const fb = path.join(home, "NotGranted", "fallback.pdf");
+      for (let i = 0; i < 50 && !fs.existsSync(fb); i++) await page.waitForTimeout(100);
+      check("write allowlist: page save into an unpicked folder goes through the save panel", fs.existsSync(fb) && fs.readFileSync(fb).subarray(0, 5).toString() === "%PDF-", fb);
+    }
+
     // README pictures (not checks): a bigger window, a signature and stamp on the opened document,
     // then the 보관함 listing it. On Windows also a real screen grab so the window buttons show.
     try {
@@ -559,6 +665,7 @@ async function main() {
   const docsJson = path.join(home, "Library", "Application Support", "PDF Editor", "documents.json");
   check("documents.json written on close", fs.existsSync(docsJson) && JSON.parse(fs.readFileSync(docsJson, "utf8")).length >= 1);
   if (!process.env.PDFE_KEEP_HOME) fs.rmSync(home, { recursive: true, force: true });
+  if (fuseCopyDir) fs.rmSync(fuseCopyDir, { recursive: true, force: true });
 
   const failed = results.filter((r) => !r.ok);
   console.log(`\n${results.length - failed.length}/${results.length} checks passed; screenshots in ${path.relative(process.cwd(), OUT) || OUT}`);
