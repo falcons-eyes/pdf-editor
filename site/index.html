@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; media-src 'self'; style-src 'self'; script-src 'self'; font-src 'self'; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="referrer" content="no-referrer">
-<title>Sealworks: sign, stamp and seal PDFs on your Mac or PC</title>
-<meta name="description" content="Put your signature and stamp on a PDF, save a new copy, and seal it so any later edit shows. Free to use on Mac and Windows, with the source code available. Your files never leave your computer.">
+<title>Sealworks: sign, stamp and seal PDFs</title>
+<meta name="description" content="Put your signature and stamp on a PDF you received and save a new copy. Seal it, and any later edit shows. Free on Mac, Windows and Android, and your files never leave your device.">
 <link rel="canonical" href="https://sealworks.falconoon.com/">
 <link rel="alternate" hreflang="en" href="https://sealworks.falconoon.com/">
 <link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/">
@@ -16,14 +16,14 @@
 <meta name="theme-color" content="#0b0f1c" media="(prefers-color-scheme: dark)">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Sealworks">
-<meta property="og:title" content="Sealworks: sign, stamp and seal PDFs on your Mac or PC">
-<meta property="og:description" content="Put your signature and stamp on a PDF, save a new copy, and seal it so any later edit shows. Free to use on Mac and Windows, with the source code available. Your files never leave your computer.">
+<meta property="og:title" content="Sealworks: sign, stamp and seal PDFs">
+<meta property="og:description" content="Put your signature and stamp on a PDF you received and save a new copy. Seal it, and any later edit shows. Free on Mac, Windows and Android, and your files never leave your device.">
 <meta property="og:url" content="https://sealworks.falconoon.com/">
 <meta property="og:image" content="https://sealworks.falconoon.com/assets/social-en.png">
 <meta property="og:image:type" content="image/png">
 <meta property="og:image:width" content="1280">
 <meta property="og:image:height" content="640">
-<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. Free to use on Mac and Windows.">
+<meta property="og:image:alt" content="Sealworks: sign and stamp PDFs, seal them, too. The app with a signature and a stamp placed on a contract’s signing line.">
 <meta property="og:locale" content="en_US">
 <meta property="og:locale:alternate" content="ko_KR">
 <meta name="twitter:card" content="summary_large_image">
@@ -41,8 +41,8 @@
     <nav class="site-nav" aria-label="Main">
       <ul>
         <li class="nav-anchor"><a href="#how">How it works</a></li>
+        <li class="nav-anchor"><a href="#uses">Use cases</a></li>
         <li class="nav-anchor"><a href="#seal">Seal</a></li>
-        <li class="nav-anchor"><a href="#privacy">Privacy</a></li>
         <li><a href="/support/">Support</a></li>
         <li class="lang"><a href="/ko/" lang="ko" hreflang="ko">한국어</a></li>
         <li class="nav-cta"><a href="#download">Download</a></li>
@@ -57,290 +57,186 @@
     <div class="hero-copy">
       <h1 id="hero-title">
         <span class="line"><span class="sig-word">Sign<svg class="sig-stroke" viewBox="0 0 120 20" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path pathLength="1" d="M3 14 C 14 2, 22 2, 30 11 S 46 19, 56 9 S 74 1, 84 10 S 104 16, 117 7"/></svg></span> and stamp PDFs.</span>
-        <span class="line">Seal them, <span class="nowrap">too.<svg class="seal-ring" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="44"/><text x="50" y="67" text-anchor="middle">印</text></svg></span></span>
+        <span class="line">Seal them, <span class="nowrap">too.<img class="seal-ring" src="/assets/logo-mark.svg" width="100" height="100" alt=""></span></span>
       </h1>
       <div class="hero-sub">
-      <div class="hero-pitch">
-      <p class="lead">Place your signature or stamp on a PDF, save a new copy, and seal it so any later edit shows. Free to use on Mac and Windows, and your files never leave your computer.</p>
-      <div class="hero-actions">
-        <a class="btn btn-primary" href="#download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Download Sealworks</a>
-        <a class="text-link" href="#how">See how it works<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
-      </div>
-      </div>
-      <div class="hero-meta">
-      <ul class="proof" aria-label="At a glance">
-        <li>Free to use</li>
-        <li>Source available</li>
-        <li>No account</li>
-        <li>English and <span lang="ko">한국어</span></li>
-      </ul>
-      <div class="store-strip" aria-labelledby="stores-soon">
-        <p id="stores-soon" class="store-strip-title">Coming to the app stores</p>
-        <ul class="badge-list">
-          <li class="badge-item" data-store="mac">
-            <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/app/idXXXXXXXXXX"> and remove the status label. -->
-            <picture class="store-badge">
-              <source srcset="/assets/badges/mas-white-en-us.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/mas-black-en-us.svg" width="172" height="44" alt="Download on the Mac App Store (coming soon)">
-            </picture>
-            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review · Coming soon</span></span>
-          </li>
-          <li class="badge-item" data-store="ms">
-            <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX"> and remove the status label. -->
-            <picture class="store-badge">
-              <source srcset="/assets/badges/ms-light-en-us.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/ms-dark-en-us.svg" width="161" height="44" alt="Download from the Microsoft Store (in preparation)">
-            </picture>
-            <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">In preparation</span></span>
-          </li>
-        </ul>
-      </div>
-      </div>
+        <div class="hero-pitch">
+          <p class="lead">Put your signature and stamp on a PDF you received and save it as a new file. It’s free on Mac, Windows and Android, and there’s no account and no internet connection, so your files never leave your device.</p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="#download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Get Sealworks</a>
+            <a class="text-link" href="#how">See how it works<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a>
+          </div>
+        </div>
+        <div class="hero-meta">
+          <div class="store-strip" aria-labelledby="stores-soon">
+            <p id="stores-soon" class="store-strip-title">Coming soon to the app stores</p>
+            <ul class="badge-list">
+              <li class="badge-item" data-store="mac">
+                <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/app/idXXXXXXXXXX"> and remove the status label. -->
+                <picture class="store-badge">
+                  <source srcset="/assets/badges/mas-white-en-us.svg" media="(prefers-color-scheme: dark)">
+                  <img src="/assets/badges/mas-black-en-us.svg" width="172" height="44" alt="Download on the Mac App Store (in review)">
+                </picture>
+                <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review</span></span>
+              </li>
+              <li class="badge-item" data-store="play">
+                <!-- Google Play link at launch: replace this text chip with the official Google Play badge inside <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks"> and remove the status label. -->
+                <span class="store-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Google Play</span>
+                <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review</span></span>
+              </li>
+              <li class="badge-item" data-store="ms">
+                <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX"> and remove the status label. -->
+                <picture class="store-badge">
+                  <source srcset="/assets/badges/ms-light-en-us.svg" media="(prefers-color-scheme: dark)">
+                  <img src="/assets/badges/ms-dark-en-us.svg" width="161" height="44" alt="Download from the Microsoft Store (coming soon)">
+                </picture>
+                <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">Coming soon</span></span>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
     <div class="hero-shot">
-      <img src="/assets/app-en-1600.webp" srcset="/assets/app-en-960.webp 960w, /assets/app-en-1600.webp 1600w" sizes="(min-width: 1280px) 1200px, 100vw" width="1600" height="1000" alt="Sealworks on macOS: a contract with a signature and a stamp placed on the signing line, and the Signatures and stamps panel on the right" fetchpriority="high">
+      <img src="/assets/app-en-1600.webp" srcset="/assets/app-en-960.webp 960w, /assets/app-en-1600.webp 1600w" sizes="(min-width: 1280px) 1200px, 100vw" width="1600" height="1000" alt="Sealworks with a signature and a stamp placed on a contract’s signing line, and the list of signatures and stamps on the right" fetchpriority="high">
     </div>
   </div>
 </section>
 
-<section class="problem" aria-labelledby="problem-title">
-  <div class="wrap">
-    <h2 id="problem-title">Signing one page shouldn’t take a printer, a scanner and an upload.</h2>
-    <ul class="compare">
-      <li class="before"><span class="who">The usual way</span><ol aria-label="The usual way"><li>Print</li><li>Sign with a pen</li><li>Scan</li><li>Send it back</li></ol></li>
-      <li class="after"><span class="who">With Sealworks</span><ol aria-label="With Sealworks"><li>Open</li><li>Place</li><li>Save</li></ol></li>
-    </ul>
-    <p class="aside">No subscription just to add a signature, and no uploading company papers to a website you’ve never heard of.</p>
-  </div>
-</section>
-
-<section class="section" id="how" aria-labelledby="how-title">
-  <div class="wrap">
-    <div class="section-head">
-      <h2 id="how-title">Three steps. Your original stays as it is.</h2>
-      <p class="lead">Sealworks works on a copy and only writes a new PDF when you ask it to.</p>
+<section class="section how" id="how" aria-labelledby="how-title">
+  <div class="wrap how-grid">
+    <div>
+      <h2 id="how-title">Three steps, and you’re done</h2>
+      <ol class="steps">
+        <li>
+          <h3>Open a PDF</h3>
+          <p>Click <strong>Open new PDF</strong>, or drop a file onto the window.</p>
+        </li>
+        <li>
+          <h3>Place your signature and stamp</h3>
+          <p>Drag one from the list to the right spot, then adjust its size and angle.</p>
+        </li>
+        <li>
+          <h3>Save a new file</h3>
+          <p>Your original stays as it is. Sealworks writes a new PDF, like <code>Contract_signed.pdf</code>.</p>
+        </li>
+      </ol>
     </div>
-    <ol class="steps">
-      <li>
-        <div class="shot"><img src="/assets/step1-en.webp" width="631" height="416" alt="The Library screen with the Open new PDF button" loading="lazy" decoding="async"></div>
-        <h3>Open a PDF</h3>
-        <p>Click <strong>Open new PDF</strong>, or drop a file onto the window.</p>
-      </li>
-      <li>
-        <div class="shot"><img src="/assets/step2-en.webp" width="631" height="416" alt="A stamp placed next to a signature on the signing line, with the Signatures and stamps list on the right" loading="lazy" decoding="async"></div>
-        <h3>Place your signature</h3>
-        <p>Click a signature or stamp in the list, or drag it into place. Drag a corner to resize it, the round handle to rotate it.</p>
-      </li>
-      <li>
-        <div class="shot"><img src="/assets/step3-en.webp" width="631" height="416" alt="The Save as file dialog with Seal and save turned on" loading="lazy" decoding="async"></div>
-        <h3>Save a new file</h3>
-        <p><strong>Save as file</strong> writes a new PDF, like <code>Contract_signed.pdf</code>. Turn on <strong>Seal and save</strong> to make later edits show.</p>
-      </li>
-    </ol>
     <figure class="demo">
       <div class="media">
         <video data-autoplay muted loop playsinline controls preload="none" width="1200" height="750" poster="/assets/demo-en-poster.webp" aria-label="Opening a contract from the Library, dragging a signature and a stamp onto the signing line, saving it with Seal and save turned on, then Verify seal shows Seal intact">
           <source src="/assets/demo-en.mp4" type="video/mp4">
         </video>
       </div>
-      <figcaption>The whole thing in about 25 seconds: open, place, seal and save, verify.</figcaption>
     </figure>
   </div>
 </section>
 
+<section class="section section-alt" id="uses" aria-labelledby="uses-title">
+  <div class="wrap">
+    <h2 id="uses-title" class="section-title">Made for moments like these</h2>
+    <ul class="uses">
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+        <h3>Your landlord emailed the lease</h3>
+        <p>Sign it and send it straight back, no printer needed.</p>
+      </li>
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 17c1.2-1.6 2.2-2.4 3-2.4 1.3 0 .7 2.4 2 2.4.7 0 1.4-.6 2.2-1.6"/><path d="M8 8h8"/><path d="M8 11.5h5"/></svg></span>
+        <h3>A new part-timer starts today</h3>
+        <p>They sign the contract on the shop tablet, and you add your stamp.</p>
+      </li>
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><circle cx="12.5" cy="14.5" r="3"/></svg></span>
+        <h3>The quote has to go out today</h3>
+        <p>Stamp your company seal from a photo, with the white paper removed.</p>
+      </li>
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 6V4.5a4 4 0 0 1 8 0V6"/><rect x="4.5" y="6" width="15" height="15" rx="3"/><path d="M4.5 12h15"/><path d="M10 12v2.5h4V12"/></svg></span>
+        <h3>The school sent a field trip form</h3>
+        <p>Sign it neatly instead of sending a phone photo.</p>
+      </li>
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 7V4h12v13h-3"/><path d="M4 7h13v14H4z"/><circle cx="12.5" cy="15.5" r="2.2"/><path d="M7 11h6"/></svg></span>
+        <h3>Expense forms need your approval</h3>
+        <p>Put your stamp in the same spot on every page at once.</p>
+      </li>
+      <li>
+        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span>
+        <h3>You’re sending a freelance contract</h3>
+        <p>Sign and seal it, and you’ll know right away if anyone edits it later.</p>
+      </li>
+    </ul>
+  </div>
+</section>
+
 <section class="seal-band" id="seal" aria-labelledby="seal-title">
-  <div class="wrap">
-    <div class="seal-intro">
-      <div class="seal-copy">
-        <svg class="seal-badge" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><circle cx="50" cy="50" r="44"/><text x="50" y="67" text-anchor="middle">印</text></svg>
-        <h2 id="seal-title">Seal it, and any later edit shows.</h2>
-        <p>Turn on <strong>Seal and save</strong> and Sealworks adds a PDF digital signature (PAdES) that covers every byte of the finished file. If anyone changes it afterwards, even by one character, <strong>Verify seal</strong> shows it.</p>
-        <p class="claim">A seal can’t stop anyone from editing a copy. It makes edits impossible to hide.</p>
-        <p>The first time you seal, you type your name (and organization, if you like). Sealworks makes a private key and a certificate on your computer, and that name goes into every file you seal.</p>
+  <div class="wrap seal-intro">
+    <div class="seal-copy">
+      <img class="seal-badge" src="/assets/logo-mark.svg" width="56" height="56" alt="">
+      <h2 id="seal-title">Seal it, and any later edit shows</h2>
+      <p>Turn on <strong>Seal and save</strong> and Sealworks adds a digital signature that covers the whole finished file. If anyone changes even one character afterwards, <strong>Verify seal</strong> shows it.</p>
+      <p class="claim">A seal can’t stop anyone from editing a copy. It makes edits impossible to hide.</p>
+      <p class="seal-note">It isn’t a certified electronic signature under any law. Re-saving in another app breaks the seal, so keep files exactly as you received them. How to check a seal and back up your key is on the <a href="/support/#verify">support page</a>.</p>
+    </div>
+    <figure class="seal-video">
+      <div class="media">
+        <video data-autoplay muted loop playsinline controls preload="none" width="1200" height="750" poster="/assets/seal-en-poster.webp" aria-label="Verify seal on a sealed file shows Seal intact. After the file is changed in another app, Verify seal shows Modified after sealing">
+          <source src="/assets/seal-en.mp4" type="video/mp4">
+        </video>
       </div>
-      <figure class="seal-video">
-        <div class="media">
-          <video data-autoplay muted loop playsinline controls preload="none" width="1200" height="750" poster="/assets/seal-en-poster.webp" aria-label="Verify seal on a sealed file shows Seal intact. After the file is changed in another app, Verify seal shows Modified after sealing">
-            <source src="/assets/seal-en.mp4" type="video/mp4">
-          </video>
-        </div>
-        <figcaption>Seal intact, then Modified after sealing once the file is changed in another app.</figcaption>
-      </figure>
-    </div>
-    <div class="states-block">
-      <h3>What Verify seal tells you</h3>
-      <ul class="states">
-        <li class="state ok"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg><strong>Seal intact</strong><span>Nothing in the file has changed since it was sealed.</span></li>
-        <li class="state warn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="M12 8v5"/><path d="M12 16.2v.1"/></svg><strong>Modified after sealing</strong><span>The file changed after sealing, for example re-saved in another app. Ask the sender for it again.</span></li>
-        <li class="state bad"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m9.5 9.5 5 5"/><path d="m14.5 9.5-5 5"/></svg><strong>Seal is not valid</strong><span>The seal doesn’t match the contents, or it’s damaged. Don’t rely on the file.</span></li>
-        <li class="state none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/></svg><strong>Not sealed</strong><span>The PDF has no seal, so there’s no way to tell whether it changed.</span></li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="verify" aria-labelledby="verify-title">
-  <div class="wrap">
-    <div class="section-head">
-      <h2 id="verify-title">Checking a seal, and what it can’t do</h2>
-      <p class="lead">A seal is only useful if you know how to read it. Here’s the whole story, limits included.</p>
-    </div>
-    <ul class="checks">
-      <li>
-        <h3>In Sealworks</h3>
-        <p>Click <strong>Verify seal</strong>, then drop the PDF on the dialog or choose the file. It’s only checked, never added to your Library. You also see who sealed it, when, and the certificate fingerprint.</p>
-      </li>
-      <li>
-        <h3>In Adobe Acrobat</h3>
-        <p>Open the Signatures panel to see whether the document changed after signing. Acrobat will also say the signer can’t be verified. That’s expected: the certificate was made on the sender’s computer, not bought from a certificate authority.</p>
-      </li>
-      <li>
-        <h3>Who sealed it</h3>
-        <p>The name in a seal is what the sealer typed. To be sure a file came from a particular person, compare fingerprints. The sender finds theirs under <strong>Sealer…</strong> and tells you once, by phone or in person.</p>
-      </li>
-    </ul>
-    <div class="limits">
-      <h3>Honest limits</h3>
-      <ul>
-        <li><strong>It shows tampering; it doesn’t prevent it.</strong> Someone can remove the seal and pass the file on as an ordinary PDF. If a seal matters to you, check that one is there.</li>
-        <li><strong>Re-saving in another app usually breaks the seal.</strong> macOS Preview can do this even when you only add a note or highlight. Keep sealed files exactly as you received them.</li>
-        <li><strong>It isn’t a certified electronic signature under any law.</strong> The seal is for spotting changes. If a document needs a particular kind of electronic signature, check what the recipient or the law requires.</li>
-        <li><strong>Back up your sealer key.</strong> It lives only on your computer. Use <strong>Sealer…</strong> › <strong>Back up…</strong> to save a password-protected <code>.p12</code> file. <a href="/support/#backup">How to back up and restore</a></li>
-      </ul>
-    </div>
-  </div>
-</section>
-
-<section class="section section-alt" id="features" aria-labelledby="features-title">
-  <div class="wrap">
-    <div class="section-head">
-      <h2 id="features-title">Made for the signing line</h2>
-      <p class="lead">Everything you need to put a signature on a page, and nothing that sends your files anywhere.</p>
-    </div>
-    <ul class="features">
-      <li class="wide">
-        <div class="shot"><img src="/assets/feature-draw-en.webp" width="637" height="374" alt="The Draw a signature dialog with a blue signature" loading="lazy" decoding="async"></div>
-        <h3>Draw your signature</h3>
-        <p>With a mouse or trackpad, in black, blue or red ink and three weights.</p>
-      </li>
-      <li class="wide">
-        <div class="shot"><img src="/assets/feature-stamp-en.webp" width="637" height="374" alt="A stamp photo before and after the white paper is removed" loading="lazy" decoding="async"></div>
-        <h3>Clean stamp photos</h3>
-        <p>Import or paste a PNG or JPG. For a photo of a stamp on paper, Sealworks removes the white background.</p>
-      </li>
-      <li>
-        <div class="shot"><img src="/assets/feature-text-en.webp" width="637" height="374" alt="The Make a text or date stamp dialog with today’s date" loading="lazy" decoding="async"></div>
-        <h3>Text and date stamps</h3>
-        <p>Your name, today’s date, “Approved” or “Copy”, in sans, handwriting or serif type.</p>
-      </li>
-      <li>
-        <div class="shot"><img src="/assets/feature-library-en.webp" width="637" height="374" alt="The Library list showing each document’s saved state" loading="lazy" decoding="async"></div>
-        <h3>A Library that saves as you go</h3>
-        <p>Documents and the signatures you placed are kept automatically. Each one shows whether it’s been saved as a file.</p>
-      </li>
-      <li>
-        <div class="shot"><img src="/assets/feature-language-en.webp" width="637" height="374" alt="The same Signatures and stamps list in Korean and English" loading="lazy" decoding="async"></div>
-        <h3>English or <span lang="ko">한국어</span></h3>
-        <p>Switch from the status bar or View › Language. Nothing reloads, nothing is lost.</p>
-      </li>
-    </ul>
-    <ul class="more">
-      <li><strong>Precise placement</strong><span>Size, rotation, opacity and ink color. Type a position in mm or snap to the guides. ⌘Z / Ctrl+Z undoes a mistake.</span></li>
-      <li><strong>Many pages</strong><span>Copy an item to other pages, or put it on every page at the same spot.</span></li>
-      <li><strong>Add once, reuse</strong><span>Signatures and stamps you add stay in the list for the next document.</span></li>
-      <li><strong>Notices changed files</strong><span>If an original or a saved file is moved, renamed or edited in Finder or File Explorer, Sealworks tells you.</span></li>
-      <li><strong>Keyboard and VoiceOver</strong><span>Tab to a placed item and move it with the arrow keys. Controls are labeled for screen readers.</span></li>
-      <li><strong>Originals untouched</strong><span>Sealworks works on a copy and writes a new PDF only when you choose Save as file.</span></li>
-    </ul>
-  </div>
-</section>
-
-<section class="section" id="privacy" aria-labelledby="privacy-title">
-  <div class="wrap privacy-grid">
-    <div>
-      <h2 id="privacy-title">Your files never leave your computer.</h2>
-      <p class="lead">Sealworks collects nothing. There’s no server for your documents to go to.</p>
-    </div>
-    <div>
-      <ul class="promise">
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8"/><path d="M12 16v4"/></svg><strong>Stays on your computer</strong><span>PDFs, images, signatures and stamps are processed on your computer only. Sealworks works offline and doesn’t use the network.</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.2-4 4.3-6 8-6s6.8 2 8 6"/><path d="M3 3l18 18"/></svg><strong>No account</strong><span>Nothing to sign up for and nothing to sign in to.</span></li>
-        <li><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12Z"/><circle cx="12" cy="12" r="3"/><path d="M3 3l18 18"/></svg><strong>No tracking</strong><span>No analytics, no crash reporting, no advertising identifiers.</span></li>
-      </ul>
-      <p class="fineprint">This website has no cookies or analytics and loads nothing from other servers. Read the full <a href="/privacy/">privacy policy</a>.</p>
-    </div>
-  </div>
-</section>
-
-<section class="section section-alt" id="faq" aria-labelledby="faq-title">
-  <div class="wrap faq-grid">
-    <div>
-      <h2 id="faq-title">Questions, answered</h2>
-      <p class="lead">Short answers to what people ask most. Everything else is on the <a href="/support/">support page</a>.</p>
-      <p class="contact-line">Still stuck? Email <a href="mailto:support@falconoon.com">support@falconoon.com</a>. We aim to reply within 3 business days.</p>
-    </div>
-    <ul class="qa-list">
-      <li><a href="/support/#first-launch">How do I open Sealworks the first time?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-      <li><a href="/support/#verify">Why does Acrobat say the signer isn’t verified?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-      <li><a href="/support/#preview">Why did re-saving in macOS Preview break the seal?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-      <li><a href="/support/#legal">Is a seal a certified electronic signature?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-      <li><a href="/support/#backup">How do I back up my sealer key?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-      <li><a href="/support/#data">Where does Sealworks keep my data?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></a></li>
-    </ul>
+      <figcaption>A file that showed Seal intact shows Modified after sealing once it’s changed in another app.</figcaption>
+    </figure>
   </div>
 </section>
 
 <section class="section" id="download" aria-labelledby="download-title">
   <div class="wrap">
-    <div class="section-head">
-      <h2 id="download-title">Get Sealworks</h2>
-      <p class="lead">Free to use · Source available. For macOS 13 or later and Windows 10 or 11 (64-bit).</p>
-    </div>
+    <h2 id="download-title" class="section-title">Get Sealworks</h2>
     <div class="download-grid">
       <div class="panel dl-now">
         <div class="panel-head">
           <h3>Download now</h3>
           <span class="status status-live"><span class="dot" aria-hidden="true"></span><span class="status-label">Available now</span></span>
         </div>
-        <p>Get the latest release from GitHub. Pick the file for your computer:</p>
+        <p>Get the Mac and Windows versions from GitHub. They run on macOS 13 or later and on 64-bit Windows 10 and 11.</p>
         <ul class="files">
           <li><span class="for">Mac with Apple silicon</span><code>…-arm64.dmg</code></li>
           <li><span class="for">Mac with an Intel processor</span><code>…-x64.dmg</code></li>
-          <li><span class="for">Windows 10 or 11, installer</span><code>…-setup-x64.exe</code></li>
+          <li><span class="for">Windows installer</span><code>…-setup-x64.exe</code></li>
           <li><span class="for">Windows, no install needed</span><code>…-portable-x64.exe</code></li>
         </ul>
-        <a class="btn btn-primary" href="https://github.com/falcons-eyes/pdf-editor/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Download for Mac and Windows</a>
-        <p class="dl-note">These files aren’t signed with paid Apple or Microsoft certificates, so the first launch shows a warning. <a href="/support/#first-launch">How to open it the first time</a></p>
-        <p class="license-note">The app is free for everyone, including businesses. The source code is available for noncommercial use; modified versions and commercial use of the code need permission (<a href="mailto:support@falconoon.com">support@falconoon.com</a>). <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md">Additional permissions</a></p>
+        <a class="btn btn-primary" href="https://github.com/falcons-eyes/pdf-editor/releases/latest"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 4v11"/><path d="m7 10 5 5 5-5"/><path d="M5 20h14"/></svg>Download from GitHub</a>
+        <p class="dl-note">These files aren’t signed with paid Apple or Microsoft certificates, so the first launch shows a warning once. See <a href="/support/#first-launch">how to open it the first time</a>.</p>
+        <p class="license-note">The app is free for everyone, including businesses. The source code is available for noncommercial use, and modified versions or commercial use of the code need permission from <a href="mailto:support@falconoon.com">support@falconoon.com</a>. The details are in the <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">license</a> and <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md">additional permissions</a>.</p>
       </div>
       <div class="panel stores">
         <h3>App stores</h3>
-        <p>Store versions install and update like any other app.</p>
+        <p>Store versions install and update like any other app. Links go here as each store goes live.</p>
         <ul class="store-list">
           <li class="badge-item" data-store="mac">
             <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/app/idXXXXXXXXXX"> and change the status to "Available". -->
             <picture class="store-badge">
               <source srcset="/assets/badges/mas-white-en-us.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/mas-black-en-us.svg" width="172" height="44" alt="Download on the Mac App Store (coming soon)" loading="lazy">
+              <img src="/assets/badges/mas-black-en-us.svg" width="172" height="44" alt="Download on the Mac App Store (in review)" loading="lazy">
             </picture>
-            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review · Coming soon</span></span>
+            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review</span></span>
+          </li>
+          <li class="badge-item" data-store="play">
+            <!-- Google Play link at launch: replace this text chip with the official Google Play badge inside <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks"> and change the status to "Available". -->
+            <span class="store-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg>Google Play</span>
+            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">In review</span></span>
+            <p class="store-req">For phones and tablets with Android 8 or later</p>
           </li>
           <li class="badge-item" data-store="ms">
             <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX"> and change the status to "Available". -->
             <picture class="store-badge">
               <source srcset="/assets/badges/ms-light-en-us.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/ms-dark-en-us.svg" width="161" height="44" alt="Download from the Microsoft Store (in preparation)" loading="lazy">
+              <img src="/assets/badges/ms-dark-en-us.svg" width="161" height="44" alt="Download from the Microsoft Store (coming soon)" loading="lazy">
             </picture>
-            <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">In preparation</span></span>
-          </li>
-          <li class="store-text" data-store="play">
-            <span class="store-name">Google Play</span>
-            <span class="status status-planned"><span class="dot" aria-hidden="true"></span><span class="status-label">Planned</span></span>
-            <p>An Android version is in development.</p>
+            <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">Coming soon</span></span>
           </li>
         </ul>
-        <p class="fineprint">No store links yet. They’ll appear here as each store goes live.</p>
       </div>
     </div>
   </div>
@@ -350,15 +246,16 @@
   <div class="wrap footer-grid">
     <div>
       <a class="footer-brand" href="/"><img src="/assets/logo-64.png" width="26" height="26" alt="">Sealworks</a>
-      <p>Sign, stamp and seal PDFs. Free to use · Source available.</p>
-      <p>© 2026 Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>) · Sealworks is a trademark of Falcon Eyes Inc. · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License: PolyForm Strict 1.0.0 (noncommercial)</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE-PERMISSIONS.md">Additional permissions</a> · <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/TRADEMARKS.md">Brand</a></p>
+      <p>A free app to sign, stamp and seal PDFs.</p>
+      <p>© 2026 Falcon Eyes Inc. (<span lang="ko">주식회사 팔콘아이즈</span>). Sealworks is a <a href="https://github.com/falcons-eyes/pdf-editor/blob/main/TRADEMARKS.md">trademark</a> of Falcon Eyes Inc.</p>
     </div>
     <nav aria-label="Footer">
       <ul>
         <li><a href="/support/">Support</a></li>
         <li><a href="/privacy/">Privacy</a></li>
-        <li><a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
+        <li><a href="https://github.com/falcons-eyes/pdf-editor/blob/main/LICENSE">License</a></li>
         <li><a href="https://github.com/falcons-eyes/pdf-editor">Source code on GitHub</a></li>
+        <li><a href="mailto:support@falconoon.com">support@falconoon.com</a></li>
         <li><a href="/ko/" lang="ko" hreflang="ko">한국어</a></li>
       </ul>
     </nav>
