@@ -171,6 +171,35 @@ button, input, select { font: inherit; color: inherit; }
 .home-empty p { margin: 0 0 8px; color: var(--muted); max-width: 40ch; line-height: 1.6; text-wrap: balance; }
 .home-empty .row-btns { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .no-match { padding: 28px; text-align: center; color: var(--muted); }
+/* example gallery: situation cards (icon, the person's words, one line, Try) */
+.ex { display: grid; gap: 10px; margin-top: 8px; }
+.ex-head { display: grid; gap: 2px; }
+.ex-head h2 { margin: 0; font-size: 15px; font-weight: 600; }
+.ex-toggle { display: inline-flex; align-items: center; gap: 6px; height: 32px; margin-left: -8px; padding: 0 8px; border: none; border-radius: 8px; background: none; font: inherit; font-weight: 600; color: var(--fg); cursor: pointer; }
+.ex-toggle:hover { background: color-mix(in oklab, var(--fg) 7%, transparent); }
+.ex-toggle svg { width: 14px; height: 14px; color: var(--muted); transition: transform .15s; }
+.ex-toggle[aria-expanded="false"] svg { transform: rotate(-90deg); }
+.ex-toggle .n { color: var(--muted); font-weight: 400; font-size: 12px; }
+.ex-sub { margin: 0; color: var(--muted); font-size: 12px; line-height: 1.55; }
+.ex-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ex-list li { display: flex; min-width: 0; }
+.ex-card {
+  flex: 1; min-width: 0; display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; gap: 12px; align-items: center; text-align: left;
+  padding: 12px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; font: inherit;
+}
+.ex-card:hover:not(:disabled) { border-color: var(--accent); background: color-mix(in oklab, var(--accent) 4%, var(--surface)); }
+.ex-card:disabled { cursor: default; opacity: .55; }
+.ex-card[aria-busy="true"] { opacity: 1; border-color: var(--accent); }
+.ex-ic { width: 36px; height: 36px; border-radius: 10px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent); }
+.ex-ic.seal { background: var(--seal-soft); color: var(--seal); }
+.ex-ic svg { width: 20px; height: 20px; }
+.ex-txt { display: grid; gap: 3px; min-width: 0; }
+.ex-txt strong { font-weight: 600; font-size: 13px; line-height: 1.45; }
+.ex-txt span { color: var(--muted); font-size: 12px; line-height: 1.45; }
+:lang(ko) .ex-txt { word-break: keep-all; }
+.ex-go { display: inline-flex; align-items: center; gap: 2px; color: var(--accent); font-size: 12px; font-weight: 600; white-space: nowrap; }
+.ex-go svg { width: 14px; height: 14px; }
+.ex-go .spinner { width: 12px; height: 12px; }
 
 /* ---------- editor grid ---------- */
 .main { display: grid; grid-template-columns: var(--rail-w) minmax(0, 1fr) var(--side-w); min-height: 0; }
@@ -212,6 +241,13 @@ button, input, select { font: inherit; color: inherit; }
 @media (hover: hover) { .ov:hover { outline: 1px dashed color-mix(in oklab, var(--accent) 60%, transparent); } }
 .ov.sel { outline: 1.5px solid var(--accent); cursor: move; z-index: 3; }
 .ov.dragging { cursor: grabbing; }
+/* 간인: each piece shows one half of the stamp against the page edge; the box is that half */
+.ov.gan img { object-fit: cover; object-position: left center; }
+.ov.gan[data-side="r"] img { object-position: right center; }
+.ov.gan .h.rot { display: none; }
+.ov.gan-peer { outline: 1.5px dashed color-mix(in oklab, var(--accent) 70%, transparent); }
+.mark-sw svg { width: 16px; height: 16px; }
+#txt-marks-hint { flex-basis: 100%; margin: -4px 0 0; }
 /* keyboard focus on a placed item: the paper is always white, so a fixed ink-blue ring keeps 3:1 in both themes */
 .ov:focus { outline: none; }
 .ov:focus-visible { outline: 2.5px solid #2446c7; outline-offset: 3px; box-shadow: 0 0 0 1.5px #fff; z-index: 4; }
@@ -340,6 +376,7 @@ div.tile-main { cursor: default; }
 .side-links a { color: var(--accent); text-decoration: none; }
 .side-links a:hover { text-decoration: underline; }
 .alt-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--muted); }
+.alt-row .btn[aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); font-weight: 600; }
 
 /* ---------- dialogs ---------- */
 dialog {
@@ -564,6 +601,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
 .touch .tile-acts button::before { content: ""; position: absolute; inset: -6px; }
 .touch .tile-acts svg { width: 14px; height: 14px; }
 .touch .doc-acts .btn.icon.sm { width: 44px; height: 44px; }
+.touch .ex-toggle { height: 44px; }
 .touch .lang-sw button, .touch .status .about-btn { height: 26px; padding: 0 6px; }
 /* handles: drawn a little larger, hit 44 px wide; the rotation knob sits further out */
 .touch .h { width: 18px; height: 18px; border-width: 2px; border-radius: 4px; }
@@ -716,6 +754,16 @@ html:not(.has-seal) .seal-only { display: none !important; }
   .form-grid { grid-template-columns: minmax(0, 1fr); }
   .opt-row .lbl { width: auto; min-width: 44px; }
   .bottombar .bb-label-opt { display: none; }
+  /* the empty Library leaves room for the examples below it */
+  .home-empty { padding: 28px 18px; gap: 8px; }
+  .home-empty svg { width: 56px; height: 56px; }
+  /* examples: one tidy list */
+  .ex-list { grid-template-columns: minmax(0, 1fr); gap: 0; border: 1px solid var(--line); border-radius: 14px; overflow: hidden; background: var(--surface); }
+  .ex-card { border: none; border-radius: 0; border-bottom: 1px solid var(--line); padding: 12px 12px 12px 14px; min-height: 64px; }
+  .ex-list li:last-child .ex-card { border-bottom: none; }
+  .ex-card:focus-visible { outline-offset: -2px; }
+  .ex-txt strong { font-size: 14px; }
+  .ex-go .lbl { display: none; }
 }
 @media (max-width: 429px) { #bb-save svg { display: none; } }
 @keyframes sheet-up { from { transform: translateY(24px); opacity: .4; } }
@@ -777,9 +825,11 @@ html:not(.has-seal) .seal-only { display: none !important; }
           <svg viewBox="0 0 64 64" aria-hidden="true"><rect x="14" y="6" width="36" height="48" rx="3" fill="var(--paper)" stroke="var(--line-strong)" stroke-width="1.5"/><path d="M21 40c3-6 5-1 7-4s3-4 5-1 4-2 6-3" fill="none" stroke="var(--accent)" stroke-width="2.2" stroke-linecap="round"/><circle cx="46" cy="46" r="9" fill="none" stroke="var(--seal)" stroke-width="2.4"/></svg>
           <h2 data-i18n="home.empty.h"></h2>
           <p data-i18n="home.empty.p"></p>
-          <div class="row-btns"><button class="btn primary" id="btn-open-empty" data-i18n="open.new"></button><button class="btn outline" id="btn-sample" data-i18n="home.sample"></button><button class="btn outline seal-only" id="btn-verify-empty" data-i18n="seal.verifyDots"></button></div>
+          <div class="row-btns"><button class="btn primary" id="btn-open-empty" data-i18n="open.new"></button><button class="btn outline seal-only" id="btn-verify-empty" data-i18n="seal.verifyDots"></button></div>
           <p class="hint sandbox-only" style="margin:8px 0 0;max-width:52ch" data-i18n="sandbox.firstRun" hidden></p>
         </div>
+        <!-- examples (docs/design/scenarios.md): open on an empty Library, a folded section once there are documents -->
+        <section class="ex" id="examples" aria-labelledby="ex-h"></section>
       </div>
     </main>
     <aside class="side" id="home-side" data-i18n-label="lib.items">
@@ -896,6 +946,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
   <div class="dlg-body">
     <input class="text-input" id="txt-input" maxlength="60" data-i18n-ph="text.ph" autocomplete="off">
     <div class="chips" id="txt-presets"></div>
+    <div class="opt-row"><span class="lbl" id="txt-marks-lbl" data-i18n="text.marks"></span><div class="chips" id="txt-marks" role="group" aria-labelledby="txt-marks-lbl" aria-describedby="txt-marks-hint"></div><span class="hint" id="txt-marks-hint" data-i18n="text.marks.hint"></span></div>
     <div class="opt-row"><span class="lbl" data-i18n="text.font"></span><div class="seg" id="txt-font"><button type="button" data-f="sans" aria-pressed="true" data-i18n="text.sans"></button><button type="button" data-f="pen" data-i18n="text.pen"></button><button type="button" data-f="serif" data-i18n="text.serif"></button></div></div>
     <div class="opt-row"><span class="lbl" data-i18n="text.color"></span><div class="swatches" id="txt-colors"></div></div>
     <div class="preview-box"><canvas id="txt-preview"></canvas></div>
@@ -993,6 +1044,7 @@ const MAX_ZOOM = 5, MIN_ZOOM = 0.2;
 const MAX_CANVAS_PX = 16e6;
 const ASSET_MAX_SIDE = 2400;
 const MAX_DOCS = 300;
+const MARK_MM = 5; // a placed check mark: a little over a printed form's 4 to 4.5 mm box
 /* ================================================================
    Words. Every app phrase is here as [한국어, English]; a function entry picks a template from params
    (plural forms) and must return a template, never user data. Placeholders:
@@ -1072,7 +1124,6 @@ const STR = {
   "home.explain.file": ["**저장한 파일** ‘파일로 저장’을 해야 {fm}에 새 PDF가 생깁니다.", "**Saved file** A new PDF appears in {fm} only when you use “Save as file”."],
   "home.empty.h": ["보관함이 비어 있습니다", "Your Library is empty"],
   "home.empty.p": ["PDF를 열거나 이 창에 끌어다 놓으세요. 연 문서는 보관함에 사본으로 들어가고, 놓은 서명과 함께 언제든 이어서 작업할 수 있습니다.", "Open a PDF or drop one on this window. Each document goes into the Library as a copy, so you can pick up where you left off, signatures and all."],
-  "home.sample": ["예시 문서로 둘러보기", "Try an example document"],
   "home.sub.empty": ["서명할 PDF를 열거나, 하던 작업을 이어서 하세요.", "Open a PDF to sign, or pick up where you left off."],
   "home.sub.docs": [pl("문서 {n}개", "문서 {n}개"), pl("{n} document", "{n} documents")],
   "home.sub.pend": [" · 파일로 저장 전 {n}개", " · {n} not saved"],
@@ -1273,6 +1324,53 @@ const STR = {
   "text.added": ["보관함에 글자 도장을 추가했습니다.", "Text stamp added to the Library."],
   "text.today": ["오늘 날짜", "Today's date"],
   "text.p1": ["(인)", "Approved"], "text.p2": ["확인", "Received"], "text.p3": ["사본", "Copy"],
+  "text.marks": ["표시", "Marks"],
+  "text.marks.hint": ["표시는 서식의 네모 칸 크기에 맞춰 놓입니다.", "Marks are placed at the size of a form's checkbox."],
+  "mark.check": ["체크 표시", "Check mark"], "mark.cross": ["엑스 표시", "Cross"], "mark.circle": ["동그라미", "Circle"],
+  "kind.mark": ["표시", "Mark"],
+
+  // 간인: one stamp across each page break, half on either page (Korean contracts)
+  "gan.make": ["간인 찍기", "Seal across pages"],
+  "gan.make.tip": ["쪽과 쪽 사이에 걸쳐 도장을 반씩 찍어 모든 쪽을 이어 줍니다", "Stamps half on each side of every page break to tie the pages together"],
+  "gan.done": ["{n}쪽 모두에 간인을 찍었습니다. 위아래로 옮기면 모든 쪽이 함께 움직입니다.", "Sealed across all {n} pages. Move it up or down and every page follows."],
+  "gan.title": ["간인", "Cross-page seal"],
+  "gan.where": ["{a}쪽과 {b}쪽 사이", "Between pages {a} and {b}"],
+  "gan.hint": ["쪽마다 도장이 반씩 들어갑니다. 위치나 크기를 바꾸면 모든 쪽이 함께 바뀝니다.", "Each page carries half of the stamp. Changing its position or size changes every page."],
+  "gan.remove": ["간인 지우기", "Remove cross-page seal"],
+  "gan.removed": ["간인을 모든 쪽에서 지웠습니다. ⌘Z로 되돌릴 수 있습니다.", "Removed the cross-page seal from every page. Undo with ⌘Z."],
+  "gan.removed@a": ["간인을 모든 쪽에서 지웠습니다. 실행 취소로 되돌릴 수 있습니다.", "Removed the cross-page seal from every page. Use Undo to bring it back."],
+  "gan.aria": ["간인 ‘{name}’, {page}쪽, {other}쪽과 이어짐", "Cross-page seal “{name}”, page {page}, joined to page {other}"],
+  "gan.size": ["도장 폭", "Stamp width"],
+
+  // example gallery (docs/design/scenarios.md): a headline in the person's words and one line on what the app does
+  "ex.title": ["예시로 해 보기", "Try an example"],
+  "ex.sub": ["비슷한 상황의 예시를 열어 바로 해 보세요. 예시는 보관함에 남지 않습니다.", "Open the one closest to your situation and try it right away. Examples aren't kept in the Library."],
+  "ex.try": ["시작", "Try"],
+  "ex.failed": ["예시를 열지 못했습니다.", "Couldn't open the example."],
+  "ex.lease.h": ["집주인이 보낸 월세 계약서, 출력하지 않고 서명해서 바로 돌려보내요", "Sign the lease your landlord emailed, without a printer"],
+  "ex.lease.p": ["서명과 도장을 넣고 쪽 사이에 간인도 찍어요.", "Add your signature and the date, and initial every page."],
+  "ex.parttime.h": ["알바생 근로계약서를 매장 태블릿에서 바로 받아요", "Get a part-timer's contract signed on the shop tablet"],
+  "ex.parttime.p": ["근로자는 화면에 손으로 서명하고 사장님은 도장을 찍어요.", "The new hire signs with a finger and you sign as the employer."],
+  "ex.quote.h": ["견적서에 회사 직인을 찍어서 오늘 안에 보내요", "Stamp your company seal on a quote and send it today"],
+  "ex.quote.p": ["스캔한 직인의 흰 배경을 지우고 날짜와 함께 찍어요.", "The white background of your scanned stamp disappears and the date goes in too."],
+  "ex.school.h": ["아이 현장체험학습 신청서, 사진 찍어 보내지 말고 깔끔하게 서명해요", "Sign the school's field trip form neatly, no phone photos"],
+  "ex.school.p": ["동의 칸에 체크하고 보호자 서명과 날짜를 넣어요.", "Tick the boxes, then add your signature and the date."],
+  "ex.expense.h": ["지출결의서와 휴가신청서에 결재 도장을 한 번에 찍어요", "Put your approval stamp on expense and leave forms in one go"],
+  "ex.expense.p": ["두 장의 결재란 같은 자리에 도장이 들어가요.", "Your stamp lands in the same approval box on both forms."],
+  "ex.proxy.h": ["부모님 대신 서류를 뗄 때 필요한 위임장에 서명받아요", "Get a power of attorney signed to pick up papers for a parent"],
+  "ex.proxy.p": ["위임하는 분의 이름과 생년월일을 채우고 서명과 도장을 받아요.", "Fill in your parent's details, then they sign."],
+  "ex.freelance.h": ["용역 계약서에 서명하고 봉인해서, 나중에 고쳐지면 바로 알아요", "Sign and seal a freelance contract so any later edit shows"],
+  "ex.freelance.p": ["서명과 도장을 넣은 뒤 봉인해서 저장해요.", "Add your signature and stamp, then seal and save."],
+  "ex.agreement.h": ["받은 합의서가 보낸 그대로인지 봉인으로 확인해요", "Check that the agreement you got back is exactly what you sent"],
+  "ex.agreement.p": ["봉인한 파일과 봉인 뒤 고친 파일이 어떻게 다르게 보이는지 확인해요.", "See how a sealed file and one edited after sealing look when you check them."],
+  "ex.student.h": ["장학금 신청서와 개인정보 동의서를 한 번에 정리해 내요", "Finish a scholarship form and consent sheet in one sitting"],
+  "ex.student.p": ["두 장 모두 같은 자리에 서명하고 동의 칸에 체크해요.", "Sign both pages in the same spot and tick the consent boxes."],
+  "ex.nda.h": ["비밀유지 서약서 여러 장에 같은 서명을 한 번에 넣어요", "Put the same signature on every page of an NDA at once"],
+  "ex.nda.p": ["한 번 놓은 서명이 세 쪽 모두 같은 자리에 들어가요.", "One signature goes on all three pages in the same spot."],
+  "ex.verify.cap": ["예시 파일", "Example files"],
+  "ex.verify.intact": ["보낸 그대로인 파일", "File as sent"],
+  "ex.verify.modified": ["봉인 뒤 고친 파일", "File edited after sealing"],
+  "ex.agree.noId": ["봉인 확인은 봉인한 파일에서 할 수 있습니다. 이 합의서에 서명한 뒤 ‘봉인해서 저장’을 해 보세요.", "Verify seal works on sealed files. Sign this agreement, then try “Seal and save”."],
 
   // example document
   "sample.bar": ["**예시 문서**로 둘러보는 중입니다. 보관함에 남지 않습니다. 내 PDF를 열거나 이 창에 끌어다 놓으세요.", "You're looking at an **example document**. It won't be kept in the Library. Open your own PDF or drop it on this window."],
@@ -1583,6 +1681,22 @@ const ICONS = {
   sliders: '<path d="M2.5 4.5h6M11.5 4.5h2M2.5 11.5h2M7.5 11.5h6"/><circle cx="10" cy="4.5" r="1.5"/><circle cx="6" cy="11.5" r="1.5"/>',
   more: '<circle cx="8" cy="3.25" r=".9" fill="currentColor"/><circle cx="8" cy="8" r=".9" fill="currentColor"/><circle cx="8" cy="12.75" r=".9" fill="currentColor"/>',
   shieldX: '<path d="M8 1.75 2.75 3.75v4c0 3.1 2.2 5.4 5.25 6.5 3.05-1.1 5.25-3.4 5.25-6.5v-4z"/><path d="m6.25 6.25 3.5 3.5M9.75 6.25l-3.5 3.5"/>',
+  ganin: '<path d="M8 2.5H2.5v11H8M8 2.5h5.5v11H8"/><circle cx="8" cy="8" r="2.75"/>',
+  chevron: '<path d="m4 6 4 4 4-4"/>',
+  next: '<path d="m6 3.5 4.5 4.5L6 12.5"/>',
+};
+// example gallery icons (24 × 24, same stroke style)
+const EX_ICONS = {
+  lease: '<path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/>',
+  parttime: '<path d="M5 9h11v5.5a4.5 4.5 0 0 1-4.5 4.5h-2A4.5 4.5 0 0 1 5 14.5z"/><path d="M16 10.5h1.5a2.25 2.25 0 0 1 0 4.5H16"/><path d="M8.5 3.5c-.8 1 .8 2-.1 3M12 3.5c-.8 1 .8 2-.1 3"/>',
+  quote: '<path d="M6 3h9l3.5 3.5V21H6z"/><path d="M15 3v3.5h3.5M8.75 10h7M8.75 13h4"/><circle cx="14.75" cy="17" r="2.25"/>',
+  school: '<path d="M7 7.5V6a5 5 0 0 1 10 0v1.5"/><rect x="4.5" y="7.5" width="15" height="13" rx="3"/><path d="M4.5 12.5h15M10 12.5v2.5h4v-2.5"/>',
+  expense: '<rect x="3.5" y="4" width="17" height="16" rx="1.5"/><path d="M3.5 9h17M9.25 4v16M15 4v16"/><circle cx="6.4" cy="14.5" r="1.6"/>',
+  proxy: '<circle cx="8" cy="7.5" r="2.75"/><path d="M3 19.5a5 5 0 0 1 10 0"/><path d="M14 11.5h6.5M18 9l2.5 2.5L18 14"/>',
+  freelance: '<path d="M6 3h9l3.5 3.5V21H6z"/><path d="M15 3v3.5h3.5"/><path d="M8.5 16.5c1.2-2 2.1.2 3-1.2s1.4-1.6 2-.3 1.6-.4 2.5-1"/>',
+  agreement: '<path d="M12 3 5 5.75v5.5c0 4.25 3 7.4 7 8.75 4-1.35 7-4.5 7-8.75v-5.5z"/><path d="m8.75 12 2.25 2.25 4.25-4.5"/>',
+  student: '<path d="M2.5 9 12 5l9.5 4L12 13z"/><path d="M6.5 10.75V15c1.5 1.5 3.5 2.25 5.5 2.25s4-.75 5.5-2.25v-4.25M21.5 9v5"/>',
+  nda: '<path d="M8 6.5V5a2 2 0 0 1 2-2h8.5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H17"/><rect x="3.5" y="6.5" width="13.5" height="14.5" rx="2"/><rect x="7" y="13" width="6.5" height="5" rx="1"/><path d="M8.25 13v-1.5a2 2 0 0 1 4 0V13"/>',
 };
 const icon = (name) => svgIcon(ICONS[name]);
 const uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
@@ -1960,6 +2074,7 @@ const canInk = (a, fx) => a.hasAlpha || fx.removeBg || a.kind !== "image";
 /* ---------- library operations ---------- */
 function libraryIds() {
   const mine = userAssets().filter((a) => !a.hidden).sort((a, b) => (b.lastUsed || b.created) - (a.lastUsed || a.created)).map((a) => a.id);
+  if (S.view === "editor" && S.doc?.isSample) return [...S.samples, ...mine]; // an open example offers its own items first
   return mine.length ? mine : S.samples;
 }
 async function addToLibrary(a) {
@@ -2145,6 +2260,7 @@ function syncWindowTitle() { document.title = S.view === "editor" && S.doc && !S
 function showHome() {
   if (S.view === "home") { renderHome(); return; }
   autosave.flush();
+  if (S.doc?.isSample && S.doc.exampleId !== "freelance") makeSampleAssets().then(syncLibrary).catch(() => {}); // back to the first example's items
   S.view = "home"; document.documentElement.dataset.view = "home"; closeMenu(false); closeSheet(false); syncSelBar();
   $("#home").hidden = false; $("#main").hidden = true; $("#tb-editor").hidden = true; $("#btn-back").hidden = true; $("#btn-export").hidden = true; $("#btn-verify-text").hidden = false;
   syncWindowTitle();
@@ -2164,7 +2280,7 @@ function syncDocTitle() {
     sub.textContent = t("title.home", { n: S.docs.length, m: userAssets().filter((a) => !a.hidden).length });
     return;
   }
-  tl.textContent = S.doc.isSample ? sampleText(S.doc.sampleLang).title : S.doc.name;
+  tl.textContent = S.doc.isSample ? exampleTitle(S.doc) : S.doc.name;
   $("#ed-h1").textContent = tl.textContent;
   sub.append(t("title.pages", { n: S.pages.length, size: fmtBytes(S.doc.size) }));
   if (S.doc.isSample) { sub.append(t("title.sample")); return; }
@@ -2259,7 +2375,7 @@ function renderHome() {
         el("small", { class: f.cls === "warn" ? "warn" : "", text: f.sub, "data-tip": exportsN > 1 ? t("home.exports", { n: exportsN, list: d.exportLog.slice(-3).reverse().map((x) => x.name).join(", ") }) : null })),
       acts));
   }
-  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderAboutSide(); syncSandboxUi(); syncLibrary(); syncDocTitle(); syncStatus();
+  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderAboutSide(); syncSandboxUi(); syncLibrary(); syncDocTitle(); syncStatus(); renderExamples();
 }
 function removeRecord(id) {
   const i = S.docs.findIndex((d) => d.id === id); if (i < 0) return;
@@ -2437,11 +2553,17 @@ function moreItems() {
 $("#btn-more").addEventListener("click", (e) => openMenu(moreItems(), { anchor: e.currentTarget, label: t("more.label") }));
 // touch and hold a placed item: everything the inspector's buttons do
 function openItemMenu(o, at) {
+  if (o.gan) return openMenu([
+    { label: t("sel.adjust"), icon: "sliders", fn: () => openSheet("editor", "insp") },
+    { sep: true },
+    { label: t("gan.remove"), icon: "trash", danger: true, fn: deleteSel },
+  ], { at, label: ovLabel(o) });
   openMenu([
     { label: t("sel.adjust"), icon: "sliders", fn: () => openSheet("editor", "insp") },
     { label: t("insp.dup"), icon: "copy", fn: duplicateSel },
     { label: t("insp.center"), icon: "center", fn: centerSel },
     { label: t("insp.all"), icon: "pages", fn: applyToAllPages, disabled: S.pages.length < 2 },
+    canGanin(o) ? { label: t("gan.make"), icon: "ganin", fn: ganinSel } : null,
     { sep: true },
     { label: t("insp.delete"), icon: "trash", danger: true, fn: deleteSel },
   ], { at, label: ovLabel(o) });
@@ -2543,7 +2665,7 @@ compactMQ.addEventListener("change", () => {
 coarseMQ.addEventListener("change", () => { syncTouch(); syncLibrary(); syncInspector(); });
 
 // the selected item's quick actions (compact layout), shown while the sheet is closed
-function syncSelBar() { $("#sel-bar").hidden = !(S.view === "editor" && S.sel && getOv(S.sel) && !SHEET.side); }
+function syncSelBar() { const o = getOv(S.sel); $("#sel-bar").hidden = !(S.view === "editor" && o && !SHEET.side); $("#sb-dup").hidden = !!o?.gan; }
 $("#sb-adjust").addEventListener("click", () => openSheet("editor", "insp"));
 $("#sb-dup").addEventListener("click", () => duplicateSel());
 $("#sb-del").addEventListener("click", () => deleteSel());
@@ -2585,7 +2707,7 @@ function updateNear() {
   }
 }
 
-async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, path = null, recId = null, stat = null, quiet = false } = {}) {
+async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, exampleId = null, path = null, recId = null, stat = null, quiet = false } = {}) {
   if (!pdfjsLib) { toast(t("engine.fail"), true); return false; }
   let pdf;
   try {
@@ -2602,7 +2724,7 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, pa
   if (S.doc?.pdf) S.doc.pdf.destroy();
   thumbObserver?.disconnect(); thumbQueue = [];
   pagesEl.textContent = ""; thumbsEl.textContent = ""; overlayEls.clear();
-  S.doc = { name, bytes, size: bytes.byteLength, pdf, isSample: sample, sampleLang, path };
+  S.doc = { name, bytes, size: bytes.byteLength, pdf, isSample: sample, sampleLang, exampleId: sample ? exampleId || "freelance" : null, path };
   S.overlays = []; S.history = []; S.future = []; S.sel = null; S.cur = 0;
 
   const pageObjs = await Promise.all(Array.from({ length: pdf.numPages }, (_, i) => pdf.getPage(i + 1)));
@@ -2812,6 +2934,7 @@ function syncOverlayCount() {
   return counts;
 }
 function syncOverlays(positionsOnly = false) {
+  const selO = getOv(S.sel); ganFix(selO);
   const live = new Set(S.overlays.map((o) => o.id));
   for (const [id, n] of overlayEls) if (!live.has(id)) { n.remove(); overlayEls.delete(id); }
   for (const o of S.overlays) {
@@ -2836,6 +2959,8 @@ function syncOverlays(positionsOnly = false) {
       }
       const selected = o.id === S.sel;
       n.classList.toggle("sel", selected);
+      n.classList.toggle("gan", !!o.gan); if (o.gan) n.dataset.side = o.gan.side; else delete n.dataset.side;
+      n.classList.toggle("gan-peer", !selected && !!o.gan && selO?.gan?.g === o.gan.g);
       n.setAttribute("aria-label", ovLabel(o)); n.setAttribute("aria-pressed", String(selected));
       if (selected && !n.querySelector(".h")) for (const k of ["tl", "tr", "bl", "br", "rot"]) n.append(el("div", { class: "h " + k, "data-h": k }));
       if (!selected) n.querySelectorAll(".h").forEach((h) => h.remove());
@@ -2856,6 +2981,7 @@ function select(id) { if (S.sel === id) return; S.sel = id; syncOverlays(); sync
 // "Signature ‘Jordan Lee’, page 2": what a screen reader says for a placed item
 function ovLabel(o) {
   const a = S.assets.get(o?.assetId);
+  if (o?.gan) return t("gan.aria", { name: a?.name || t("ov.item"), page: o.page + 1, other: o.page + (o.gan.side === "l" ? 2 : 0) });
   return t("ov.aria", { kind: kindLabel(a?.kind) || t("ov.item"), name: a?.name || t("ov.item"), page: (o?.page ?? 0) + 1 });
 }
 // polite screen-reader announcements (selection, position and size after keyboard moves, removal)
@@ -2872,13 +2998,59 @@ function pushHistory(before) {
   S.future = []; syncUndo(); autosave();
 }
 function act(fn) {
-  const before = snap(); fn();
+  const before = snap(); fn(); ganFix(getOv(S.sel));
   if (!same(before, S.overlays)) pushHistory(before);
   syncOverlays(); syncInspector();
 }
 let gestureBefore = null;
 const beginGesture = () => { gestureBefore = snap(); };
-function endGesture() { if (gestureBefore && !same(gestureBefore, S.overlays)) pushHistory(gestureBefore); gestureBefore = null; }
+function endGesture() { ganFix(getOv(S.sel)); if (gestureBefore && !same(gestureBefore, S.overlays)) pushHistory(gestureBefore); gestureBefore = null; }
+
+/* ---------- 간인 (cross-page seal): one stamp across every page break, half on either page ----------
+   Each piece is an overlay of its own with gan: { g: group, side }. side "l" shows the stamp's left half against
+   the right edge of the page before the break; side "r" shows its right half against the left edge of the page
+   after it, so the halves meet when the two pages lie side by side. The box is the visible half; the group moves,
+   resizes and recolours as one (y, size, opacity, fx follow the piece being edited) and is removed as one. */
+const canGanin = (o) => !!o && !o.gan && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark";
+function ganFix(src) {
+  if (!src?.gan) return;
+  for (const o of S.overlays) {
+    if (o.gan?.g !== src.gan.g) continue;
+    const p = S.pages[o.page]; if (!p) continue;
+    o.w = src.w; o.h = src.h; o.rot = 0; o.opacity = src.opacity;
+    if (o !== src) o.fx = { ...src.fx };
+    o.y = clamp(src.y, 0, Math.max(0, p.h - o.h)); o.x = o.gan.side === "l" ? p.w - o.w : 0;
+  }
+}
+// draws the selected item and, for a 간인 piece, every piece of its group (live, during a drag)
+function styleSel(o) {
+  if (!o?.gan) { styleOverlay(o, overlayEls.get(o?.id)); return; }
+  ganFix(o);
+  for (const x of S.overlays) if (x.gan?.g === o.gan.g) styleOverlay(x, overlayEls.get(x.id));
+}
+// the pieces for a stamp fullW wide, centred at yFrac of each page's height
+function ganPieces(assetId, fullW, yFrac, { fx = { removeBg: false, ink: null }, opacity = 1 } = {}) {
+  const a = S.assets.get(assetId); if (!a || S.pages.length < 2) return [];
+  const g = uid(), w = fullW / 2, h = (fullW * a.h) / a.w, out = [];
+  for (let k = 0; k < S.pages.length - 1; k++) {
+    for (const [page, side] of [[k, "l"], [k + 1, "r"]]) {
+      const p = S.pages[page];
+      out.push({ id: uid(), assetId, page, x: side === "l" ? p.w - w : 0, y: clamp(yFrac * p.h - h / 2, 0, Math.max(0, p.h - h)), w, h, rot: 0, opacity, fx: { ...fx }, gan: { g, side } });
+    }
+  }
+  return out;
+}
+function ganinSel() {
+  const o = getOv(S.sel); if (!canGanin(o)) return;
+  const pieces = ganPieces(o.assetId, Math.min(o.w, 40 * PT_PER_MM), 0.42, { fx: o.fx, opacity: o.opacity });
+  if (!pieces.length) return;
+  // again with the same stamp: the new one replaces the old
+  const here = pieces.find((x) => x.page === o.page) || pieces[0]; // the piece on the page in front of the user is selected
+  act(() => { S.overlays = S.overlays.filter((x) => !(x.gan && x.assetId === o.assetId)); S.overlays.push(...pieces); S.sel = here.id; });
+  overlayEls.get(here.id)?.focus({ preventScroll: true });
+  toast(t("gan.done", { n: S.pages.length }), { ms: 5000 });
+  announce(t("gan.done", { n: S.pages.length }));
+}
 function undo() {
   flushKeyGesture();
   if (!S.history.length) return;
@@ -2901,7 +3073,8 @@ function syncUndo() {
 /* ---------- placing ---------- */
 function defaultSize(a, page) {
   const p = S.pages[page];
-  let w = a.lastW || (a.kind === "seal" ? 22 * PT_PER_MM : a.kind === "text" ? Math.min(p.w * 0.3, a.w * 0.22) : p.w * 0.24);
+  // a mark (✓ ✗ ○) starts at the size of a form's checkbox
+  let w = a.lastW || (a.kind === "mark" ? MARK_MM * PT_PER_MM : a.kind === "seal" ? 22 * PT_PER_MM : a.kind === "text" ? Math.min(p.w * 0.3, a.w * 0.22) : p.w * 0.24);
   let h = (w * a.h) / a.w;
   const maxH = p.h * 0.4, maxW = p.w * 0.9;
   if (h > maxH) { h = maxH; w = (h * a.w) / a.h; }
@@ -2997,7 +3170,7 @@ pagesEl.addEventListener("pointermove", (e) => {
   let p = S.pages[o.page];
   if (drag.mode === "move") {
     const over = pageUnderPointer(e.clientX, e.clientY);
-    if (over && over.i !== o.page) {
+    if (over && over.i !== o.page && !o.gan) { // a 간인 piece stays on its page
       const cur = pagePoint(p, e.clientX, e.clientY), np = pagePoint(over, e.clientX, e.clientY);
       drag.start = { x: drag.start.x + (np.x - cur.x), y: drag.start.y + (np.y - cur.y) };
       o.page = over.i; p = over; const n = overlayEls.get(o.id); if (n) p.layer.append(n);
@@ -3045,7 +3218,7 @@ pagesEl.addEventListener("pointermove", (e) => {
     o.rot = deg; drag.moved = true;
     showMeasure(p, cx, o.y, `${deg}°`);
   }
-  styleOverlay(o, overlayEls.get(o.id));
+  styleSel(o);
 });
 const endDrag = (e) => {
   if (!drag || (e && e.pointerId !== drag.pointerId)) return;
@@ -3146,7 +3319,7 @@ function applyPinch() {
   for (const sd of [0, 90, 180, 270, 360]) if (Math.abs(rot - sd) < 4) rot = sd % 360;
   const cx = o0.x + o0.w / 2 + (c.m.x - PINCH.m0.x) / S.zoom, cy = o0.y + o0.h / 2 + (c.m.y - PINCH.m0.y) / S.zoom;
   Object.assign(o, { w, h, rot, x: cx - w / 2, y: cy - h / 2 }); clampInside(o);
-  styleOverlay(o, overlayEls.get(o.id));
+  styleSel(o);
   showMeasure(S.pages[o.page], o.x + o.w / 2, o.y, `${fmtMM(o.w)} × ${fmtMM(o.h)} mm · ${o.rot}°`);
 }
 function endPinch(e) {
@@ -3285,18 +3458,25 @@ function syncInspector() {
     nameInput.addEventListener("change", () => renameAsset(o.assetId, nameInput.value));
     nameInput.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter") nameInput.blur(); });
   }
+  // a 간인 piece: the group's height, stamp width and look; it sits against the page edge and is removed as a whole
+  const named = (field, name) => { const i = field.querySelector("input"); i.setAttribute("aria-label", name); i.title = name; return field; }; // the whole stamp's width, not the piece's
+  const gan = o.gan, gp = gan ? (gan.side === "l" ? [o.page + 1, o.page + 2] : [o.page, o.page + 1]) : null;
+  const sizeFields = gan
+    ? [num("y", "Y", "mm", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
+      named(num("w", "W", "mm", () => fmtMM(o.w * 2), (v) => { const w = Math.max(MIN_PT, v * PT_PER_MM) / 2, cy = o.y + o.h / 2; o.w = w; o.h = w * ratio; o.y = cy - o.h / 2; }), t("gan.size"))]
+    : [num("x", "X", "mm", () => fmtMM(o.x), (v) => { o.x = v * PT_PER_MM; }),
+      num("y", "Y", "mm", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
+      num("w", "W", "mm", () => fmtMM(o.w), (v) => { const w = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.w = w; o.h = w * ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; }),
+      num("h", "H", "mm", () => fmtMM(o.h), (v) => { const h = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.h = h; o.w = h / ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; })];
   box.append(...[
-    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: t("insp.title") }), el("span", { class: "hint", text: t("page.n", { n: o.page + 1 }) })),
+    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: gan ? t("gan.title") : t("insp.title") }), el("span", { class: "hint", text: gan ? t("gan.where", { a: gp[0], b: gp[1] }) : t("page.n", { n: o.page + 1 }) })),
     el("div", { class: "sel-head" },
       el("div", { class: "art" }, el("img", { id: "insp-thumb", src: a?.src || "", alt: "" })),
       el("div", { class: "nm" }, nameInput, el("span", { text: t("insp.meta", { kind: kindLabel(a?.kind), w: a?.w, h: a?.h }) }))),
-    el("div", { class: "fields" },
-      num("x", "X", "mm", () => fmtMM(o.x), (v) => { o.x = v * PT_PER_MM; }),
-      num("y", "Y", "mm", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
-      num("w", "W", "mm", () => fmtMM(o.w), (v) => { const w = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.w = w; o.h = w * ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; }),
-      num("h", "H", "mm", () => fmtMM(o.h), (v) => { const h = Math.max(MIN_PT, v * PT_PER_MM); const cx = o.x + o.w / 2, cy = o.y + o.h / 2; o.h = h; o.w = h / ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; })),
-    range("f-rot", t("insp.rot"), 0, 359, o.rot, (v) => `${v}°`, (v) => { o.rot = v; styleOverlay(o, overlayEls.get(o.id)); }),
-    range("f-op", t("insp.op"), 10, 100, Math.round(o.opacity * 100), (v) => `${v}%`, (v) => { o.opacity = v / 100; styleOverlay(o, overlayEls.get(o.id)); }),
+    gan ? el("p", { class: "hint", style: "margin:0 0 10px", text: t("gan.hint") }) : null,
+    el("div", { class: "fields" }, ...sizeFields),
+    gan ? null : range("f-rot", t("insp.rot"), 0, 359, o.rot, (v) => `${v}°`, (v) => { o.rot = v; styleOverlay(o, overlayEls.get(o.id)); }),
+    range("f-op", t("insp.op"), 10, 100, Math.round(o.opacity * 100), (v) => `${v}%`, (v) => { o.opacity = v / 100; styleSel(o); }),
     a?.kind === "image" && !a.hasAlpha ? el("div", { class: "row" }, el("span", { class: "lbl", text: t("insp.bg") }),
       el("label", { class: "toggle" }, el("input", { type: "checkbox", id: "f-bg", checked: o.fx.removeBg, onchange: (e) => act(() => { o.fx.removeBg = e.target.checked; if (!canInk(a, o.fx)) o.fx.ink = null; }) }), t("insp.bg.remove"))) : null,
     el("div", { class: "row" }, el("span", { class: "lbl", text: t("insp.ink") }),
@@ -3305,10 +3485,13 @@ function syncInspector() {
         title: !inkOk && ink.key ? t("insp.ink.need") : t("insp.ink.tip", { ink: t(ink.name) }),
         onclick: () => act(() => { o.fx.ink = ink.key; }),
       }, ink.color ? el("i", { style: `background:${ink.color}` }) : null, t(ink.name))))),
-    el("div", { class: "actions" },
+    gan ? el("div", { class: "actions" },
+      el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("gan.remove")))
+    : el("div", { class: "actions" },
       el("button", { class: "btn", type: "button", onclick: duplicateSel, title: kbd("⌘D") }, icon("copy"), t("insp.dup")),
       el("button", { class: "btn", type: "button", onclick: () => centerSel(), title: t("insp.center.tip") }, icon("center"), t("insp.center")),
       el("button", { class: "btn wide", type: "button", onclick: applyToAllPages, disabled: S.pages.length < 2 }, icon("pages"), t("insp.all")),
+      canGanin(o) ? el("button", { class: "btn wide", type: "button", id: "f-ganin", onclick: ganinSel, title: t("gan.make.tip") }, icon("ganin"), t("gan.make")) : null,
       el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("insp.delete"))),
   ].filter(Boolean));
   processed(a, o.fx).then((r) => { const t = $("#insp-thumb"); if (t && S.sel === o.id) t.src = r.url; });
@@ -3316,21 +3499,22 @@ function syncInspector() {
 
 /* ---------- commands on the selection ---------- */
 function duplicateSel() {
-  const o = getOv(S.sel); if (!o) return;
+  const o = getOv(S.sel); if (!o || o.gan) return;
   const n = { ...o, id: uid(), fx: { ...o.fx }, x: o.x + 10, y: o.y + 10 }; clampInside(n);
   act(() => { S.overlays.push(n); S.sel = n.id; });
 }
 function deleteSel() {
   if (!S.sel) return;
   const o = getOv(S.sel), label = o ? ovLabel(o) : "", hadFocus = !!o && document.activeElement === overlayEls.get(o.id);
-  act(() => { S.overlays = S.overlays.filter((x) => x.id !== S.sel); S.sel = null; });
-  if (label) announce(t("ov.removed", { label }));
+  const g = o?.gan?.g; // a 간인 goes as a whole: half a stamp on one page means nothing
+  act(() => { S.overlays = S.overlays.filter((x) => x.id !== S.sel && !(g && x.gan?.g === g)); S.sel = null; });
+  if (g) toast(t("gan.removed")); else if (label) announce(t("ov.removed", { label }));
   // keep keyboard focus on the page: the next item there, or the document
   if (hadFocus) { const next = S.overlays.find((x) => x.page === o.page) || S.overlays[0]; ((next && overlayEls.get(next.id)) || stage).focus({ preventScroll: true }); }
 }
 function centerSel() { const o = getOv(S.sel); if (!o) return; const p = S.pages[o.page]; act(() => { o.x = (p.w - o.w) / 2; o.y = (p.h - o.h) / 2; }); }
 function applyToAllPages() {
-  const o = getOv(S.sel); if (!o) return; const p0 = S.pages[o.page];
+  const o = getOv(S.sel); if (!o || o.gan) return; const p0 = S.pages[o.page];
   let added = 0;
   act(() => {
     for (const p of S.pages) {
@@ -3359,7 +3543,7 @@ function flushKeyGesture() {
 function nudge(dx, dy) {
   const o = getOv(S.sel); if (!o) return false;
   if (!gestureBefore) beginGesture();
-  o.x += dx; o.y += dy; clampInside(o); styleOverlay(o, overlayEls.get(o.id));
+  o.x += dx; o.y += dy; clampInside(o); styleSel(o);
   keyGestureSoon("pos");
   return true;
 }
@@ -3371,7 +3555,7 @@ function resizeSel(dx, dy, big) {
   const cx = o.x + o.w / 2, cy = o.y + o.h / 2, ratio = o.h / o.w;
   const w = Math.max(MIN_PT, MIN_PT / ratio, o.w * k);
   o.w = w; o.h = w * ratio; o.x = cx - o.w / 2; o.y = cy - o.h / 2; clampInside(o);
-  styleOverlay(o, overlayEls.get(o.id));
+  styleSel(o);
   keyGestureSoon("size");
   return true;
 }
@@ -3396,11 +3580,12 @@ async function buildPdf() {
   const embedded = new Map(); const pages = out.getPages();
   for (const o of S.overlays) {
     const a = S.assets.get(o.assetId); const p = S.pages[o.page]; if (!a || !p) continue;
-    const key = fxKey(a, o.fx);
+    const key = fxKey(a, o.fx) + (o.gan ? "|" + o.gan.side : "");
     if (!embedded.has(key)) {
       const r = await processed(a, o.fx);
       let img;
-      if (r.plain && a.mime === "image/jpeg") img = await out.embedJpg(dataURLBytes(a.src));
+      if (o.gan) img = await out.embedPng(await halfPng(r.url, a, o.gan.side)); // 간인: only that half of the stamp
+      else if (r.plain && a.mime === "image/jpeg") img = await out.embedJpg(dataURLBytes(a.src));
       else if (r.plain) img = await out.embedPng(dataURLBytes(a.src));
       else img = await out.embedPng(new Uint8Array(await r.blob.arrayBuffer()));
       embedded.set(key, img);
@@ -3415,6 +3600,13 @@ async function buildPdf() {
     });
   }
   return out.save({ useObjectStreams: true });
+}
+// the left or right half of an item's image (as drawn, after background removal and ink) as PNG bytes
+async function halfPng(url, a, side) {
+  const img = await loadImage(url), hw = Math.max(1, Math.round(a.w / 2));
+  const c = canvasOf(hw, a.h);
+  c.getContext("2d").drawImage(img, side === "l" ? 0 : -(a.w - hw), 0, a.w, a.h);
+  return new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer());
 }
 const cleanName = (s) => s.replace(/[\/\\:*?"<>|\u0000-\u001f]/g, "_").replace(/\s+/g, " ").trim().replace(/\.pdf$/i, "").slice(0, 180)
   .replace(/[. ]+$/, "").replace(/^(con|prn|aux|nul|com\d|lpt\d)$/i, "$&_");
@@ -3589,10 +3781,10 @@ const fpLine = (fp) => el("span", { class: "fp" }, el("code", { text: fp || "" }
   el("button", { class: "btn icon sm", type: "button", title: t("copy"), "aria-label": t("copy"), onclick: () => copyText(fp || "") }, icon("copy")));
 
 /* ---------- 봉인 확인 / Verify seal ---------- */
-const VER = { last: null, busy: false };    // last: { name, size, v?, error? }
+const VER = { last: null, busy: false, example: null };    // last: { name, size, v?, error? }
 function openVerify() {
   if (!S.seal) return;
-  VER.last = null; VER.busy = false; renderVerify();
+  VER.last = null; VER.busy = false; VER.example = null; renderVerify();
   if (!$("#dlg-verify").open) $("#dlg-verify").showModal();
 }
 async function verifyPick() {
@@ -3617,6 +3809,9 @@ const V_LOOK = { intact: ["ok", "shieldOk", "seal.intact", "verify.intact.p"], m
   invalid: ["bad", "shieldX", "seal.invalid", "verify.invalid.p"], none: ["muted", "shield", "seal.none", "verify.none.p"] };
 function renderVerify() {
   const box = $("#v-result"), L = VER.last; box.textContent = "";
+  // the agreement example: the file as sealed and the copy edited after sealing, one tap apart
+  if (VER.example) box.append(el("div", { class: "alt-row", role: "group", "aria-label": t("ex.verify.cap") }, el("span", { text: t("ex.verify.cap") }),
+    ...VER.example.map((f) => el("button", { type: "button", class: "btn sm outline", "aria-pressed": String(L?.name === f.name), disabled: VER.busy ? true : null, onclick: () => verifyBytes(f.bytes, f.name) }, t(f.label)))));
   $("#v-drop").classList.toggle("compact", !!L);
   $("#v-drop-text").textContent = t(L ? "verify.dropAnother" : "verify.drop");
   $("#v-pick").disabled = VER.busy;
@@ -4027,7 +4222,7 @@ window.addEventListener("paste", (e) => {
   }
 });
 window.addEventListener("copy", (e) => {
-  if (e.target.closest?.("input, textarea") || !S.sel || S.view !== "editor") return;
+  if (e.target.closest?.("input, textarea") || !S.sel || S.view !== "editor" || getOv(S.sel)?.gan) return;
   S.clip = { ...getOv(S.sel) }; e.preventDefault(); toast(t("copied"), { ms: 2200 });
 });
 
@@ -4189,18 +4384,32 @@ function openDraw() { pad.strokes = []; pad.cur = null; pad.pen = false; $("#dlg
    ================================================================ */
 const txt = { font: "sans", color: "#111318" };
 const FONTS = { sans: '600 120px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif', pen: '120px "Nanum Pen Script", cursive', serif: '800 120px "Nanum Myeongjo", serif' };
-async function renderText(text) {
-  try { await document.fonts.load(FONTS[txt.font], text); } catch {}
-  const m = canvasOf(4, 4).getContext("2d"); m.font = FONTS[txt.font];
+async function renderText(text, font = txt.font, color = txt.color) {
+  if (MARK_OF[text]) return drawMark(MARK_OF[text], color);
+  try { await document.fonts.load(FONTS[font], text); } catch {}
+  const m = canvasOf(4, 4).getContext("2d"); m.font = FONTS[font];
   const mt = m.measureText(text);
   const asc = Math.ceil(mt.actualBoundingBoxAscent || 100), desc = Math.ceil(mt.actualBoundingBoxDescent || 30);
   const p = 14, w = Math.ceil(mt.width) + p * 2, h = asc + desc + p * 2;
   const c = canvasOf(w, h); const g = c.getContext("2d");
-  g.font = FONTS[txt.font]; g.fillStyle = txt.color; g.textBaseline = "alphabetic"; g.fillText(text, p, p + asc);
+  g.font = FONTS[font]; g.fillStyle = color; g.textBaseline = "alphabetic"; g.fillText(text, p, p + asc);
+  return c;
+}
+/* marks for forms (✓ ✗ ○): drawn as strokes rather than taken from a font, so they look the same everywhere and
+   stay sharp at checkbox size (240 px square, placed at about 5 mm, is over 1200 dpi) */
+const MARKS = [["check", "✓"], ["cross", "✗"], ["circle", "○"]];
+const MARK_OF = { "✓": "check", "✔": "check", "✗": "cross", "✘": "cross", "○": "circle", "◯": "circle" };
+const MARK_PATHS = { check: "M3.6 8.4 6.5 11.3 12.6 4.6", cross: "m4 4 8 8M12 4l-8 8", circle: "M8 2.6a5.4 5.4 0 1 0 0 10.8A5.4 5.4 0 1 0 8 2.6" };
+function drawMark(kind, color, N = 240) {
+  const c = canvasOf(N, N), g = c.getContext("2d");
+  g.scale(N / 16, N / 16); g.strokeStyle = color; g.lineCap = "round"; g.lineJoin = "round";
+  g.lineWidth = kind === "circle" ? 1.35 : 1.6;
+  g.stroke(new Path2D(MARK_PATHS[kind]));
   return c;
 }
 async function syncTextPreview() {
   const v = $("#txt-input").value.trim(); $("#txt-save").disabled = !v;
+  for (const b of $$("#txt-marks button")) b.setAttribute("aria-pressed", String(MARK_OF[v] === b.dataset.mark));
   const pv = $("#txt-preview");
   if (!v) { pv.width = pv.height = 1; return; }
   const c = await renderText(v); pv.width = c.width; pv.height = c.height; pv.getContext("2d").drawImage(c, 0, 0);
@@ -4215,14 +4424,19 @@ const txtSwatches = () => swatchRow($("#txt-colors"), INKS.slice(1), () => txt.c
 txtSwatches();
 $("#txt-save").onclick = async () => {
   const v = $("#txt-input").value.trim(); if (!v) return;
-  const c = await renderText(v);
-  const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "text", name: v });
+  const c = await renderText(v), mark = MARK_OF[v];
+  const a = await makeAssetFromSource(c.toDataURL("image/png"), mark ? { kind: "mark", name: `${t("mark." + mark)} ${v}` } : { kind: "text", name: v });
   $("#dlg-text").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast(t("text.added"));
 };
 function textPresets() {
   const presets = $("#txt-presets"); presets.textContent = "";
   for (const [label, val] of [[t("text.today"), today()], ...["text.p1", "text.p2", "text.p3"].map((k) => [t(k), t(k)])])
     presets.append(el("button", { type: "button", class: "sw", onclick: () => { $("#txt-input").value = val; syncTextPreview(); $("#txt-input").focus(); } }, label));
+  const marks = $("#txt-marks"); marks.textContent = "";
+  const v = $("#txt-input").value.trim();
+  for (const [kind, glyph] of MARKS)
+    marks.append(el("button", { type: "button", class: "sw mark-sw", "data-mark": kind, "aria-label": t("mark." + kind), title: t("mark." + kind), "aria-pressed": String(MARK_OF[v] === kind),
+      onclick: () => { $("#txt-input").value = glyph; syncTextPreview(); $("#txt-save").focus(); } }, svgIcon(`<path d="${MARK_PATHS[kind]}" stroke-width="1.8"/>`)));
 }
 function openText() {
   textPresets();
@@ -4309,45 +4523,36 @@ const SAMPLE = {
   },
 };
 const sampleText = (lang) => SAMPLE[lang] || SAMPLE[LANG];
-// example items follow the language; rebuilt (once per language) when it changes
-let samplesP = null;
-function makeSampleAssets(lang = LANG) {
-  if (samplesP?.lang === lang) return samplesP.p;
+// the first example's signature and stamp, in the language of the example
+async function makeFreelanceAssets(lang) {
   const T = SAMPLE[lang];
-  const p = (async () => {
-    await Promise.allSettled([document.fonts.load('120px "Nanum Pen Script"', T.signer), document.fonts.load('800 80px "Nanum Myeongjo"', T.stamp.probe)]);
-    const ink = "#1d3fb8", red = "#c62a22";
-    let g = canvasOf(4, 4).getContext("2d"); g.font = '150px "Nanum Pen Script", cursive';
-    const sw = Math.max(560, Math.ceil(g.measureText(T.signer).width) + 80);
-    const sig = canvasOf(sw, 200); g = sig.getContext("2d");
-    g.font = '150px "Nanum Pen Script", cursive'; g.fillStyle = ink; g.fillText(T.signer, 40, 150);
-    g.strokeStyle = ink; g.lineWidth = 5; g.lineCap = "round"; g.beginPath(); g.moveTo(30, 168); g.bezierCurveTo(sw * 0.34, 150, sw * 0.64, 196, sw - 40, 140); g.stroke();
-    const N = 360, seal = canvasOf(N, N); g = seal.getContext("2d");
-    g.strokeStyle = g.fillStyle = red; g.lineWidth = 16; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 14, 0, Math.PI * 2); g.stroke();
-    g.textAlign = "center"; g.textBaseline = "middle";
-    if (T.stamp.glyphs) {
-      g.font = '800 116px "Nanum Myeongjo", serif';
-      for (const [ch, dx, dy] of T.stamp.glyphs) g.fillText(ch, N / 2 + dx, N / 2 + dy);
-    } else {
-      // a round office stamp: company name over a ruled "APPROVED", the date below
-      const fit = (s, px, maxW) => { do g.font = `800 ${px}px "Nanum Myeongjo", serif`; while (g.measureText(s).width > maxW && --px > 10); };
-      g.lineWidth = 4; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 36, 0, Math.PI * 2); g.stroke();
-      for (const dy of [-40, 40]) { g.beginPath(); g.moveTo(N / 2 - 128, N / 2 + dy); g.lineTo(N / 2 + 128, N / 2 + dy); g.stroke(); }
-      fit("APPROVED", 70, 244); g.fillText("APPROVED", N / 2, N / 2 + 3);
-      fit("NORTHWIND", 34, 170); g.fillText("NORTHWIND", N / 2, N / 2 - 76);
-      fit("2026.11.25", 30, 170); g.fillText("2026.11.25", N / 2, N / 2 + 78);
-    }
-    g.globalCompositeOperation = "destination-out";
-    for (let i = 0; i < 900; i++) { g.globalAlpha = Math.random() * 0.5; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 3 + 0.5, 0, Math.PI * 2); g.fill(); }
-    const a1 = await makeAssetFromSource(sig.toDataURL("image/png"), { kind: "draw", name: T.sigName, sample: true });
-    const a2 = await makeAssetFromSource(seal.toDataURL("image/png"), { kind: "seal", name: T.stampName, sample: true });
-    for (const id of S.samples) S.assets.delete(id);
-    S.samples = [a1.id, a2.id]; for (const a of [a1, a2]) S.assets.set(a.id, a);
-    return { sig: a1, seal: a2 };
-  })();
-  samplesP = { lang, p };
-  p.catch(() => { if (samplesP?.p === p) samplesP = null; });
-  return p;
+  await Promise.allSettled([document.fonts.load('120px "Nanum Pen Script"', T.signer), document.fonts.load('800 80px "Nanum Myeongjo"', T.stamp.probe)]);
+  const ink = "#1d3fb8", red = "#c62a22";
+  let g = canvasOf(4, 4).getContext("2d"); g.font = '150px "Nanum Pen Script", cursive';
+  const sw = Math.max(560, Math.ceil(g.measureText(T.signer).width) + 80);
+  const sig = canvasOf(sw, 200); g = sig.getContext("2d");
+  g.font = '150px "Nanum Pen Script", cursive'; g.fillStyle = ink; g.fillText(T.signer, 40, 150);
+  g.strokeStyle = ink; g.lineWidth = 5; g.lineCap = "round"; g.beginPath(); g.moveTo(30, 168); g.bezierCurveTo(sw * 0.34, 150, sw * 0.64, 196, sw - 40, 140); g.stroke();
+  const N = 360, seal = canvasOf(N, N); g = seal.getContext("2d");
+  g.strokeStyle = g.fillStyle = red; g.lineWidth = 16; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 14, 0, Math.PI * 2); g.stroke();
+  g.textAlign = "center"; g.textBaseline = "middle";
+  if (T.stamp.glyphs) {
+    g.font = '800 116px "Nanum Myeongjo", serif';
+    for (const [ch, dx, dy] of T.stamp.glyphs) g.fillText(ch, N / 2 + dx, N / 2 + dy);
+  } else {
+    // a round office stamp: company name over a ruled "APPROVED", the date below
+    const fit = (s, px, maxW) => { do g.font = `800 ${px}px "Nanum Myeongjo", serif`; while (g.measureText(s).width > maxW && --px > 10); };
+    g.lineWidth = 4; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 36, 0, Math.PI * 2); g.stroke();
+    for (const dy of [-40, 40]) { g.beginPath(); g.moveTo(N / 2 - 128, N / 2 + dy); g.lineTo(N / 2 + 128, N / 2 + dy); g.stroke(); }
+    fit("APPROVED", 70, 244); g.fillText("APPROVED", N / 2, N / 2 + 3);
+    fit("NORTHWIND", 34, 170); g.fillText("NORTHWIND", N / 2, N / 2 - 76);
+    fit("2026.11.25", 30, 170); g.fillText("2026.11.25", N / 2, N / 2 + 78);
+  }
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 900; i++) { g.globalAlpha = Math.random() * 0.5; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 3 + 0.5, 0, Math.PI * 2); g.fill(); }
+  const sigA = await makeAssetFromSource(sig.toDataURL("image/png"), { kind: "draw", name: T.sigName, sample: true });
+  const sealA = await makeAssetFromSource(seal.toDataURL("image/png"), { kind: "seal", name: T.stampName, sample: true });
+  return { sig: sigA, seal: sealA };
 }
 // returns the PDF and where the second party signs (in drawing pixels), so both layouts place the items right
 async function makeSamplePdf(lang = LANG) {
@@ -4382,22 +4587,857 @@ async function makeSamplePdf(lang = LANG) {
   }
   return { bytes: new Uint8Array(await doc.save()), sign };
 }
-async function loadSample() {
-  const btn = $("#btn-sample"); btn.disabled = true;
-  const lang = LANG;
+/* ================================================================
+   Example gallery (docs/design/scenarios.md): ten situations, each a generated document (Korean, and an
+   English-market equivalent) opened with the items that situation needs already in place.
+   Documents are drawn like a scan (canvas → JPEG pages), never stored in the Library, and their wording is
+   document text, so it lives here rather than in STR. Every person and company is made up.
+   Page ops (y is a text baseline in a 1240 × 1754 drawing, A4 at 150 dpi):
+     { title } { sub } { h } { p, in? } { gap } { center, size?, b? } { right }
+     { table: rows, cols?, head?, lab? }   cells: "text" | { t, id?, mark?, mid?, al?, b? } (id: fill area, mid: the mark)
+     { checks: [[label, id]…], lead?, in? }   { fields: [[label, id, width, value?]…], in? }
+     { sign: [role, name, id, mark?, sub?] }  anchors id (the line) and id + "S" (the mark, e.g. “(인)”)
+     { approve: [labels…], id, cap? }  approval boxes top right, anchors id0, id1 …
+     { foot: [label, id, mark?] }  a line near the bottom of the page
+     { stamp: anchor, text }  the other party's seal, already on the paper;  { ink: anchor, text }  their signature
+     any op may carry y to start at a fixed height (the same spot on every page)
+   Placements: { a: asset, at: anchor, w | h (mm) | pt (font size, text stamps), al?: "l", dx?, dy? (mm), rot?, op?, sel? }
+               { gan: asset, w (mm), y (fraction of the page height) }
+   ================================================================ */
+const DOC = { W: 1240, H: 1754, L: 130, R: 1110 };
+const DOC_SANS = '"IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif', DOC_SERIF = '"Nanum Myeongjo", "IBM Plex Sans KR", serif';
+const DOC_INK = "#1a1d24", DOC_MUTED = "#6b7282", DOC_SOFT = "#f1f3f6";
+const INK_BLUE = "#1d3fb8", INK_BLACK = "#111318", INK_RED = "#c62a22";
+function wrapText(g, text, maxW) {
+  const out = []; let line = "";
+  for (const word of text.split(" ")) {
+    const next = line ? `${line} ${word}` : word;
+    if (!line || g.measureText(next).width <= maxW) line = next; else { out.push(line); line = word; }
+  }
+  if (line) out.push(line);
+  return out;
+}
+// a little missing ink, like a real stamp
+function roughen(g, N) {
+  g.globalCompositeOperation = "destination-out";
+  for (let i = 0; i < 900 * (N / 360) ** 2; i++) { g.globalAlpha = Math.random() * 0.5; g.beginPath(); g.arc(Math.random() * N, Math.random() * N, Math.random() * 3 + 0.5, 0, Math.PI * 2); g.fill(); }
+  g.globalCompositeOperation = "source-over"; g.globalAlpha = 1;
+}
+// a Korean name seal (4 glyphs, read right column first) or a square company seal (9 glyphs)
+function sealCanvas(chars, shape = "round") {
+  const N = 360, c = canvasOf(N, N), g = c.getContext("2d"), cs = [...chars];
+  g.strokeStyle = g.fillStyle = INK_RED; g.textAlign = "center"; g.textBaseline = "middle";
+  if (shape === "round") {
+    g.lineWidth = 16; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 14, 0, Math.PI * 2); g.stroke();
+    g.font = `800 116px ${DOC_SERIF}`;
+    [[62, -58], [62, 62], [-62, -58], [-62, 62]].forEach(([dx, dy], i) => cs[i] && g.fillText(cs[i], N / 2 + dx, N / 2 + dy));
+  } else {
+    g.lineWidth = 18; g.strokeRect(16, 16, N - 32, N - 32);
+    g.font = `800 90px ${DOC_SERIF}`;
+    const cell = (N - 64) / 3;
+    cs.slice(0, 9).forEach((ch, i) => g.fillText(ch, 32 + cell * (2 - Math.floor(i / 3) + 0.5), 32 + cell * ((i % 3) + 0.5) + 4));
+  }
+  roughen(g, N);
+  return c;
+}
+// a round office stamp: name over a ruled word, a line below
+function officeStamp(top, mid, bottom) {
+  const N = 360, c = canvasOf(N, N), g = c.getContext("2d");
+  g.strokeStyle = g.fillStyle = INK_RED; g.textAlign = "center"; g.textBaseline = "middle";
+  const fit = (s, px, maxW) => { do g.font = `800 ${px}px ${DOC_SERIF}`; while (g.measureText(s).width > maxW && --px > 10); };
+  g.lineWidth = 16; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 14, 0, Math.PI * 2); g.stroke();
+  g.lineWidth = 4; g.beginPath(); g.arc(N / 2, N / 2, N / 2 - 36, 0, Math.PI * 2); g.stroke();
+  for (const dy of [-40, 40]) { g.beginPath(); g.moveTo(N / 2 - 128, N / 2 + dy); g.lineTo(N / 2 + 128, N / 2 + dy); g.stroke(); }
+  fit(mid, 70, 244); g.fillText(mid, N / 2, N / 2 + 3);
+  fit(top, 34, 170); g.fillText(top, N / 2, N / 2 - 76);
+  fit(bottom, 30, 170); g.fillText(bottom, N / 2, N / 2 + 78);
+  roughen(g, N);
+  return c;
+}
+function sigCanvas(name, color = INK_BLUE, px = 150) {
+  let g = canvasOf(4, 4).getContext("2d"); g.font = `${px}px "Nanum Pen Script", cursive`;
+  const w = Math.max(Math.round(px * 1.2), Math.ceil(g.measureText(name).width) + 80), h = Math.round(px * 1.34);
+  const c = canvasOf(w, h); g = c.getContext("2d");
+  g.font = `${px}px "Nanum Pen Script", cursive`; g.fillStyle = g.strokeStyle = color; g.fillText(name, 40, px);
+  g.lineWidth = px / 30; g.lineCap = "round"; g.beginPath(); g.moveTo(30, px * 1.12); g.bezierCurveTo(w * 0.34, px, w * 0.64, px * 1.3, w - 40, px * 0.93); g.stroke();
+  return c;
+}
+// a stamp scanned on off-white paper: a JPEG with no transparency (the app offers to remove the background)
+function scanOf(c) {
+  const pad = 44, s = canvasOf(c.width + pad * 2, c.height + pad * 2), g = s.getContext("2d");
+  g.fillStyle = "#f6f4ee"; g.fillRect(0, 0, s.width, s.height);
+  for (let i = 0; i < 2600; i++) { g.fillStyle = `rgba(110,100,80,${(Math.random() * 0.07).toFixed(3)})`; g.fillRect(Math.random() * s.width, Math.random() * s.height, 2, 2); }
+  g.globalAlpha = 0.9; g.drawImage(c, pad, pad); g.globalAlpha = 1;
+  return s.toDataURL("image/jpeg", 0.9);
+}
+const dayText = (lang) => { const d = new Date(); return lang === "ko" ? `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.` : d.toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }); };
+
+function paintDoc(pages) {
+  const anchors = {}, canvases = [];
+  pages.forEach((ops, pi) => {
+    const c = canvasOf(DOC.W, DOC.H), g = c.getContext("2d"), { L, R } = DOC, TW = R - L;
+    g.fillStyle = "#fff"; g.fillRect(0, 0, DOC.W, DOC.H); g.textBaseline = "alphabetic";
+    let y = 180;
+    const A = (id, x, yy, w, h, line = false) => { if (id) anchors[id] = { page: pi, x, y: yy, w, h, line }; }; // line: the area above a line to sign on (its bottom)
+    const font = (wt, px, fam = DOC_SANS) => { g.font = `${wt} ${px}px ${fam}`; };
+    const put = (s, x, yy, al = "left", color = DOC_INK) => { g.fillStyle = color; g.textAlign = al; g.fillText(s, x, yy); g.textAlign = "left"; };
+    const rule = (x1, y1, x2, y2, w = 1.6, color = DOC_INK) => { g.strokeStyle = color; g.lineWidth = w; g.beginPath(); g.moveTo(x1, y1); g.lineTo(x2, y2); g.stroke(); };
+    for (const op of ops) {
+      if (op.y != null) y = op.y;
+      if (op.title != null) { font(800, 50, DOC_SERIF); put(op.title, DOC.W / 2, y + 16, "center"); y += 104; }
+      else if (op.sub != null) { font(400, 23); for (const l of wrapText(g, op.sub, TW - 60)) { put(l, DOC.W / 2, y, "center", DOC_MUTED); y += 38; } y += 18; }
+      else if (op.h != null) { y += 12; font(600, 26); put(op.h, L, y); y += 48; }
+      else if (op.p != null) { font(400, 24); const ind = op.in || 0; for (const l of wrapText(g, op.p, TW - ind)) { put(l, L + ind, y); y += 40; } y += 10; }
+      else if (op.gap != null) y += op.gap;
+      else if (op.center != null) { const px = op.size || 24; font(op.b ? 600 : 400, px); put(op.center, DOC.W / 2, y, "center"); y += px * 1.9; }
+      else if (op.right != null) { font(400, 24); put(op.right, R, y, "right"); y += 44; }
+      else if (op.table) {
+        const rows = op.table, cols = op.cols || [0.26, 0.74], ws = cols.map((f) => f * TW), rh = op.rh || 56, top = y - 26;
+        rows.forEach((row, r) => {
+          let x = L; const ry = top + r * rh;
+          row.forEach((cell, ci) => {
+            const cl = typeof cell === "string" ? { t: cell } : cell, w = ws[ci];
+            if ((op.head && r === 0) || (op.lab !== false && cols.length === 2 && ci === 0)) { g.fillStyle = DOC_SOFT; g.fillRect(x, ry, w, rh); }
+            let px = 23; font(cl.b || (op.head && r === 0) ? 600 : 400, px);
+            while (cl.t && g.measureText(cl.t).width > w - 30 && px > 16) font(cl.b ? 600 : 400, --px);
+            const by = ry + rh / 2 + 8;
+            if (cl.t) put(cl.t, cl.al === "c" ? x + w / 2 : cl.al === "r" ? x + w - 16 : x + 16, by, cl.al === "c" ? "center" : cl.al === "r" ? "right" : "left");
+            A(cl.id, x, ry, w, rh);
+            if (cl.mark) { font(400, 23); const mw = g.measureText(cl.mark).width, mx = x + w - 26 - mw; put(cl.mark, mx, by, "left", DOC_MUTED); A(cl.mid, mx, by - 25, mw, 34); }
+            x += w;
+          });
+        });
+        g.strokeStyle = DOC_INK; g.lineWidth = 1.2;
+        for (let r = 1; r < rows.length; r++) rule(L, top + r * rh, R, top + r * rh, 1.1, "#8a909c");
+        let x = L; for (let ci = 0; ci < ws.length - 1; ci++) { x += ws[ci]; rule(x, top, x, top + rows.length * rh, 1.1, "#8a909c"); }
+        g.lineWidth = 2; g.strokeRect(L, top, TW, rows.length * rh);
+        y = top + rows.length * rh + 58;
+      } else if (op.checks) {
+        font(400, 24); let x = L + (op.in || 0);
+        if (op.lead) { put(op.lead, x, y); x += g.measureText(op.lead).width + 30; }
+        for (const [label, id] of op.checks) {
+          const s = 27; g.strokeStyle = DOC_INK; g.lineWidth = 2.2; g.strokeRect(x, y - 22, s, s); A(id, x, y - 22, s, s);
+          put(label, x + s + 12, y); x += s + 12 + g.measureText(label).width + 48;
+        }
+        y += 54;
+      } else if (op.fields) {
+        font(400, 24); let x = L + (op.in || 0);
+        for (const [label, id, w, value] of op.fields) {
+          if (label) { put(label, x, y); x += g.measureText(label).width + 16; }
+          rule(x, y + 9, x + w, y + 9, 1.4); A(id, x, y - 36, w, 45, true);
+          if (value) put(value, x + 10, y);
+          x += w + 48;
+        }
+        y += 60;
+      } else if (op.sign) {
+        const [role, name, id, mark, sub] = op.sign, lx = 640, lw = 270;
+        font(600, 25); put(role, L, y);
+        font(400, 25); put(name, L + 170, y);
+        rule(lx, y + 10, lx + lw, y + 10, 1.4); A(id, lx, y - 54, lw, 64, true);
+        if (mark) { font(400, 24); const mw = g.measureText(mark).width; put(mark, lx + lw + 26, y, "left", DOC_MUTED); A(id + "S", lx + lw + 26, y - 26, mw, 34); }
+        if (sub) { font(400, 20); put(sub, L + 170, y + 38, "left", DOC_MUTED); }
+        y += sub ? 108 : 84;
+      } else if (op.approve) {
+        const labels = op.approve, cw = 118, capW = op.cap ? 46 : 0, n = labels.length, x0 = R - capW - n * cw, y0 = 96, hh = 42, sh = 96;
+        g.fillStyle = DOC_SOFT; g.fillRect(x0, y0, capW + n * cw, hh); if (capW) g.fillRect(x0, y0, capW, hh + sh);
+        if (op.cap) { font(600, 22); [...op.cap].forEach((ch, i, all) => put(ch, x0 + capW / 2, y0 + (hh + sh) / 2 + (i - (all.length - 1) / 2) * 30 + 8, "center")); }
+        font(400, 21);
+        labels.forEach((lab, i) => {
+          const x = x0 + capW + i * cw; put(lab, x + cw / 2, y0 + 29, "center"); A(op.id + i, x, y0 + hh, cw, sh);
+          if (i || capW) rule(x, y0, x, y0 + hh + sh, 1.2);
+        });
+        rule(x0 + capW, y0 + hh, R, y0 + hh, 1.2); g.lineWidth = 2; g.strokeStyle = DOC_INK; g.strokeRect(x0, y0, capW + n * cw, hh + sh);
+        y = Math.max(y, y0 + hh + sh + 84);
+      } else if (op.foot) {
+        const [label, id, mark] = op.foot, fy = DOC.H - 170, lw = 230; font(400, 22);
+        const mw = mark ? g.measureText(mark).width + 16 : 0, x = R - lw - mw;
+        put(label, x - 16, fy, "right", DOC_MUTED); rule(x, fy + 8, x + lw, fy + 8, 1.4); A(id, x, fy - 46, lw, 54, true);
+        if (mark) put(mark, x + lw + 16, fy, "left", DOC_MUTED);
+      } else if (op.stamp) {
+        const a = anchors[op.stamp], d = op.d || 104; if (!a) continue;
+        g.save(); g.globalAlpha = 0.9; g.translate(a.x + a.w / 2, a.y + a.h / 2); g.rotate(-0.08); g.drawImage(sealCanvas(op.text), -d / 2, -d / 2, d, d); g.restore();
+      } else if (op.ink) {
+        const a = anchors[op.ink]; if (!a) continue;
+        const s = sigCanvas(op.text, op.color || INK_BLACK), h = op.h || 74, w = (s.width * h) / s.height;
+        g.drawImage(s, a.x + (a.w - w) / 2, a.y + a.h - h + 14, w, h);
+      }
+    }
+    font(400, 20); put(`- ${pi + 1} / ${pages.length} -`, DOC.W / 2, DOC.H - 84, "center", DOC_MUTED);
+    canvases.push(c);
+  });
+  return { canvases, anchors };
+}
+
+const EXAMPLES = {
+  lease: {
+    ko: {
+      file: "예시_주택월세계약서.pdf", title: "예시 · 주택 월세 계약서",
+      assets: { sig: { t: "sig", text: "홍길동", name: "홍길동 서명" }, seal: { t: "seal", text: "홍길동인", name: "홍길동 도장" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { title: "주택 월세 계약서" },
+        { sub: "임대인과 임차인은 아래 표시 주택에 관하여 다음과 같이 월세 계약을 맺는다." },
+        { h: "1. 부동산의 표시" },
+        { table: [["소재지", "서울특별시 마포구 성미산로 12길 34, 201호"], ["건물", "다세대주택 · 전용면적 29.7㎡"], ["임대할 부분", "2층 201호 전부"]] },
+        { h: "2. 계약 내용" },
+        { table: [["보증금", "금 일천만 원정 (₩10,000,000)"], ["계약금", "금 일백만 원정은 계약할 때 지급하고 영수함"], ["잔금", "금 구백만 원정은 2026년 12월 20일에 지급한다"], ["월세", "금 육십오만 원정 (₩650,000), 매월 25일 후불"], ["관리비", "월 70,000원 (수도, 인터넷 포함)"]] },
+        { h: "3. 임대 기간" },
+        { p: "임대인은 위 주택을 2026년 12월 20일까지 임차인에게 넘겨주며, 임대 기간은 넘겨준 날부터 2028년 12월 19일까지 24개월로 한다." },
+        { h: "4. 계약 조항" },
+        { p: "제1조 (용도 변경과 전대)  임차인은 임대인의 동의 없이 주택의 구조를 바꾸거나 다른 사람에게 빌려줄 수 없다." },
+        { p: "제2조 (계약의 해지)  임차인이 두 달 치 월세를 내지 않으면 임대인은 계약을 해지할 수 있다." },
+        { p: "제3조 (원상 회복)  계약이 끝나면 임차인은 주택을 원래 상태로 돌려놓고, 임대인은 보증금을 돌려준다." },
+      ], [
+        { h: "5. 특약사항" },
+        { p: "1. 입주 전 도배와 장판은 임대인이 새로 해 준다." },
+        { p: "2. 반려동물은 키우지 않는다. 어길 경우 원상 복구 비용은 임차인이 부담한다." },
+        { p: "3. 계약 기간 중 임차인 사정으로 나가는 경우, 새 임차인을 구하는 중개 수수료는 임차인이 부담한다." },
+        { p: "4. 보증금은 계약이 끝나는 날 관리비를 정산한 뒤 바로 돌려준다." },
+        { gap: 20 },
+        { p: "이 계약을 증명하기 위해 계약 당사자가 이의 없음을 확인하고 각각 서명 날인한다. 계약서가 여러 장이면 장마다 간인한다." },
+        { gap: 30 },
+        { fields: [["계약일", "date", 300]] },
+        { gap: 40 },
+        { sign: ["임대인", "김하늘", "landlord", "(인)", "주소  서울특별시 은평구 진관2로 15"] },
+        { sign: ["임차인", "홍길동", "tenant", "(인)", "주소  서울특별시 관악구 봉천로 210"] },
+        { ink: "landlord", text: "김하늘" }, { stamp: "landlordS", text: "김하늘인" },
+      ]],
+      place: [
+        { a: "sig", at: "tenant", w: 30 }, { a: "seal", at: "tenantS", w: 15, rot: 356, op: 0.92 },
+        { a: "date", at: "date", pt: 12, al: "l" }, { gan: "seal", w: 16, y: 0.42 },
+      ],
+    },
+    en: {
+      file: "Example_Residential_Lease.pdf", title: "Example · Residential lease",
+      assets: { sig: { t: "sig", text: "Jordan Lee", name: "Signature" }, ini: { t: "sig", text: "J.L.", name: "Initials" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { title: "Residential Lease Agreement" },
+        { sub: "This lease is made between the Landlord and the Tenant named on the last page." },
+        { h: "1. Property" },
+        { table: [["Address", "48 Maple Street, Apt 3B, Springfield"], ["Type", "One-bedroom apartment, unfurnished"], ["Parking", "One assigned space (No. 14)"]] },
+        { h: "2. Term" },
+        { p: "The lease begins on December 20, 2026 and ends on December 19, 2027." },
+        { h: "3. Rent and deposit" },
+        { table: [["Monthly rent", "$1,450, due on the 1st of each month"], ["Security deposit", "$1,450, paid when signing"], ["Late fee", "$50 if rent is more than 5 days late"]] },
+        { h: "4. Utilities" },
+        { p: "Tenant pays for electricity and internet. Landlord pays for water, sewer and trash collection." },
+        { h: "5. Use of the property" },
+        { p: "The property is for residential use only. Tenant may not sublet it without the Landlord's written consent." },
+        { foot: ["Tenant's initials", "ini1"] },
+      ], [
+        { h: "6. Pets" },
+        { p: "No pets without the Landlord's written permission." },
+        { h: "7. Repairs" },
+        { p: "Tenant reports needed repairs promptly. Landlord makes repairs within a reasonable time." },
+        { h: "8. Entry" },
+        { p: "Landlord may enter with 24 hours' notice, except in an emergency." },
+        { h: "9. Ending the lease" },
+        { p: "Either party gives at least 30 days' written notice before the end of the term." },
+        { gap: 20 },
+        { p: "By signing below, both parties agree to the terms of this lease." },
+        { gap: 20 },
+        { fields: [["Date", "date", 300]] },
+        { gap: 40 },
+        { sign: ["Landlord", "Morgan Avery", "landlord", "", "12 Oak Lane, Springfield"] },
+        { sign: ["Tenant", "Jordan Lee", "tenant", "", "Current address: 9 Elm Court, Riverton"] },
+        { ink: "landlord", text: "Morgan Avery" },
+        { foot: ["Tenant's initials", "ini2"] },
+      ]],
+      place: [
+        { a: "sig", at: "tenant", w: 36 }, { a: "date", at: "date", pt: 12, al: "l" },
+        { a: "ini", at: "ini1", w: 16 }, { a: "ini", at: "ini2", w: 16 },
+      ],
+    },
+  },
+  parttime: {
+    ko: {
+      file: "예시_단시간근로자_근로계약서.pdf", title: "예시 · 단시간근로자 근로계약서",
+      assets: { sig: { t: "sig", text: "박민지", color: INK_BLACK, name: "박민지 서명" }, seal: { t: "seal", text: "이서준인", name: "사업주 도장" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { title: "단시간근로자 표준근로계약서" },
+        { gap: 10 },
+        { p: "푸른숲카페(이하 “사업주”)와 박민지(이하 “근로자”)는 다음과 같이 근로계약을 맺는다." },
+        { gap: 6 },
+        { table: [["근로 시작일", "2026년 12월 1일부터"], ["근무 장소", "푸른숲카페 망원점 (서울특별시 마포구 망원로 56)"], ["업무 내용", "음료 만들기, 주문 받기, 매장 정리"], ["근로일과 시간", "매주 토요일과 일요일 10:00부터 16:00까지 (휴게 30분)"], ["주휴일", "매주 월요일"], ["임금", "시간급 10,500원, 매월 10일 근로자 명의 계좌로 지급"], ["사회보험", "고용보험, 산재보험 적용"]], cols: [0.24, 0.76] },
+        { p: "1. 연장, 야간, 휴일 근로를 하는 경우 통상임금의 50%를 더해 지급한다." },
+        { p: "2. 사업주는 근로계약을 맺는 동시에 이 계약서를 사본으로 만들어 근로자에게 내준다." },
+        { p: "3. 이 계약에 정하지 않은 사항은 근로기준법을 따른다." },
+        { gap: 20 },
+        { fields: [["계약일", "date", 300]] },
+        { gap: 40 },
+        { sign: ["사업주", "푸른숲카페 대표 이서준", "boss", "(인)", "주소  서울특별시 마포구 망원로 56"] },
+        { sign: ["근로자", "박민지", "worker", "(서명)", "생년월일  2004년 5월 17일"] },
+      ]],
+      place: [
+        { a: "seal", at: "bossS", w: 15, rot: 4, op: 0.92 }, { a: "sig", at: "worker", w: 30, sel: true },
+        { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+    en: {
+      file: "Example_Part-time_Employment.pdf", title: "Example · Part-time employment agreement",
+      assets: { sig: { t: "sig", text: "Riley Chen", color: INK_BLACK, name: "Employee signature" }, boss: { t: "sig", text: "Sam Patel", name: "Employer signature" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { title: "Part-Time Employment Agreement" },
+        { gap: 10 },
+        { p: "This agreement is between Maple Street Café (“Employer”) and Riley Chen (“Employee”)." },
+        { gap: 6 },
+        { table: [["Start date", "December 1, 2026"], ["Location", "Maple Street Café, 220 Maple Street, Springfield"], ["Position", "Barista: drinks, orders and keeping the shop tidy"], ["Schedule", "Saturdays and Sundays, 10:00 am to 4:00 pm (30 minute break)"], ["Pay", "$17.50 per hour, paid every other Friday by direct deposit"], ["Training", "Two paid shifts in the first week"]], cols: [0.24, 0.76] },
+        { p: "1. Overtime is paid at one and a half times the hourly rate, as required by law." },
+        { p: "2. Either party may end this employment at any time with notice in writing." },
+        { p: "3. The Employer gives the Employee a copy of this agreement when it is signed." },
+        { gap: 20 },
+        { fields: [["Date", "date", 300]] },
+        { gap: 40 },
+        { sign: ["Employer", "Sam Patel, Owner", "boss"] },
+        { sign: ["Employee", "Riley Chen", "worker"] },
+      ]],
+      place: [
+        { a: "boss", at: "boss", w: 36 }, { a: "sig", at: "worker", w: 36, sel: true },
+        { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+  },
+  quote: {
+    ko: {
+      file: "예시_견적서.pdf", title: "예시 · 견적서",
+      assets: { corp: { t: "corp", text: "주식회사새솔디자인", name: "회사 직인 (스캔)" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { title: "견  적  서" },
+        { fields: [["견적일", "date", 300]] },
+        { p: "주식회사 한빛상사 귀하" },
+        { p: "아래와 같이 견적합니다." },
+        { gap: 6 },
+        { table: [["등록번호", "123-45-67890"], ["상호", "주식회사 새솔디자인"], ["대표자", { t: "홍 길 동", mark: "(인)", mid: "rep" }], ["주소", "서울특별시 성동구 성수이로 77, 4층"], ["업태와 종목", "서비스업, 시각 디자인"]], cols: [0.24, 0.76] },
+        { table: [["합계 금액", { t: "금 삼백삼십만 원정 (₩3,300,000, 부가가치세 포함)", b: true }]], cols: [0.24, 0.76] },
+        { table: [["품목", "규격", "수량", "단가", "금액"], ["브랜드 로고 디자인", "시안 3종", { t: "1", al: "c" }, { t: "1,500,000", al: "r" }, { t: "1,500,000", al: "r" }], ["명함 디자인", "양면", { t: "1", al: "c" }, { t: "300,000", al: "r" }, { t: "300,000", al: "r" }], ["홈페이지 메인 화면", "PC와 모바일", { t: "1", al: "c" }, { t: "1,200,000", al: "r" }, { t: "1,200,000", al: "r" }], ["", "", "", { t: "공급가액", al: "r" }, { t: "3,000,000", al: "r" }], ["", "", "", { t: "부가세", al: "r" }, { t: "300,000", al: "r" }], ["", "", "", { t: "합계", al: "r", b: true }, { t: "3,300,000", al: "r", b: true }]], cols: [0.32, 0.2, 0.1, 0.19, 0.19], head: true },
+        { p: "유효 기간  견적일로부터 30일" },
+        { p: "결제 조건  계약할 때 50%, 납품 후 50%" },
+        { p: "비고  시안을 확정하기 전까지 수정은 두 번 포함합니다." },
+      ]],
+      place: [{ a: "corp", at: "rep", w: 21, dx: -2, rot: 2, op: 0.95, sel: true }, { a: "date", at: "date", pt: 12, al: "l" }],
+    },
+    en: {
+      file: "Example_Quote.pdf", title: "Example · Quote",
+      assets: { corp: { t: "office", lines: ["NORTHWIND", "DESIGN", "SPRINGFIELD"], scan: true, name: "Company stamp (scan)" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { title: "QUOTE" },
+        { fields: [["Date", "date", 300], ["Quote no.", "qno", 200, "Q-2026-118"]] },
+        { p: "To: Brightline Trading Inc., 300 Harbor Road, Springfield" },
+        { p: "From: Northwind Design Ltd., 77 Mill Street, Springfield" },
+        { gap: 6 },
+        { table: [["Item", "Details", "Qty", "Unit price", "Amount"], ["Brand logo design", "3 concepts", { t: "1", al: "c" }, { t: "$1,500", al: "r" }, { t: "$1,500", al: "r" }], ["Business cards", "Two-sided", { t: "1", al: "c" }, { t: "$300", al: "r" }, { t: "$300", al: "r" }], ["Website home page", "Desktop and mobile", { t: "1", al: "c" }, { t: "$1,200", al: "r" }, { t: "$1,200", al: "r" }], ["", "", "", { t: "Subtotal", al: "r" }, { t: "$3,000", al: "r" }], ["", "", "", { t: "Sales tax 8%", al: "r" }, { t: "$240", al: "r" }], ["", "", "", { t: "Total", al: "r", b: true }, { t: "$3,240", al: "r", b: true }]], cols: [0.3, 0.24, 0.1, 0.18, 0.18], head: true },
+        { p: "Valid for 30 days from the date above." },
+        { p: "Payment: 50% when the work starts, 50% on delivery." },
+        { p: "Two rounds of changes are included before the design is final." },
+        { gap: 30 },
+        { table: [["Authorized by", { t: "Jordan Lee, Director", mark: "Company stamp", mid: "rep" }]], cols: [0.24, 0.76], rh: 110 },
+      ]],
+      place: [{ a: "corp", at: "rep", w: 26, dx: -2, rot: 3, op: 0.95, sel: true }, { a: "date", at: "date", pt: 12, al: "l" }],
+    },
+  },
+  school: {
+    ko: {
+      file: "예시_현장체험학습_참가동의서.pdf", title: "예시 · 현장체험학습 참가 동의서",
+      assets: { check: { t: "mark", mark: "check", name: "체크 표시 ✓" }, sig: { t: "sig", text: "홍길동", name: "보호자 서명" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { center: "가정통신문", size: 22 },
+        { title: "가을 현장체험학습 참가 동의서" },
+        { p: "학부모님께. 3학년 학생들이 국립과천과학관으로 현장체험학습을 다녀오려고 합니다. 아래 내용을 확인하시고 동의 여부를 표시해 11월 28일(금)까지 보내 주시기 바랍니다." },
+        { gap: 6 },
+        { table: [["일시", "2026년 12월 4일(금) 08:50부터 15:30까지"], ["장소", "국립과천과학관 (경기도 과천시)"], ["이동", "전세버스"], ["준비물", "점심 도시락, 물, 편한 운동화"], ["참가비", "없음 (입장료와 버스비는 학교가 부담)"]], cols: [0.2, 0.8] },
+        { h: "참가 동의" },
+        { checks: [["참가에 동의합니다", "agreeYes"], ["참가하지 않습니다", "agreeNo"]] },
+        { h: "개인정보 수집과 이용 (비상 연락용)" },
+        { p: "보호자 이름과 연락처를 비상 연락에만 쓰고, 행사가 끝나고 한 달 뒤 파기합니다." },
+        { checks: [["동의함", "privYes"], ["동의하지 않음", "privNo"]] },
+        { gap: 16 },
+        { fields: [["학생", "student", 330, "3학년 2반 14번 홍지우"]] },
+        { fields: [["작성일", "date", 300]] },
+        { gap: 20 },
+        { sign: ["보호자", "홍길동", "parent", "(서명)", "연락처  010-1234-5678"] },
+        { gap: 20 },
+        { center: "별빛초등학교장 귀하", size: 26, b: true },
+      ]],
+      place: [
+        { a: "check", at: "agreeYes", w: 5, sel: true }, { a: "check", at: "privYes", w: 5 },
+        { a: "sig", at: "parent", w: 30 }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+    en: {
+      file: "Example_Field_Trip_Permission.pdf", title: "Example · Field trip permission slip",
+      assets: { check: { t: "mark", mark: "check", name: "Check mark ✓" }, sig: { t: "sig", text: "Jordan Lee", name: "Parent signature" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { center: "Lakeside Elementary School", size: 22 },
+        { title: "Field Trip Permission Slip" },
+        { p: "Dear parents, our third grade classes are visiting the City Science Museum. Please read the details below, tick the boxes and return this form by Friday, November 28." },
+        { gap: 6 },
+        { table: [["Date", "Friday, December 4, 2026, 8:50 am to 3:30 pm"], ["Destination", "City Science Museum, 1 Discovery Way"], ["Transport", "School bus"], ["Bring", "Packed lunch, water bottle, comfortable shoes"], ["Cost", "Free (the school covers tickets and the bus)"]], cols: [0.22, 0.78] },
+        { h: "Permission" },
+        { checks: [["Yes, my child may go", "agreeYes"], ["No, my child will stay at school", "agreeNo"]] },
+        { h: "Photos" },
+        { p: "Teachers may take photos during the trip for the class newsletter." },
+        { checks: [["I agree", "privYes"], ["I do not agree", "privNo"]] },
+        { gap: 16 },
+        { fields: [["Student", "student", 330, "Ava Lee, Grade 3, Room 12"]] },
+        { fields: [["Date", "date", 300]] },
+        { gap: 20 },
+        { sign: ["Parent", "Jordan Lee", "parent", "", "Phone  (555) 010-2468"] },
+      ]],
+      place: [
+        { a: "check", at: "agreeYes", w: 5, sel: true }, { a: "check", at: "privYes", w: 5 },
+        { a: "sig", at: "parent", w: 36 }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+  },
+  expense: {
+    ko: {
+      file: "예시_지출결의서_휴가신청서.pdf", title: "예시 · 지출결의서와 휴가 신청서",
+      assets: { seal: { t: "seal", text: "김하늘인", name: "결재 도장" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { approve: ["담당", "팀장", "대표"], id: "ap1_", cap: "결재" },
+        { title: "지 출 결 의 서" },
+        { table: [["소속", "디자인팀"], ["작성자", "김하늘"], ["작성일", "2026년 11월 24일"], ["지출 목적", "고객사 미팅 교통비와 회의비"]], cols: [0.22, 0.78] },
+        { table: [["날짜", "내용", "금액", "비고"], ["11. 18.", "택시 (사무실에서 한빛상사까지)", { t: "14,200", al: "r" }, "영수증 첨부"], ["11. 18.", "회의 다과", { t: "32,000", al: "r" }, "법인카드"], ["11. 21.", "KTX 왕복 (서울과 부산)", { t: "119,600", al: "r" }, "출장"], ["", { t: "합계", al: "r", b: true }, { t: "165,800", al: "r", b: true }, ""]], cols: [0.14, 0.46, 0.18, 0.22], head: true },
+        { p: "위 금액을 지출하고자 하오니 결재하여 주시기 바랍니다." },
+      ], [
+        { approve: ["담당", "팀장", "대표"], id: "ap2_", cap: "결재" },
+        { title: "연차 휴가 신청서" },
+        { table: [["소속", "디자인팀"], ["성명", "김하늘"], ["직위", "대리"], ["휴가 종류", "연차"], ["기간", "2026년 12월 24일(목)부터 12월 28일(월)까지, 근무일 3일"], ["사유", "개인 일정 (가족 여행)"], ["업무 대행", "이서준 대리"]], cols: [0.22, 0.78] },
+        { p: "위와 같이 연차 휴가를 신청합니다." },
+        { gap: 20 },
+        { fields: [["신청일", "date", 300]] },
+        { gap: 30 },
+        { sign: ["신청인", "김하늘", "me", "(인)"] },
+      ]],
+      place: [
+        { a: "seal", at: "ap1_0", w: 15, rot: 356, op: 0.92, sel: true }, { a: "seal", at: "ap2_0", w: 15, rot: 356, op: 0.92 },
+        { a: "seal", at: "meS", w: 14, rot: 4, op: 0.92 }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+    en: {
+      file: "Example_Expense_and_Leave.pdf", title: "Example · Expense report and leave request",
+      assets: { ini: { t: "sig", text: "M.A.", name: "Approval initials" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { approve: ["Prepared", "Reviewed", "Approved"], id: "ap1_" },
+        { title: "Expense Report" },
+        { table: [["Department", "Design"], ["Employee", "Morgan Avery"], ["Date", "November 24, 2026"], ["Purpose", "Client meeting travel and refreshments"]], cols: [0.22, 0.78] },
+        { table: [["Date", "Description", "Amount", "Notes"], ["Nov 18", "Taxi to Brightline Trading", { t: "$18.40", al: "r" }, "Receipt attached"], ["Nov 18", "Meeting refreshments", { t: "$42.00", al: "r" }, "Company card"], ["Nov 21", "Train, Springfield to Riverton and back", { t: "$96.00", al: "r" }, "Business trip"], ["", { t: "Total", al: "r", b: true }, { t: "$156.40", al: "r", b: true }, ""]], cols: [0.14, 0.46, 0.18, 0.22], head: true },
+        { p: "I confirm these expenses were incurred for company business." },
+      ], [
+        { approve: ["Prepared", "Reviewed", "Approved"], id: "ap2_" },
+        { title: "Leave Request" },
+        { table: [["Department", "Design"], ["Employee", "Morgan Avery"], ["Title", "Senior Designer"], ["Type", "Paid time off"], ["Dates", "December 24 to December 28, 2026 (3 working days)"], ["Reason", "Family trip"], ["Covering", "Sam Patel"]], cols: [0.22, 0.78] },
+        { gap: 20 },
+        { fields: [["Date", "date", 300]] },
+        { gap: 30 },
+        { sign: ["Employee", "Morgan Avery", "me"] },
+        { ink: "me", text: "Morgan Avery" },
+      ]],
+      place: [
+        { a: "ini", at: "ap1_0", w: 18, sel: true }, { a: "ini", at: "ap2_0", w: 18 }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+  },
+  proxy: {
+    ko: {
+      file: "예시_위임장.pdf", title: "예시 · 위임장",
+      assets: {
+        sig: { t: "sig", text: "김영희", color: INK_BLACK, name: "김영희 서명" }, seal: { t: "seal", text: "김영희인", name: "김영희 도장" },
+        name: { t: "text", text: "김영희", name: "위임인 이름" }, birth: { t: "text", text: "1960년 3월 14일", name: "위임인 생년월일" },
+        addr: { t: "text", text: "서울특별시 노원구 동일로 1414, 302동 1104호", name: "위임인 주소" }, tel: { t: "text", text: "010-3456-7890", name: "위임인 연락처" },
+        date: { t: "date", name: "오늘 날짜" },
+      },
+      pages: [[
+        { title: "위  임  장" },
+        { h: "위임받는 사람 (대리인)" },
+        { table: [["성명", "홍길동"], ["생년월일", "1992년 4월 8일"], ["위임인과의 관계", "아들"], ["연락처", "010-2345-6789"]], cols: [0.24, 0.76] },
+        { h: "위임하는 사람 (위임인)" },
+        { table: [["성명", { id: "pName" }], ["생년월일", { id: "pBirth" }], ["주소", { id: "pAddr" }], ["연락처", { id: "pTel" }]], cols: [0.24, 0.76] },
+        { h: "위임 내용" },
+        { p: "본인은 위 대리인에게 아래 서류를 발급 신청하고 받아 가는 일을 위임합니다." },
+        { p: "주민등록표 등본 1통, 가족관계증명서 1통", in: 30 },
+        { p: "위임 기간  2026년 11월 25일부터 2026년 12월 5일까지" },
+        { gap: 20 },
+        { fields: [["작성일", "date", 300]] },
+        { gap: 30 },
+        { sign: ["위임인", "", "principal", "(인)"] },
+        { gap: 20 },
+        { center: "주민센터 귀중", size: 26, b: true },
+      ]],
+      place: [
+        { a: "name", at: "pName", pt: 12, al: "l" }, { a: "birth", at: "pBirth", pt: 12, al: "l" }, { a: "addr", at: "pAddr", pt: 12, al: "l" }, { a: "tel", at: "pTel", pt: 12, al: "l" },
+        { a: "sig", at: "principal", w: 30 }, { a: "seal", at: "principalS", w: 15, rot: 357, op: 0.92, sel: true }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+    en: {
+      file: "Example_Power_of_Attorney.pdf", title: "Example · Limited power of attorney",
+      assets: {
+        sig: { t: "sig", text: "Helen Lee", color: INK_BLACK, name: "Principal signature" },
+        name: { t: "text", text: "Helen Lee", name: "Principal name" }, birth: { t: "text", text: "March 14, 1960", name: "Date of birth" },
+        addr: { t: "text", text: "22 Willow Road, Riverton", name: "Principal address" }, tel: { t: "text", text: "(555) 010-7788", name: "Principal phone" },
+        date: { t: "date", name: "Today's date" },
+      },
+      pages: [[
+        { title: "Limited Power of Attorney" },
+        { h: "Principal (the person giving permission)" },
+        { table: [["Full name", { id: "pName" }], ["Date of birth", { id: "pBirth" }], ["Address", { id: "pAddr" }], ["Phone", { id: "pTel" }]], cols: [0.24, 0.76] },
+        { h: "Agent (the person acting for the principal)" },
+        { table: [["Full name", "Jordan Lee"], ["Relationship", "Son"], ["Phone", "(555) 010-2468"]], cols: [0.24, 0.76] },
+        { h: "Powers granted" },
+        { p: "I authorize my agent to request and collect the following records on my behalf:" },
+        { p: "a certified copy of my birth certificate, and my 2026 property tax statement.", in: 30 },
+        { p: "This authority begins on the date signed and ends on December 31, 2026." },
+        { gap: 20 },
+        { fields: [["Date", "date", 300]] },
+        { gap: 30 },
+        { sign: ["Principal", "", "principal"] },
+      ]],
+      place: [
+        { a: "name", at: "pName", pt: 12, al: "l" }, { a: "birth", at: "pBirth", pt: 12, al: "l" }, { a: "addr", at: "pAddr", pt: 12, al: "l" }, { a: "tel", at: "pTel", pt: 12, al: "l" },
+        { a: "sig", at: "principal", w: 36, sel: true }, { a: "date", at: "date", pt: 12, al: "l" },
+      ],
+    },
+  },
+  freelance: { ko: { title: SAMPLE.ko.title }, en: { title: SAMPLE.en.title } }, // drawn by makeSamplePdf (the first example)
+  agreement: {
+    ko: {
+      file: "예시_합의서.pdf", title: "예시 · 합의서", sealed: "예시_합의서_봉인.pdf", edited: "예시_합의서_봉인_수정됨.pdf",
+      assets: { sig: { t: "sig", text: "홍길동", name: "홍길동 서명" }, seal: { t: "seal", text: "홍길동인", name: "홍길동 도장" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { title: "합  의  서" },
+        { gap: 10 },
+        { p: "갑 김하늘과 을 홍길동은 2026년 10월 3일 서울특별시 마포구 와우산로에서 일어난 자전거 접촉 사고에 관하여 다음과 같이 합의한다." },
+        { gap: 10 },
+        { p: "1. 을은 갑에게 자전거 수리비와 치료비로 금 사십오만 원(₩450,000)을 2026년 12월 5일까지 갑의 계좌로 보낸다." },
+        { p: "2. 갑은 위 금액을 받으면 이 사고에 관하여 더 이상 어떠한 청구도 하지 않는다." },
+        { p: "3. 양 당사자는 이 합의 내용을 다른 사람에게 알리지 않는다." },
+        { p: "4. 이 합의를 증명하기 위해 합의서 2부를 작성하여 서명 날인한 뒤 각 1부씩 보관한다." },
+        { gap: 30 },
+        { fields: [["합의일", "date", 300]] },
+        { gap: 40 },
+        { sign: ["갑", "김하늘", "a", "(인)", "주소  서울특별시 은평구 진관2로 15"] },
+        { sign: ["을", "홍길동", "b", "(인)", "주소  서울특별시 관악구 봉천로 210"] },
+        { ink: "a", text: "김하늘" }, { stamp: "aS", text: "김하늘인" },
+      ]],
+      place: [{ a: "sig", at: "b", w: 30 }, { a: "seal", at: "bS", w: 15, rot: 356, op: 0.92 }, { a: "date", at: "date", pt: 12, al: "l" }],
+    },
+    en: {
+      file: "Example_Settlement_Agreement.pdf", title: "Example · Settlement agreement", sealed: "Example_Settlement_sealed.pdf", edited: "Example_Settlement_sealed_edited.pdf",
+      assets: { sig: { t: "sig", text: "Jordan Lee", name: "Signature" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { title: "Settlement Agreement" },
+        { gap: 10 },
+        { p: "Morgan Avery (“Party A”) and Jordan Lee (“Party B”) agree as follows about the bicycle collision on Harbor Road on October 3, 2026." },
+        { gap: 10 },
+        { p: "1. Party B will pay Party A $450 for bicycle repairs and medical costs by December 5, 2026." },
+        { p: "2. Once paid, Party A will make no further claim about this incident." },
+        { p: "3. Both parties will keep the terms of this agreement private." },
+        { p: "4. This agreement is signed in two copies, one kept by each party." },
+        { gap: 30 },
+        { fields: [["Date", "date", 300]] },
+        { gap: 40 },
+        { sign: ["Party A", "Morgan Avery", "a", "", "12 Oak Lane, Springfield"] },
+        { sign: ["Party B", "Jordan Lee", "b", "", "9 Elm Court, Riverton"] },
+        { ink: "a", text: "Morgan Avery" },
+      ]],
+      place: [{ a: "sig", at: "b", w: 36 }, { a: "date", at: "date", pt: 12, al: "l" }],
+    },
+    after: exampleVerify,
+  },
+  student: {
+    ko: {
+      file: "예시_장학금신청서_개인정보동의서.pdf", title: "예시 · 장학금 신청서와 개인정보 동의서",
+      assets: { sig: { t: "sig", text: "최유진", name: "최유진 서명" }, check: { t: "mark", mark: "check", name: "체크 표시 ✓" }, date: { t: "date", name: "오늘 날짜" } },
+      pages: [[
+        { title: "2027학년도 1학기 장학금 신청서" },
+        { table: [["성명", "최유진"], ["학과", "경영학과"], ["학번", "20231234"], ["학년", "3학년"], ["연락처", "010-4567-8901"], ["이메일", "yujin.choi@example.com"]], cols: [0.22, 0.78] },
+        { h: "신청 장학금" },
+        { checks: [["성적 우수 장학금", "sch1"], ["생활비 지원 장학금", "sch2"], ["근로 장학금", "sch3"]] },
+        { h: "신청 사유" },
+        { p: "지난 두 학기 동안 전공 성적을 꾸준히 올렸고, 다음 학기에는 교내 창업 동아리 활동과 학업을 함께 이어 가려고 합니다. 장학금을 받게 되면 아르바이트 시간을 줄이고 학업에 더 집중하겠습니다." },
+        { fields: [["작성일", "date1", 300]], y: 1300 },
+        { sign: ["신청인", "최유진", "sign1", "(서명)"], y: 1400 },
+        { center: "한결대학교 총장 귀하", size: 26, b: true, y: 1520 },
+      ], [
+        { title: "개인정보 수집과 이용 동의서" },
+        { table: [["수집 목적", "장학생 선발과 장학금 지급"], ["수집 항목", "성명, 학번, 연락처, 계좌번호, 가계 소득 정보"], ["보유 기간", "졸업 후 5년"]], cols: [0.22, 0.78] },
+        { p: "위 개인정보 수집과 이용에 동의하지 않을 수 있습니다. 다만 동의하지 않으면 장학금 심사를 받을 수 없습니다." },
+        { checks: [["동의함", "c1"], ["동의하지 않음", "c1n"]], lead: "개인정보 수집과 이용" },
+        { h: "제3자 제공" },
+        { table: [["받는 곳", "한결장학재단"], ["제공 목적", "외부 장학금 추천과 지급"], ["제공 항목", "성명, 학과, 학년, 성적"]], cols: [0.22, 0.78] },
+        { checks: [["동의함", "c2"], ["동의하지 않음", "c2n"]], lead: "제3자 제공" },
+        { fields: [["작성일", "date2", 300]], y: 1300 },
+        { sign: ["신청인", "최유진", "sign2", "(서명)"], y: 1400 },
+        { center: "한결대학교 총장 귀하", size: 26, b: true, y: 1520 },
+      ]],
+      place: [
+        { a: "check", at: "sch1", w: 5 }, { a: "check", at: "c1", w: 5 }, { a: "check", at: "c2", w: 5 },
+        { a: "sig", at: "sign1", w: 30 }, { a: "sig", at: "sign2", w: 30, sel: true },
+        { a: "date", at: "date1", pt: 12, al: "l" }, { a: "date", at: "date2", pt: 12, al: "l" },
+      ],
+    },
+    en: {
+      file: "Example_Scholarship_and_Consent.pdf", title: "Example · Scholarship application and consent",
+      assets: { sig: { t: "sig", text: "Riley Chen", name: "Signature" }, check: { t: "mark", mark: "check", name: "Check mark ✓" }, date: { t: "date", name: "Today's date" } },
+      pages: [[
+        { title: "Scholarship Application, Spring 2027" },
+        { table: [["Name", "Riley Chen"], ["Major", "Business Administration"], ["Student ID", "20231234"], ["Year", "Junior"], ["Phone", "(555) 010-4567"], ["Email", "riley.chen@example.edu"]], cols: [0.22, 0.78] },
+        { h: "Scholarship applied for" },
+        { checks: [["Academic merit", "sch1"], ["Financial need", "sch2"], ["Work study", "sch3"]] },
+        { h: "Personal statement" },
+        { p: "Over the last two semesters I have steadily raised my grades in my major. Next term I plan to keep up my studies while leading the campus startup club. This scholarship would let me work fewer hours and focus on my classes." },
+        { fields: [["Date", "date1", 300]], y: 1300 },
+        { sign: ["Applicant", "Riley Chen", "sign1"], y: 1400 },
+        { center: "Westbrook University, Office of Financial Aid", size: 24, b: true, y: 1520 },
+      ], [
+        { title: "Consent to Use of Personal Information" },
+        { table: [["Purpose", "Selecting recipients and paying scholarships"], ["Information", "Name, student ID, contact details, bank account, household income"], ["Kept for", "5 years after graduation"]], cols: [0.22, 0.78] },
+        { p: "You may decline. If you do, your application cannot be reviewed." },
+        { checks: [["I agree", "c1"], ["I do not agree", "c1n"]], lead: "Use of my information" },
+        { h: "Sharing with a partner" },
+        { table: [["Recipient", "Westbrook Scholarship Foundation"], ["Purpose", "Outside scholarship nomination and payment"], ["Shared", "Name, major, year, grades"]], cols: [0.22, 0.78] },
+        { checks: [["I agree", "c2"], ["I do not agree", "c2n"]], lead: "Sharing" },
+        { fields: [["Date", "date2", 300]], y: 1300 },
+        { sign: ["Applicant", "Riley Chen", "sign2"], y: 1400 },
+        { center: "Westbrook University, Office of Financial Aid", size: 24, b: true, y: 1520 },
+      ]],
+      place: [
+        { a: "check", at: "sch1", w: 5 }, { a: "check", at: "c1", w: 5 }, { a: "check", at: "c2", w: 5 },
+        { a: "sig", at: "sign1", w: 36 }, { a: "sig", at: "sign2", w: 36, sel: true },
+        { a: "date", at: "date1", pt: 12, al: "l" }, { a: "date", at: "date2", pt: 12, al: "l" },
+      ],
+    },
+  },
+  nda: {
+    ko: {
+      file: "예시_비밀유지서약서.pdf", title: "예시 · 비밀유지 서약서",
+      assets: { sig: { t: "sig", text: "홍길동", name: "홍길동 서명" } },
+      pages: [[
+        { title: "비밀유지 서약서" },
+        { p: "본인은 주식회사 한빛상사(이하 “회사”)의 모바일 앱 개편 프로젝트에 외주 디자이너로 참여하면서 다음 사항을 지킬 것을 서약합니다." },
+        { h: "제1조 (비밀정보)" },
+        { p: "비밀정보란 프로젝트를 하며 알게 된 회사의 사업 계획, 고객 정보, 화면 설계, 소스 코드, 출시 일정과 그 밖에 회사가 비밀로 관리하는 모든 정보를 말합니다." },
+        { h: "제2조 (비밀 유지)" },
+        { p: "본인은 비밀정보를 프로젝트 수행에만 쓰고, 회사의 서면 동의 없이 다른 사람에게 알리거나 복제하지 않습니다." },
+        { h: "제3조 (자료 관리)" },
+        { p: "본인은 비밀정보가 담긴 파일을 회사가 정한 저장소에만 두고, 개인 메신저나 외부 클라우드로 옮기지 않습니다." },
+        { foot: ["서약자 확인", "f1", "(서명)"] },
+      ], [
+        { h: "제4조 (자료의 반환)" },
+        { p: "프로젝트가 끝나거나 회사가 요청하면 본인은 비밀정보가 담긴 자료를 모두 돌려주거나 지우고, 그 사실을 서면으로 알립니다." },
+        { h: "제5조 (기간)" },
+        { p: "이 서약은 프로젝트가 끝난 뒤에도 3년 동안 효력이 있습니다." },
+        { h: "제6조 (손해배상)" },
+        { p: "본인이 이 서약을 어겨 회사에 손해가 생기면 그 손해를 배상합니다." },
+        { h: "제7조 (예외)" },
+        { p: "이미 공개된 정보, 본인이 따로 알고 있던 정보, 법에 따라 공개해야 하는 정보는 비밀정보로 보지 않습니다." },
+        { foot: ["서약자 확인", "f2", "(서명)"] },
+      ], [
+        { h: "제8조 (관할)" },
+        { p: "이 서약에 관한 분쟁은 서울중앙지방법원을 관할 법원으로 합니다." },
+        { gap: 30 },
+        { p: "본인은 위 내용을 읽고 이해했으며 이를 지킬 것을 서약합니다." },
+        { gap: 20 },
+        { right: "2026년 11월 25일" },
+        { gap: 20 },
+        { table: [["성명", "홍길동"], ["생년월일", "1992년 4월 8일"], ["주소", "서울특별시 관악구 봉천로 210"]], cols: [0.22, 0.78] },
+        { gap: 20 },
+        { center: "주식회사 한빛상사 대표이사 귀하", size: 26, b: true },
+        { foot: ["서약자 확인", "f3", "(서명)"] },
+      ]],
+      place: [{ a: "sig", at: "f1", w: 30 }, { a: "sig", at: "f2", w: 30 }, { a: "sig", at: "f3", w: 30, sel: true }],
+    },
+    en: {
+      file: "Example_NDA.pdf", title: "Example · Non-disclosure agreement",
+      assets: { sig: { t: "sig", text: "Jordan Lee", name: "Signature" } },
+      pages: [[
+        { title: "Non-Disclosure Agreement" },
+        { p: "I, Jordan Lee, will work as a contract designer on Brightline Trading Inc.'s (“the Company”) mobile app redesign, and I agree to the following." },
+        { h: "1. Confidential information" },
+        { p: "Confidential information means the Company's business plans, customer data, screen designs, source code, release dates and anything else the Company keeps confidential that I learn during the project." },
+        { h: "2. Keeping it confidential" },
+        { p: "I will use confidential information only for the project and will not share or copy it without the Company's written consent." },
+        { h: "3. Handling files" },
+        { p: "I will keep files that contain confidential information only in storage the Company provides, never in personal messaging apps or cloud accounts." },
+        { foot: ["Signature", "f1"] },
+      ], [
+        { h: "4. Returning materials" },
+        { p: "When the project ends, or when the Company asks, I will return or delete all materials containing confidential information and confirm this in writing." },
+        { h: "5. Term" },
+        { p: "This agreement stays in effect for three years after the project ends." },
+        { h: "6. Remedies" },
+        { p: "If I break this agreement and the Company suffers a loss, I will compensate the Company for that loss." },
+        { h: "7. Exceptions" },
+        { p: "Information that is already public, that I knew independently, or that the law requires me to disclose is not confidential information." },
+        { foot: ["Signature", "f2"] },
+      ], [
+        { h: "8. Governing law" },
+        { p: "This agreement is governed by the laws of the State of New York." },
+        { gap: 30 },
+        { p: "I have read and understood this agreement and I agree to keep it." },
+        { gap: 20 },
+        { right: "November 25, 2026" },
+        { gap: 20 },
+        { table: [["Name", "Jordan Lee"], ["Address", "9 Elm Court, Riverton"], ["Email", "jordan.lee@example.com"]], cols: [0.22, 0.78] },
+        { foot: ["Signature", "f3"] },
+      ]],
+      place: [{ a: "sig", at: "f1", w: 34 }, { a: "sig", at: "f2", w: 34 }, { a: "sig", at: "f3", w: 34, sel: true }],
+    },
+  },
+};
+const EX_ORDER = ["lease", "parttime", "quote", "school", "expense", "proxy", "freelance", "agreement", "student", "nda"];
+const EX_SEAL_ICON = new Set(["quote", "expense", "freelance"]); // stamp red on the cards about stamps
+const exampleTitle = (doc) => EXAMPLES[doc.exampleId || "freelance"]?.[doc.sampleLang]?.title || sampleText(doc.sampleLang).title;
+
+/* ---------- building the examples (once per example and language) ---------- */
+const exCache = new Map();
+const cached = (key, make) => { if (!exCache.has(key)) { const p = make(); exCache.set(key, p); p.catch(() => exCache.delete(key)); } return exCache.get(key); };
+const exText = (v) => JSON.stringify(v).replace(/[{}[\]":,]/g, " ");
+async function exFonts(text) {
+  await Promise.allSettled(["400 24px", "600 24px", "800 50px", "120px"].map((w, i) =>
+    document.fonts.load(`${w} ${i === 2 ? '"Nanum Myeongjo"' : i === 3 ? '"Nanum Pen Script"' : '"IBM Plex Sans KR"'}`, text)));
+}
+async function buildExampleAsset(spec, lang) {
+  let src, kind, em = 0;
+  if (spec.t === "sig") { kind = "draw"; src = sigCanvas(spec.text, spec.color || INK_BLUE).toDataURL("image/png"); }
+  else if (spec.t === "seal") { kind = "seal"; src = sealCanvas(spec.text).toDataURL("image/png"); }
+  else if (spec.t === "corp") { kind = "image"; src = scanOf(sealCanvas(spec.text, "square")); }
+  else if (spec.t === "office") { const c = officeStamp(...spec.lines); kind = spec.scan ? "image" : "seal"; src = spec.scan ? scanOf(c) : c.toDataURL("image/png"); }
+  else if (spec.t === "mark") { kind = "mark"; src = drawMark(spec.mark, spec.color || INK_BLUE).toDataURL("image/png"); }
+  else { // text and date stamps: em = the font size in the asset's pixels, so a placement can ask for a point size
+    const c = await renderText(spec.t === "date" ? dayText(lang) : spec.text, spec.font || "sans", spec.color || INK_BLACK);
+    kind = "text"; src = c.toDataURL("image/png"); em = 120;
+    const a = await makeAssetFromSource(src, { kind, name: spec.name, sample: true });
+    a.em = em * (a.w / c.width); return a;
+  }
+  return makeAssetFromSource(src, { kind, name: spec.name, sample: true });
+}
+function exampleSet(id, lang) {
+  if (id === "freelance") return cached(`freelance|${lang}`, () => makeFreelanceAssets(lang));
+  return cached(`${id}|${lang}|assets`, async () => {
+    const T = EXAMPLES[id][lang];
+    await exFonts(exText(T.assets));
+    const out = {};
+    for (const [k, spec] of Object.entries(T.assets)) out[k] = await buildExampleAsset(spec, lang);
+    return out;
+  });
+}
+function examplePdf(id, lang) {
+  return cached(`${id}|${lang}|pdf`, async () => {
+    const T = EXAMPLES[id][lang];
+    await exFonts(exText(T.pages));
+    const { canvases, anchors } = paintDoc(T.pages);
+    const { PDFDocument } = window.PDFLib, doc = await PDFDocument.create();
+    for (const c of canvases) {
+      const jpg = await doc.embedJpg(dataURLBytes(c.toDataURL("image/jpeg", 0.9)));
+      doc.addPage([595.28, 841.89]).drawImage(jpg, { x: 0, y: 0, width: 595.28, height: 841.89 });
+    }
+    return { bytes: new Uint8Array(await doc.save()), anchors };
+  });
+}
+// the Library shows the open example's items (and, with no items of your own, those of the first example)
+function useSampleSet(set) {
+  const list = Object.values(set), ids = list.map((a) => a.id);
+  for (const id of S.samples) if (!ids.includes(id) && !S.overlays.some((o) => o.assetId === id)) S.assets.delete(id);
+  S.samples = ids; for (const a of list) S.assets.set(a.id, a);
+}
+function makeSampleAssets(lang = LANG) { return exampleSet("freelance", lang).then((set) => { useSampleSet(set); return set; }); }
+// one placement → overlays (page points; the drawing is 1240 px wide)
+function examplePlace(pl, set, anchors) {
+  if (pl.gan) { const a = set[pl.gan]; return a ? ganPieces(a.id, pl.w * PT_PER_MM, pl.y ?? 0.42, { fx: { removeBg: !!a.autoRemoveBg, ink: null }, opacity: pl.op ?? 0.92 }) : []; }
+  const a = set[pl.a], an = anchors[pl.at], p = S.pages[an?.page]; if (!a || !p) return [];
+  const k = p.w / DOC.W, ratio = a.h / a.w;
+  let w = (pl.w || 20) * PT_PER_MM, h = w * ratio;
+  if (pl.pt && a.em) { h = (a.h * pl.pt) / a.em; w = h / ratio; } else if (pl.h) { h = pl.h * PT_PER_MM; w = h / ratio; }
+  const cx = (pl.al === "l" ? an.x * k + 2 + w / 2 : (an.x + an.w / 2) * k) + (pl.dx || 0) * PT_PER_MM;
+  // a handwritten signature on a line: the writing sits on it and the flourish under the name touches it
+  const cy = (an.line && a.kind === "draw" ? (an.y + an.h) * k - h * 0.4 : (an.y + an.h / 2) * k) + (pl.dy || 0) * PT_PER_MM;
+  return [{ id: uid(), assetId: a.id, page: an.page, x: cx - w / 2, y: cy - h / 2, w, h, rot: pl.rot || 0, opacity: pl.op ?? 1, fx: { removeBg: !!a.autoRemoveBg, ink: null }, ...(pl.sel ? { sel: true } : {}) }];
+}
+
+/* ---------- opening an example ---------- */
+let exBusy = null;
+async function loadExample(id = "freelance", lang = LANG) {
+  if (!EXAMPLES[id]) throw new Error(`no example "${id}" (${EX_ORDER.join(", ")})`);
+  if (!LANGS.includes(lang)) lang = LANG;
+  if (exBusy) return false;
+  exBusy = id; syncExampleBusy();
   try {
-    const [{ sig, seal }, { bytes, sign }] = await Promise.all([makeSampleAssets(lang), makeSamplePdf(lang)]);
-    syncLibrary();
-    if (!(await openPdfBytes(bytes, SAMPLE[lang].file, { sample: true, sampleLang: lang }))) return;
-    // signature on the last party's line of page 2, stamp beside it (drawing px → pt is ×595.28/1240)
-    const k = 595.28 / 1240, last = S.pages.length - 1, sw = 118, sh = (sw * sig.h) / sig.w;
-    S.overlays.push(
-      { id: uid(), assetId: sig.id, page: last, x: sign.sig.x * k, y: sign.sig.y * k - sh, w: sw, h: sh, rot: 0, opacity: 1, fx: { removeBg: false, ink: null } },
-      { id: uid(), assetId: seal.id, page: last, x: sign.stamp.x * k - 30, y: sign.stamp.y * k - 30, w: 60, h: 60, rot: 354, opacity: 0.92, fx: { removeBg: false, ink: null } });
-    S.sel = S.overlays[1].id;
-    syncOverlays(); syncInspector();
-    requestAnimationFrame(() => { const p = S.pages[last]; stage.scrollTop = p.el.offsetTop + p.el.offsetHeight * 0.55 - stage.clientHeight / 2; });
-  } finally { btn.disabled = false; }
+    if (id === "freelance") return await openFreelance(lang);
+    const T = EXAMPLES[id][lang];
+    const [set, { bytes, anchors }] = await Promise.all([exampleSet(id, lang), examplePdf(id, lang)]);
+    useSampleSet(set); syncLibrary();
+    if (!(await openPdfBytes(bytes, T.file, { sample: true, sampleLang: lang, exampleId: id }))) return false;
+    syncLibrary(); // the editor's panel lists the example's items first
+    const items = T.place.flatMap((pl) => examplePlace(pl, set, anchors));
+    const focus = items.find((o) => o.sel); for (const o of items) delete o.sel;
+    S.overlays.push(...items); S.sel = focus?.id || null;
+    syncOverlays(); syncInspector(); syncDocTitle();
+    const show = focus || items[items.length - 1];
+    if (show) requestAnimationFrame(() => { const p = S.pages[show.page]; stage.scrollTop = p.el.offsetTop + (show.y + show.h / 2) * S.zoom - stage.clientHeight / 2; });
+    if (EXAMPLES[id].after) await EXAMPLES[id].after(lang);
+    return true;
+  } catch (e) {
+    console.warn("example", id, e); toast(t("ex.failed"), true); return false;
+  } finally { exBusy = null; syncExampleBusy(); }
+}
+// the first example: a two-page service agreement, signature and stamp on the second party's line
+async function openFreelance(lang) {
+  const [{ sig, seal }, { bytes, sign }] = await Promise.all([exampleSet("freelance", lang), makeSamplePdf(lang)]);
+  useSampleSet({ sig, seal }); syncLibrary();
+  if (!(await openPdfBytes(bytes, SAMPLE[lang].file, { sample: true, sampleLang: lang, exampleId: "freelance" }))) return false;
+  // signature on the last party's line of page 2, stamp beside it (drawing px → pt is ×595.28/1240)
+  const k = 595.28 / 1240, last = S.pages.length - 1, sw = 118, sh = (sw * sig.h) / sig.w;
+  S.overlays.push(
+    { id: uid(), assetId: sig.id, page: last, x: sign.sig.x * k, y: sign.sig.y * k - sh, w: sw, h: sh, rot: 0, opacity: 1, fx: { removeBg: false, ink: null } },
+    { id: uid(), assetId: seal.id, page: last, x: sign.stamp.x * k - 30, y: sign.stamp.y * k - 30, w: 60, h: 60, rot: 354, opacity: 0.92, fx: { removeBg: false, ink: null } });
+  S.sel = S.overlays[1].id;
+  syncLibrary(); syncOverlays(); syncInspector();
+  requestAnimationFrame(() => { const p = S.pages[last]; stage.scrollTop = p.el.offsetTop + p.el.offsetHeight * 0.55 - stage.clientHeight / 2; });
+  return true;
+}
+const loadSample = () => loadExample("freelance");
+
+/* the agreement: seal the signed example in memory (with this app's own sealer, nothing is saved), add a line
+   after the seal the way another app's re-save would, and open 봉인 확인 on that copy, with the untouched one a tap away */
+async function exampleVerify(lang) {
+  if (!S.seal || S.doc?.exampleId !== "agreement") return;
+  let id = null; try { id = await S.seal.identity(); } catch {}
+  if (!id) { toast(t("ex.agree.noId"), { ms: 9000, actions: [{ label: t("sealer.open"), fn: openSealer }] }); return; }
+  const T = EXAMPLES.agreement[lang];
+  const sealed = new Uint8Array(await S.seal.sign(await buildPdf(), { reason: t("seal.reason"), lang: LANG }));
+  const tail = new TextEncoder().encode("\n% edited after sealing\n"), edited = new Uint8Array(sealed.length + tail.length);
+  edited.set(sealed); edited.set(tail, sealed.length);
+  openVerify();
+  VER.example = [{ key: "intact", label: "ex.verify.intact", name: T.sealed, bytes: sealed }, { key: "modified", label: "ex.verify.modified", name: T.edited, bytes: edited }];
+  await verifyBytes(edited, T.edited);
+}
+
+/* ---------- the gallery on the Library home ---------- */
+function renderExamples() {
+  const box = $("#examples"); if (!box) return;
+  const empty = !S.docs.length, open = empty || !!S.prefs.examplesOpen;
+  const ids = EX_ORDER.filter((id) => id !== "agreement" || S.seal); // checking a seal needs the app's seal
+  const head = el("div", { class: "ex-head" },
+    empty ? el("h2", { id: "ex-h", text: t("ex.title") })
+      : el("h2", { id: "ex-h" }, el("button", { class: "ex-toggle", type: "button", id: "ex-toggle", "aria-expanded": String(open), "aria-controls": "ex-list",
+        onclick: () => { S.prefs.examplesOpen = !open; persistPrefs(); renderExamples(); $("#ex-toggle")?.focus(); } }, icon("chevron"), el("span", { text: t("ex.title") }), el("span", { class: "n", text: String(ids.length) }))),
+    open ? el("p", { class: "ex-sub", text: t("ex.sub") }) : null);
+  const list = el("ul", { class: "ex-list", id: "ex-list", hidden: open ? null : true });
+  for (const id of ids) {
+    const busy = exBusy === id;
+    list.append(el("li", {}, el("button", { class: "ex-card", type: "button", "data-ex": id, disabled: exBusy ? true : null, "aria-busy": busy ? "true" : null, onclick: () => loadExample(id) },
+      el("span", { class: "ex-ic" + (EX_SEAL_ICON.has(id) ? " seal" : "") }, svgIcon(EX_ICONS[id], "0 0 24 24")),
+      el("span", { class: "ex-txt" }, el("strong", { text: t(`ex.${id}.h`) }), el("span", { text: t(`ex.${id}.p`) })),
+      el("span", { class: "ex-go", "aria-hidden": "true" }, busy ? el("span", { class: "spinner" }) : el("span", { class: "lbl", text: t("ex.try") }), busy ? null : icon("next")))));
+  }
+  box.replaceChildren(head, list);
+}
+function syncExampleBusy() {
+  for (const b of $$("#examples .ex-card")) {
+    const busy = exBusy === b.dataset.ex;
+    b.disabled = !!exBusy; if (busy) b.setAttribute("aria-busy", "true"); else b.removeAttribute("aria-busy");
+    const go = $(".ex-go", b); go.replaceChildren(...(busy ? [el("span", { class: "spinner" })] : [el("span", { class: "lbl", text: t("ex.try") }), icon("next")]));
+  }
 }
 
 /* ================================================================
@@ -4589,7 +5629,7 @@ function rerenderAll() {
   if ($("#dlg-sealer").open) renderSealer();
   if (S.view === "home" || !S.doc?.isSample) { if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {}); }
   // the example document is rebuilt in the new language (it is never kept, so nothing is lost)
-  else if (S.doc.sampleLang !== LANG) loadSample();
+  else if (S.doc.sampleLang !== LANG) loadExample(S.doc.exampleId || "freelance");
 }
 
 /* ================================================================
@@ -4597,7 +5637,6 @@ function rerenderAll() {
    ================================================================ */
 $("#btn-back").onclick = showHome; $("#btn-side").onclick = toggleSide;
 $("#btn-open").onclick = choosePdf; $("#btn-open-2").onclick = choosePdf; $("#btn-open-empty").onclick = choosePdf;
-$("#btn-sample").onclick = loadSample;
 $("#btn-export").onclick = openSaveDialog;
 $("#btn-undo").onclick = undo; $("#btn-redo").onclick = redo;
 $("#bb-undo").onclick = undo; $("#bb-redo").onclick = redo; $("#bb-save").onclick = openSaveDialog; $("#bb-open").onclick = choosePdf; $("#bb-verify").onclick = openVerify;
@@ -4629,7 +5668,7 @@ async function boot() {
   // example items show in the library until the first real signature is added
   if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {});
 }
-window.__pdfe = { handleBack, openSheet, closeSheet, SHEET, isCompact, S, Store, openPdfBytes, openRecord, placeAsset, buildPdf, importImageFiles, makeAssetFromSource, addToLibrary, undo, redo, setZoom, select, act, getOv, showHome, showEditor, browse, openSaveDialog, performSave, loadSample, requestFullAccess, enableDisk, setLang, t, openVerify, verifyBytes, openSealer, SEAL, openAbout, grantAccess, fileChecks, refreshFileChecks };
+window.__pdfe = { handleBack, openSheet, closeSheet, SHEET, isCompact, S, Store, openPdfBytes, openRecord, placeAsset, buildPdf, importImageFiles, makeAssetFromSource, addToLibrary, undo, redo, setZoom, select, act, getOv, showHome, showEditor, browse, openSaveDialog, performSave, loadSample, loadExample, examples: EX_ORDER, ganinSel, requestFullAccess, enableDisk, setLang, t, openVerify, verifyBytes, openSealer, SEAL, openAbout, grantAccess, fileChecks, refreshFileChecks };
 boot();
 })();
 </script>
