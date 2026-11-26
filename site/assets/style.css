@@ -280,6 +280,13 @@ html:lang(ko) .sig-stroke { bottom: -.1em; }
   background: #fff; border-bottom: 1px solid var(--line); margin-bottom: 12px;
 }
 .uses h3, .uses p { padding-inline: 20px; }
+/* a screenshot inside a how-to step (support page): System Settings with the buttons to click circled */
+.howto-shot { margin: 12px 0 4px; max-width: 727px; }
+.howto-shot img {
+  display: block; width: 100%; height: auto; border-radius: var(--radius-sm);
+  border: 1px solid var(--line); box-shadow: var(--shot-shadow); background: #fff;
+}
+.howto-shot figcaption { margin-top: 8px; color: var(--muted); font-size: .92rem; line-height: 1.5; }
 .uses h3 { font-size: 1.08rem; line-height: 1.4; }
 .uses p { margin: 0; color: var(--muted); font-size: .98rem; line-height: 1.55; }
 @media (min-width: 640px) { .uses { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }

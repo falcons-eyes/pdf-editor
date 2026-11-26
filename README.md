@@ -142,9 +142,14 @@ The DMG and EXE downloads aren't signed with paid Apple or Microsoft certificate
 ### macOS
 
 1. Open the DMG and drag **Sealworks** to the `Applications` folder.
-2. If the first launch says the developer can't be verified, or that macOS can't check it for malicious software, click **Done** (or Cancel).
-3. In Finder › Applications, **right-click (Control-click) Sealworks › Open**, then click **Open** again.
-4. If there's still no Open button, go to **System Settings › Privacy & Security**, scroll down, and click **Open Anyway** next to the message about Sealworks. (From macOS 15 Sequoia on, this is the way.)
+2. Open Sealworks from `Applications`. macOS says **“Sealworks” Not Opened** because Apple could not check it for malware. Click **Done**. Don't click **Move to Trash**: that throws the app away. (If you did, drag Sealworks from the Trash back to `Applications`.)
+3. Open **System Settings › Privacy & Security** and scroll down to **Security**. Next to “Sealworks.app” was blocked to protect your Mac, click **Open Anyway**.
+
+   <img src="docs/images/macos-open-anyway.png" alt="System Settings, Privacy & Security: under Security, the message “Sealworks.app” was blocked to protect your Mac, with the Open Anyway button next to it" width="727">
+
+4. Click **Open Anyway** again in the window that asks, and confirm with your password or Touch ID. Sealworks opens, and from then on it opens normally like any other app.
+
+On macOS 14 Sonoma or earlier, you can also **right-click (Control-click) Sealworks › Open** in Finder › Applications.
 
 <details>
 <summary>If it says the app “is damaged and can't be opened”</summary>
