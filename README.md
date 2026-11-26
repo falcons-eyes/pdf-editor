@@ -156,7 +156,7 @@ The folder keeps its old name from when the app was called PDF Editor, so updati
 
 - Your seal key is stored in that folder's `seal` subfolder, encrypted with a key that macOS Keychain or Windows (DPAPI) protects. It never leaves your computer. Your name, the certificate fingerprint and the time do go into each PDF you seal, so anyone you send it to can see them.
 
-Read the full [privacy policy](PRIVACY.md).
+Read the full [privacy policy](PRIVACY.md) and the [terms of use](https://sealworks.falconoon.com/terms/).
 
 ## Language
 

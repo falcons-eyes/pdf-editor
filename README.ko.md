@@ -156,7 +156,7 @@ xattr -dr com.apple.quarantine "/Applications/Sealworks.app"
 
 - 봉인 키는 이 폴더 안의 `seal` 폴더에, macOS 키체인이나 Windows(DPAPI)가 지키는 키로 암호화해서 저장합니다. 컴퓨터 밖으로 나가지 않습니다. 다만 봉인한 PDF에는 내 이름, 인증서 지문, 봉인 시각이 들어가므로, 파일을 받는 사람도 볼 수 있습니다.
 
-자세한 내용은 [개인정보 처리방침](PRIVACY.md#한국어)을 보세요.
+자세한 내용은 [개인정보 처리방침](PRIVACY.md#한국어)과 [이용약관](https://sealworks.falconoon.com/ko/terms/)을 보세요.
 
 ## 언어
 

@@ -42,4 +42,18 @@
     <xhtml:link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/privacy/"/>
     <xhtml:link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/privacy/"/>
   </url>
+  <url>
+    <loc>https://sealworks.falconoon.com/terms/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealworks.falconoon.com/terms/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/terms/"/>
+  </url>
+  <url>
+    <loc>https://sealworks.falconoon.com/ko/terms/</loc>
+    <lastmod>2026-11-26</lastmod>
+    <xhtml:link rel="alternate" hreflang="en" href="https://sealworks.falconoon.com/terms/"/>
+    <xhtml:link rel="alternate" hreflang="ko" href="https://sealworks.falconoon.com/ko/terms/"/>
+    <xhtml:link rel="alternate" hreflang="x-default" href="https://sealworks.falconoon.com/terms/"/>
+  </url>
 </urlset>
