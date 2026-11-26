@@ -6,6 +6,8 @@
 #   docs/tools/render.sh play         # only the Google Play graphics -> mobile/store/play/ (phone 1080x1920, tablet 1440x2560,
 #                                     #   feature 1024x500; the page in its Android mode, framed with captions; play-shots.cjs)
 #   docs/tools/render.sh uses         # only the website's situation cards -> site/assets/uses/<id>-<l>.webp (uses-shots.cjs)
+#   docs/tools/render.sh workflows [id …]   # only the 1.3 example clips -> docs/media/workflows/<id>-<l>.mp4 + .webp poster
+#                                     #   (workflows-demo.cjs; ids: idcopy receipts certificates bundle aiguard noai inspection)
 #   LANGS=en docs/tools/render.sh     # one language
 # Output per language (<l> = en | ko): docs/images/ demo-<l>.gif, seal-<l>.gif, hero-<l>.png, steps-<l>.png, features-<l>.png,
 # before-after-<l>.png, social-<l>.png, seal-states-<l>.png; and for the website, site/assets/ app-<l>-{1600,960}.webp
@@ -30,6 +32,7 @@ for _ in $(seq 50); do curl -fs "http://localhost:$PORT/" >/dev/null && break; s
 if [ "${1:-all}" = appstore ]; then for l in $LANGS; do node appstore-shots.cjs "$l"; done; exit 0; fi
 if [ "${1:-all}" = play ]; then for l in $LANGS; do node play-shots.cjs "$l"; done; exit 0; fi
 if [ "${1:-all}" = uses ]; then for l in $LANGS; do node uses-shots.cjs "$l"; done; exit 0; fi
+if [ "${1:-all}" = workflows ]; then shift; for l in $LANGS; do node workflows-demo.cjs "$l" ${@+"$@"}; done; exit 0; fi
 for l in $LANGS; do node shoot.cjs "$l"; done
 node compose.cjs $LANGS
 for l in $LANGS; do node demo.cjs "$l"; node seal.cjs "$l"; done
