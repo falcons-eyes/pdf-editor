@@ -216,6 +216,73 @@ button, input, select { font: inherit; color: inherit; }
 .thumb.current .thumb-num { background: var(--accent); color: var(--accent-fg); }
 .thumb .dot { position: absolute; right: 4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px var(--paper); }
 
+/* 1.3 pages, cover, text-free copy */
+.tb-pages .btn { gap: 6px; padding: 0 10px; }
+.tb-pages .btn svg { width: 16px; height: 16px; flex: none; }
+#btn-cover[aria-pressed="true"] { background: var(--accent-soft); color: var(--accent); border-color: color-mix(in oklab, var(--accent) 35%, transparent); }
+@media (max-width: 1240px) { .tb-pages .btn span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } .tb-pages .btn { padding: 0; width: 32px; justify-content: center; } }
+/* the page rail: drag a page to a new place (a line shows where it lands) */
+.thumb[draggable="true"] { cursor: grab; }
+.thumb.drop-before .thumb-box { box-shadow: 0 -4px 0 var(--accent), 0 0 0 1px var(--line-strong); }
+.thumb.drop-after .thumb-box { box-shadow: 0 4px 0 var(--accent), 0 0 0 1px var(--line-strong); }
+.thumb.dragging { opacity: .45; }
+/* a cover box: a filled rectangle, black by default; a white one keeps a faint edge on screen only */
+.ov.cover { background: #000; }
+.ov.cover[data-fill="white"] { background: #fff; box-shadow: inset 0 0 0 1px rgba(20, 24, 40, .35); }
+.ov.cover img { display: none; }
+.ov.cover .h.rot { display: none; }
+.ov.cover.ghost { pointer-events: none; opacity: .7; outline: 1.5px dashed var(--accent); }
+.stage.cover-draw .page { cursor: crosshair; }
+.stage.cover-draw .ov { pointer-events: none; }
+/* 쪽 정리 */
+dialog.pg-dlg { width: min(860px, calc(100vw - 32px)); }
+.pg-dlg .dlg-body { max-height: min(70vh, 720px); overflow-y: auto; align-content: start; }
+.pg-add { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
+.pg-add .btn svg { width: 16px; height: 16px; }
+.pg-per { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.pg-per .lbl { color: var(--muted); font-size: 12px; }
+#pg-per-hint { flex-basis: 100%; margin: 0; }
+#pg-hint { margin: 0; }
+.pg-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px 12px; }
+.pg-list[aria-busy="true"] { opacity: .55; pointer-events: none; }
+.pg-card { display: grid; gap: 6px; justify-items: center; padding: 8px 6px; border-radius: 10px; border: 1px solid transparent; min-width: 0; }
+.pg-card[draggable="true"] { cursor: grab; }
+.pg-card.dragging { opacity: .4; }
+.pg-card.drop-before { box-shadow: -4px 0 0 var(--accent); }
+.pg-card.drop-after { box-shadow: 4px 0 0 var(--accent); }
+.pg-thumb { display: grid; justify-items: center; gap: 4px; border: none; background: none; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+.pg-box { position: relative; width: 112px; max-height: 158px; background: var(--paper); box-shadow: 0 0 0 1px var(--line-strong); border-radius: 2px; overflow: hidden; display: grid; place-items: center; }
+.pg-box canvas { display: block; width: 100%; height: 100%; }
+.pg-box .dot { position: absolute; right: 4px; top: 4px; width: 8px; height: 8px; border-radius: 50%; background: var(--seal); box-shadow: 0 0 0 2px var(--paper); }
+.pg-num { font-family: var(--font-num); font-size: 12px; color: var(--muted); }
+.pg-acts { display: flex; gap: 2px; }
+.pg-acts .btn.icon { width: 30px; height: 30px; }
+.pg-acts .btn.icon svg { width: 15px; height: 15px; }
+.pg-acts .danger { color: var(--seal); }
+.touch .pg-list { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 8px; }
+.touch .pg-card { grid-template-columns: auto minmax(0, 1fr) auto; justify-items: start; align-items: center; gap: 12px; border-color: var(--line); padding: 8px 8px 8px 10px; }
+.touch .pg-thumb { grid-template-columns: auto auto; align-items: center; gap: 12px; grid-column: 1 / 3; }
+.touch .pg-box { width: 56px; max-height: 80px; }
+.touch .pg-num { font-size: 14px; color: var(--fg); }
+.touch .pg-acts { gap: 0; }
+.touch .pg-acts .btn.icon { width: 44px; height: 44px; }
+.touch .pg-acts .btn.icon svg { width: 18px; height: 18px; }
+.touch .pg-per { margin-left: 0; }
+@media (max-width: 699px), (pointer: coarse) and (max-height: 520px) { .pg-dlg .dlg-body { max-height: none; } .pg-add > .btn { flex: 1 1 100%; justify-content: flex-start; } }
+/* save dialog: pages to save, the text-free copy, and which pages become pictures */
+.save-img-note { margin: 0; padding: 8px 10px; border-radius: 8px; background: var(--amber-soft); color: var(--fg); font-size: 12.5px; line-height: 1.55; }
+.save-more { border: 1px solid var(--line); border-radius: 10px; background: var(--panel); }
+.save-more > summary { cursor: pointer; padding: 10px 12px; font-size: 13px; font-weight: 500; list-style-position: inside; }
+.touch .save-more > summary { padding: 13px 12px; }
+.save-more-body { display: grid; gap: 8px; padding: 0 12px 12px; }
+.save-more .text-input { height: 36px; font-size: 14px; }
+.touch .save-more .text-input { height: 46px; font-size: 16px; }
+#save-range-hint.warn { color: var(--seal); }
+.tf-opt { align-items: flex-start; font-size: 13px; margin-top: 4px; }
+.tf-opt input { margin-top: 2px; }
+.tf-opt small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; line-height: 1.5; }
+:lang(ko) .save-img-note, :lang(ko) .tf-opt small, :lang(ko) .pg-dlg .hint { word-break: keep-all; }
+
 /* one finger scrolls natively; two fingers are the page's own pinch-zoom and pan (no browser zoom) */
 .stage { position: relative; overflow: auto; min-width: 0; overscroll-behavior: contain; touch-action: pan-x pan-y; }
 .pages { display: flex; flex-direction: column; align-items: center; gap: 22px; padding: 28px 32px 64px; width: max-content; min-width: 100%; box-sizing: border-box; }
@@ -796,6 +863,11 @@ html:not(.has-seal) .seal-only { display: none !important; }
         <button class="btn icon hide-narrow" id="btn-fit-w" data-i18n-tip="ed.fitW.tip" data-k="⌘9" data-i18n-label="ed.fitW"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"><path d="M1.5 3v10M14.5 3v10M4 8h8M6 6 4 8l2 2M10 6l2 2-2 2"/></svg></button>
         <button class="btn icon hide-narrow" id="btn-fit-p" data-i18n-tip="ed.fitP.tip" data-k="⌘8" data-i18n-label="ed.fitP"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"><rect x="4" y="1.75" width="8" height="12.5" rx="1"/><path d="M1.5 5V2.5a1 1 0 0 1 1-1M14.5 5V2.5a1 1 0 0 0-1-1M1.5 11v2.5a1 1 0 0 0 1 1M14.5 11v2.5a1 1 0 0 1-1 1" stroke-linecap="round"/></svg></button>
       </div>
+      <!-- 1.3 pages, cover, text-free copy -->
+      <div class="tb-group tb-pages">
+        <button class="btn" id="btn-pages" type="button" data-i18n-tip="pages.tip" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3.5" width="7" height="10" rx="1"/><rect x="7" y="2.5" width="7" height="10" rx="1"/></svg><span data-i18n="pages.btn"></span></button>
+        <button class="btn" id="btn-cover" type="button" data-i18n-tip="cover.tip" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5h11M2.5 11.5h7"/><rect x="4.5" y="6.25" width="9" height="3.5" rx=".5" fill="currentColor"/></svg><span data-i18n="cover.btn"></span></button>
+      </div>
       <button class="btn icon outline" id="btn-rail" data-i18n-tip="ed.rail" data-k="⌘\" data-i18n-label="ed.rail"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M5.75 2.25v11.5"/></svg></button>
     </div>
     <button class="btn icon outline" id="btn-side" data-i18n-tip="ed.side" data-k="⌥⌘\" data-i18n-label="ed.side"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M10.25 2.25v11.5"/></svg></button>
@@ -968,6 +1040,17 @@ html:not(.has-seal) .seal-only { display: none !important; }
       <p class="hint sandbox-only" style="margin:0" data-i18n="save.sandboxNote" hidden></p>
       <label class="toggle"><input type="checkbox" id="save-open"> <span data-i18n="save.openAfter"></span></label>
     </div>
+    <!-- 1.3 pages, cover, text-free copy: which pages to save, the text-free copy, and which pages become pictures -->
+    <p class="save-img-note" id="save-img-note" hidden></p>
+    <details class="save-more" id="save-more">
+      <summary data-i18n="save.more"></summary>
+      <div class="save-more-body">
+        <label class="fld-label" for="save-range" data-i18n="save.range"></label>
+        <input class="text-input" id="save-range" inputmode="numeric" autocomplete="off" spellcheck="false" data-i18n-ph="save.range.ph" aria-describedby="save-range-hint">
+        <p class="hint" id="save-range-hint" style="margin:0" aria-live="polite"></p>
+        <label class="toggle tf-opt"><input type="checkbox" id="save-textfree" aria-describedby="save-tf-explain"><span><b data-i18n="save.tf"></b><small id="save-tf-explain" data-i18n="save.tf.explain"></small></span></label>
+      </div>
+    </details>
     <div class="seal-opt seal-only" id="save-seal-wrap">
       <label class="toggle"><input type="checkbox" id="save-seal"><span><b data-i18n="seal.action"></b> · <span data-i18n="seal.subtitle"></span><small data-i18n="save.seal.explain"></small></span></label>
       <div id="save-sealer"></div>
@@ -977,6 +1060,25 @@ html:not(.has-seal) .seal-only { display: none !important; }
   </form>
   <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close data-i18n="dlg.cancel"></button><button class="btn primary" id="save-ok" type="submit" form="save-form" data-i18n="save.save"></button></div>
 </dialog>
+
+<!-- 1.3 pages, cover, text-free copy: 쪽 정리 (add pages from a PDF or images, reorder, rotate, remove, save some pages) -->
+<dialog id="dlg-pages" class="pg-dlg" aria-labelledby="dlg-pages-title">
+  <div class="dlg-head"><h2 id="dlg-pages-title" data-i18n="pages.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body">
+    <div class="pg-add">
+      <button type="button" class="btn outline" id="pg-add-pdf"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M9.5 1.75v3h3M8.25 7.5v4.5M6 9.75h4.5"/></svg><span data-i18n="pages.addPdf"></span></button>
+      <button type="button" class="btn outline" id="pg-add-img"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3" width="12" height="10" rx="1.5"/><circle cx="6" cy="6.5" r="1.2"/><path d="m2.5 11.5 3.5-3 2.5 2 2-1.5 3 2.5"/></svg><span data-i18n="pages.addImg"></span></button>
+      <div class="pg-per"><span class="lbl" id="pg-per-lbl" data-i18n="pages.per"></span><div class="seg" id="pg-per" role="group" aria-labelledby="pg-per-lbl" aria-describedby="pg-per-hint"></div></div>
+      <p class="hint" id="pg-per-hint" data-i18n="pages.per.hint"></p>
+    </div>
+    <p class="hint" id="pg-hint"></p>
+    <ol class="pg-list" id="pg-list" data-i18n-label="pages.list"></ol>
+    <p class="sr-only" id="pg-status" aria-live="polite"></p>
+  </div>
+  <div class="dlg-foot"><button type="button" class="btn outline" id="pg-save-range" data-i18n="pages.saveRange"></button><span class="grow"></span><button class="btn" data-close data-i18n="dlg.close"></button></div>
+</dialog>
+<input type="file" id="file-pagepdf" accept="application/pdf,.pdf" hidden>
+<input type="file" id="file-pageimg" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" multiple hidden>
 
 <dialog id="dlg-verify" aria-labelledby="dlg-verify-title">
   <div class="dlg-head"><h2 id="dlg-verify-title" data-i18n="seal.verify"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
@@ -1541,6 +1643,62 @@ const STR = {
   "open.short": ["PDF 열기", "Open PDF"],
   "sheet.expand": ["패널 크게 보기", "Expand panel"], "sheet.shrink": ["패널 작게 보기", "Shrink panel"], "sheet.close": ["패널 닫기", "Close panel"],
   "sel.bar": ["고른 항목", "Selected item"], "sel.adjust": ["조정", "Adjust"], "sel.gan": ["간인", "Across pages"], "sel.remove": ["지우기", "Remove"],
+  // 1.3 pages, cover, text-free copy
+  "pages.btn": ["쪽 정리", "Pages"],
+  "pages.tip": ["쪽을 더하거나 순서를 바꾸고, 돌리거나 지웁니다", "Add pages, change their order, turn or remove them"],
+  "pages.title": ["쪽 정리", "Pages"],
+  "pages.list": ["문서의 쪽", "Pages of the document"],
+  "pages.hint": ["쪽을 끌어서 순서를 바꿀 수 있습니다. 놓아 둔 서명과 도장은 자기 쪽을 따라 움직이고, 원본 파일은 바뀌지 않습니다.", "Drag a page to change the order. Signatures and stamps you placed move with their page, and the original file stays as it is."],
+  "pages.hint.touch": ["화살표 단추로 쪽 순서를 바꿉니다. 놓아 둔 서명과 도장은 자기 쪽을 따라 움직이고, 원본 파일은 바뀌지 않습니다.", "Use the arrow buttons to change the order. Signatures and stamps you placed move with their page, and the original file stays as it is."],
+  "pages.addPdf": ["PDF에서 쪽 추가…", "Add pages from a PDF…"],
+  "pages.addImg": ["사진으로 쪽 추가…", "Add pages from images…"],
+  "pages.per": ["사진을 한 쪽에", "Images per page"],
+  "pages.per.n": ["{n}장", "{n}"],
+  "pages.per.aria": ["한 쪽에 {n}장", pl("1 image per page", "{n} images per page")],
+  "pages.per.hint": ["사진 한 장은 A4 한 쪽이 됩니다. 영수증처럼 작은 사진은 한 쪽에 여러 장을 모을 수 있습니다.", "Each image becomes an A4 page. Small photos such as receipts can share a page."],
+  "pages.saveRange": ["몇 쪽만 새 PDF로 저장…", "Save some pages as a new PDF…"],
+  "pages.card": ["{n}쪽", "Page {n}"],
+  "pages.card.go": ["{n}쪽 보기", "Show page {n}"],
+  "pages.card.go.has": ["{n}쪽 보기 (서명·도장 있음)", "Show page {n} (has signatures or stamps)"],
+  "pages.up": ["{n}쪽을 앞으로", "Move page {n} earlier"],
+  "pages.down": ["{n}쪽을 뒤로", "Move page {n} later"],
+  "pages.rot": ["{n}쪽을 오른쪽으로 돌리기", "Rotate page {n} clockwise"],
+  "pages.del": ["{n}쪽 지우기", "Remove page {n}"],
+  "pages.m.up": ["앞으로 옮기기", "Move earlier"], "pages.m.down": ["뒤로 옮기기", "Move later"],
+  "pages.m.rot": ["오른쪽으로 돌리기", "Rotate clockwise"], "pages.m.del": ["이 쪽 지우기", "Remove this page"],
+  "pages.m.open": ["쪽 정리…", "Pages…"],
+  "pages.moved": ["{from}쪽을 {to}번째 자리로 옮겼습니다.", "Moved page {from} to position {to}."],
+  "pages.rotated": ["{n}쪽을 돌렸습니다.", "Rotated page {n}."],
+  "pages.deleted": [(p) => (p.k ? "{n}쪽과 그 쪽에 놓은 항목 {k}개를 지웠습니다." : "{n}쪽을 지웠습니다."), (p) => (p.k ? (p.k === 1 ? "Removed page {n} and the item on it." : "Removed page {n} and the {k} items on it.") : "Removed page {n}.")],
+  "pages.added": ["{n}쪽을 끝에 붙였습니다.", pl("Added 1 page at the end.", "Added {n} pages at the end.")],
+  "pages.onlyOne": ["한 쪽뿐인 문서에서는 쪽을 지울 수 없습니다.", "A document needs at least one page."],
+  "pages.busy": ["쪽을 정리하는 중…", "Updating the pages…"],
+  "pages.fail": ["쪽을 바꾸지 못했습니다. 다시 시도해 주세요.", "Couldn't change the pages. Please try again."],
+  "pages.locked": ["이 PDF는 편집이 제한되어 있어 쪽을 바꿀 수 없습니다.", "This PDF is restricted, so its pages can't be changed."],
+  "pages.copyFail": ["바뀐 쪽을 보관함에 저장하지 못했습니다. 문서는 그대로입니다.", "Couldn't keep the changed pages in the Library, so nothing was changed."],
+  "pages.pickPdf": ["쪽을 가져올 PDF 고르기", "Choose a PDF to add pages from"],
+  "pages.pickImg": ["쪽으로 만들 사진 고르기", "Choose images for new pages"],
+  "cover.btn": ["가리기", "Cover"],
+  "cover.tip": ["가릴 곳에 상자를 그립니다. 저장하면 상자 아래 내용이 파일에서 지워집니다", "Draw a box over what to hide. Saving removes what's under it from the file"],
+  "cover.draw": ["가릴 곳을 끌어서 상자를 그리세요. 한 번만 누르면 기본 크기로 놓입니다.", "Drag over what you want to hide. A single click places a box of the usual size."],
+  "cover.cancel": ["그만두기", "Cancel"],
+  "cover.title": ["가리기 상자", "Cover box"],
+  "cover.aria": ["{fill} 가리기 상자, {page}쪽", "{fill} cover box, page {page}"],
+  "cover.hint": ["저장할 때 이 쪽은 그림으로 바뀌고, 상자 아래 있던 글자와 그림은 파일에서 지워집니다. 가리기 상자가 없는 쪽은 글자를 그대로 둡니다.", "When you save, this page becomes a picture and the text and images under the box are removed from the file. Pages without a cover box keep their text."],
+  "cover.fill": ["색", "Color"], "cover.black": ["검정", "Black"], "cover.white": ["흰색", "White"],
+  "save.more": ["쪽 고르기와 글자 없는 사본", "Choose pages, or a text-free copy"],
+  "save.range": ["저장할 쪽", "Pages to save"],
+  "save.range.ph": ["모든 쪽", "All pages"],
+  "save.range.hint": ["비워 두면 모든 쪽을 저장합니다. 몇 쪽만 저장하려면 1~3, 5처럼 적으세요. 이 문서는 {n}쪽입니다.", "Leave it empty to save every page. To save only some, type for example 1-3, 5. This document has {n} pages."],
+  "save.range.bad": ["쪽 번호를 알아볼 수 없습니다. 1부터 {n} 사이의 번호를 1~3, 5처럼 적어 주세요.", "Those page numbers don't work. Use numbers from 1 to {n}, like 1-3, 5."],
+  "save.range.some": ["고른 {n}쪽만 새 PDF로 저장합니다. 원본과 보관함의 작업 내용은 그대로입니다.", pl("Only the chosen page goes into the new PDF. The original and your work in the Library stay as they are.", "Only the {n} chosen pages go into the new PDF. The original and your work in the Library stay as they are.")],
+  "save.rangeSuffix": ["_{r}쪽", "_p{r}"],
+  "save.tf": ["글자 없는 사본으로 저장", "Save as a text-free copy"],
+  "save.tfSuffix": ["_글자없는사본", "_text-free"],
+  "save.tf.explain": ["복사해 붙이기, 검색, PDF의 글자를 읽는 AI 도구는 아무것도 얻지 못하지만, 카메라나 글자 인식(OCR), 그림을 읽는 AI는 여전히 읽을 수 있고 화면 읽기 프로그램은 읽지 못합니다.", "Copy and paste, search and AI tools that read a PDF's text get nothing, but a camera, OCR or an AI that reads images can still read the picture, and screen readers can't read it either."],
+  "save.img.cover": ["가리기 상자가 있는 {list}쪽은 가린 내용이 파일에 남지 않도록 그림으로 바꿔 저장합니다.", pl("Page {list} has a cover box, so it's saved as a picture and what's under the box is really gone.", "Pages {list} have cover boxes, so they're saved as pictures and what's under the boxes is really gone.")],
+  "save.img.all": ["모든 쪽을 그림으로 바꿔 저장해서 파일에 글자가 남지 않습니다.", "Every page is saved as a picture, so the file keeps no text."],
+  "save.nothing.tf": ["글자 없는 사본 만들기", "Make a text-free copy"],
   "home.more.aria": ["{name} 작업 더 보기", "More actions for {name}"],
 
   // Android app (docs/design/android.md): a key + "@a" replaces the key there
@@ -2127,7 +2285,7 @@ const workOf = (r) => ({ n: r.overlays?.length || 0, at: r.editedAt || r.openedA
 // app work compared with the last saved file (both as the app knows them)
 function exportOf(r) {
   if (!r.export) return "none";
-  const dirty = r.exportedOverlays ? JSON.stringify(r.overlays || []) !== JSON.stringify(r.exportedOverlays) : (r.editedAt || 0) > (r.export.at || 0);
+  const dirty = (r.exportedOverlays ? JSON.stringify(r.overlays || []) !== JSON.stringify(r.exportedOverlays) : (r.editedAt || 0) > (r.export.at || 0)) || (r.edit?.at || 0) > (r.export.at || 0);
   return dirty ? "behind" : "same";
 }
 // what Finder says now (cached; refreshed on the 보관함 screen and when the window regains focus)
@@ -2198,7 +2356,7 @@ async function fingerprintPath(path, bytes) {
 }
 async function adoptSource(rec, bytes, fp) {
   await Store.putCopy(rec.id, bytes);
-  Object.assign(rec, { copy: true, copyHash: fp.hash, source: fp, size: bytes.byteLength });
+  Object.assign(rec, { copy: true, copyHash: fp.hash, source: fp, size: bytes.byteLength }); delete rec.edit;
   persistDocs(); fileChecks.set(rec.id, { ...(fileChecks.get(rec.id) || {}), source: "same" });
   if (S.rec?.id === rec.id) await openPdfBytes(bytes, rec.name, { recId: rec.id, quiet: true });
   else if (S.view === "home") renderHome();
@@ -2545,6 +2703,7 @@ function moreItems() {
   if (S.view === "home") items.push({ label: t("lib.items"), icon: "pen", fn: () => openSheet("home") });
   else {
     items.push({ label: t("open.new"), icon: "folder", fn: choosePdf }, { sep: true },
+      { label: t("pages.m.open"), icon: "pages", fn: openPagesDlg }, { label: t("cover.btn"), iconNode: svgIcon(PICONS.cover), fn: () => startCover() }, { sep: true },
       { label: t("ed.zoomIn"), icon: "zoomIn", fn: COMMANDS.zoomIn, keepFocus: true }, { label: t("ed.zoomOut"), icon: "zoomOut", fn: COMMANDS.zoomOut, keepFocus: true },
       { label: t("ed.fitW"), icon: "fitW", fn: COMMANDS.fitWidth }, { label: t("ed.fitP"), icon: "fitP", fn: COMMANDS.fitPage }, { label: t("ed.actual"), icon: "actual", fn: COMMANDS.actual });
   }
@@ -2691,6 +2850,7 @@ $("#bb-fit").addEventListener("click", () => { if (S.fit === "width") COMMANDS.f
 function handleBack() {
   hideTip();
   if (MENU.el) { closeMenu(); return true; }
+  if (COVER.drawing) { stopCoverDraw(); return true; }
   const dlg = $$("dialog[open]").pop();
   if (dlg) {
     if (dlg.id === "dlg-sealer" && SEAL.id && SEALER.mode !== "main" && !SEALER.busy) { sealerMode("main"); return true; }
@@ -2719,8 +2879,14 @@ function updateNear() {
   }
 }
 
-async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, exampleId = null, path = null, recId = null, stat = null, quiet = false } = {}) {
+async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, exampleId = null, path = null, recId = null, stat = null, quiet = false, keep = null, srcHash = null } = {}) {
   if (!pdfjsLib) { toast(t("engine.fail"), true); return false; }
+  // 1.3 pages: a document whose pages were changed in the app opens as the Library's copy, not the unchanged original
+  if (!sample && !recId) {
+    const h = await hashBytes(bytes), edited = h && S.docs.find((d) => d.edit && d.copy && (d.copyHash === h || d.source?.hash === h));
+    const copy = edited && (await Store.getCopy(edited.id));
+    if (copy) return openPdfBytes(new Uint8Array(copy), name, { path, stat, quiet, recId: edited.id, srcHash: h });
+  }
   let pdf;
   try {
     pdf = await pdfjsLib.getDocument({
@@ -2737,7 +2903,7 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
   thumbObserver?.disconnect(); thumbQueue = [];
   pagesEl.textContent = ""; thumbsEl.textContent = ""; overlayEls.clear();
   S.doc = { name, bytes, size: bytes.byteLength, pdf, isSample: sample, sampleLang, exampleId: sample ? exampleId || "freelance" : null, path };
-  S.overlays = []; S.history = []; S.future = []; S.sel = null; S.cur = 0;
+  S.overlays = []; S.history = keep?.history || []; S.future = keep?.future || []; S.sel = null; S.cur = 0;
 
   const pageObjs = await Promise.all(Array.from({ length: pdf.numPages }, (_, i) => pdf.getPage(i + 1)));
   S.pages = pageObjs.map((pg, i) => {
@@ -2748,7 +2914,7 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
     p.el.append(p.layer, el("span", { class: "pageno", text: `${i + 1}` }));
     pagesEl.append(p.el);
     const tc = el("canvas");
-    p.thumb = el("button", { class: "thumb", type: "button", "data-i": i, title: t("page.goto", { n: i + 1 }), "aria-label": t("page.goto", { n: i + 1 }), onclick: () => goToPage(i) },
+    p.thumb = el("button", { class: "thumb", type: "button", "data-i": i, draggable: isTouch() ? null : "true", title: t("page.goto", { n: i + 1 }), "aria-label": t("page.goto", { n: i + 1 }), onclick: () => goToPage(i) },
       el("div", { class: "thumb-box", style: `aspect-ratio:${p.w}/${p.h}` }, tc), el("span", { class: "thumb-num", text: `${i + 1}` }));
     p.thumbCanvas = tc;
     thumbsEl.append(p.thumb);
@@ -2772,13 +2938,13 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
       S.docs.unshift(rec);
       if (S.docs.length > MAX_DOCS) for (const old of S.docs.splice(MAX_DOCS)) Store.dropDoc(old.id);
     }
-    if (path) rec.source = { path, size: stat?.size ?? bytes.byteLength, mtime: stat?.mtime ?? null, hash };
+    if (path) rec.source = { path, size: stat?.size ?? bytes.byteLength, mtime: stat?.mtime ?? null, hash: srcHash || hash };
     if (!rec.copy) {
       Store.putCopy(rec.id, bytes).then(() => { rec.copy = true; rec.copyHash = hash; persistDocs(); persistDocs.flush(); })
         .catch(() => toast(t("open.copyFail"), true));
     }
     Object.assign(rec, { name, size: bytes.byteLength, pages: pdf.numPages, openedAt: now });
-    S.overlays = (rec.overlays || []).filter((o) => S.assets.has(o.assetId) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
+    S.overlays = (rec.overlays || []).filter((o) => (o.cover || S.assets.has(o.assetId)) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
     S.rec = rec; persistDocs(); persistDocs.flush();
     setTimeout(() => makeThumb(rec, S.pages[0]), 400);
     if (S.fs) checkRecordFiles(rec).then(() => { if (S.rec === rec) { syncDocBar(); syncDocTitle(); } });
@@ -2791,9 +2957,9 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
     }
   }
 
+  if (keep) S.overlays = keep.overlays; // 1.3 pages: the rebuilt document keeps its items and view
   $("#sample-bar").hidden = !sample;
-  S.fit = "width";
-  stage.scrollTop = 0; stage.scrollLeft = 0;
+  if (!keep) { S.fit = "width"; stage.scrollTop = 0; stage.scrollLeft = 0; }
   showEditor();
   layoutPages(); syncOverlays(); syncInspector(); syncUndo();
   return true;
@@ -2972,6 +3138,7 @@ function syncOverlays(positionsOnly = false) {
       const selected = o.id === S.sel;
       n.classList.toggle("sel", selected);
       n.classList.toggle("gan", !!o.gan); if (o.gan) n.dataset.side = o.gan.side; else delete n.dataset.side;
+      n.classList.toggle("cover", !!o.cover); if (o.cover) n.dataset.fill = o.cover; else delete n.dataset.fill;
       n.classList.toggle("gan-peer", !selected && !!o.gan && selO?.gan?.g === o.gan.g);
       n.setAttribute("aria-label", ovLabel(o)); n.setAttribute("aria-pressed", String(selected));
       if (selected && !n.querySelector(".h")) for (const k of ["tl", "tr", "bl", "br", "rot"]) n.append(el("div", { class: "h " + k, "data-h": k }));
@@ -2992,6 +3159,7 @@ function syncOverlays(positionsOnly = false) {
 function select(id) { if (S.sel === id) return; S.sel = id; syncOverlays(); syncInspector(); }
 // "Signature ‘Jordan Lee’, page 2": what a screen reader says for a placed item
 function ovLabel(o) {
+  if (o?.cover) return t("cover.aria", { fill: t(o.cover === "white" ? "cover.white" : "cover.black"), page: o.page + 1 });
   const a = S.assets.get(o?.assetId);
   if (o?.gan) return t("gan.aria", { name: a?.name || t("ov.item"), page: o.page + 1, other: o.page + (o.gan.side === "l" ? 2 : 0) });
   return t("ov.aria", { kind: kindLabel(a?.kind) || t("ov.item"), name: a?.name || t("ov.item"), page: (o?.page ?? 0) + 1 });
@@ -3023,7 +3191,7 @@ function endGesture() { ganFix(getOv(S.sel)); if (gestureBefore && !same(gesture
    the right edge of the page before the break; side "r" shows its right half against the left edge of the page
    after it, so the halves meet when the two pages lie side by side. The box is the visible half; the group moves,
    resizes and recolours as one (y, size, opacity, fx follow the piece being edited) and is removed as one. */
-const canGanin = (o) => !!o && !o.gan && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark";
+const canGanin = (o) => !!o && !o.gan && !o.cover && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark";
 function ganFix(src) {
   if (!src?.gan) return;
   for (const o of S.overlays) {
@@ -3065,14 +3233,16 @@ function ganinSel() {
 }
 function undo() {
   flushKeyGesture();
-  if (!S.history.length) return;
+  if (!S.history.length || PAGES.busy) return;
+  if (S.history[S.history.length - 1].pagesState) { swapPages("undo"); return; }
   S.future.push(snap()); S.overlays = S.history.pop();
   if (!getOv(S.sel)) S.sel = null;
   syncOverlays(); syncInspector(); syncUndo(); autosave();
 }
 function redo() {
   flushKeyGesture();
-  if (!S.future.length) return;
+  if (!S.future.length || PAGES.busy) return;
+  if (S.future[S.future.length - 1].pagesState) { swapPages("redo"); return; }
   S.history.push(snap()); S.overlays = S.future.pop();
   if (!getOv(S.sel)) S.sel = null;
   syncOverlays(); syncInspector(); syncUndo(); autosave();
@@ -3214,7 +3384,7 @@ pagesEl.addEventListener("pointermove", (e) => {
     const ay = cy0 - sx * (o0.w / 2) * s - sy * (o0.h / 2) * c;
     const dx = pt.x - ax, dy = pt.y - ay;
     let lw = (dx * c + dy * s) * sx, lh = (-dx * s + dy * c) * sy;
-    if (!e.shiftKey) { const k = Math.max(lw / o0.w, lh / o0.h); lw = o0.w * k; lh = o0.h * k; }
+    if (!e.shiftKey !== !!o.cover) { const k = Math.max(lw / o0.w, lh / o0.h); lw = o0.w * k; lh = o0.h * k; }
     lw = Math.max(MIN_PT, lw); lh = Math.max(MIN_PT, lh);
     const ncx = ax + sx * (lw / 2) * c - sy * (lh / 2) * s, ncy = ay + sx * (lw / 2) * s + sy * (lh / 2) * c;
     o.w = lw; o.h = lh; o.x = ncx - lw / 2; o.y = ncy - lh / 2;
@@ -3326,7 +3496,7 @@ function applyPinch() {
   const o = getOv(PINCH.id); if (!o) return;
   const o0 = PINCH.o0, k = c.d / PINCH.d0, ratio = o0.h / o0.w;
   const w = Math.max(MIN_PT, MIN_PT / ratio, o0.w * k), h = w * ratio;
-  let rot = o0.rot + (c.ang - PINCH.a0);
+  let rot = o.cover ? 0 : o0.rot + (c.ang - PINCH.a0);
   rot = ((Math.round(rot) % 360) + 360) % 360;
   for (const sd of [0, 90, 180, 270, 360]) if (Math.abs(rot - sd) < 4) rot = sd % 360;
   const cx = o0.x + o0.w / 2 + (c.m.x - PINCH.m0.x) / S.zoom, cy = o0.y + o0.h / 2 + (c.m.y - PINCH.m0.y) / S.zoom;
@@ -3442,6 +3612,7 @@ function syncInspector() {
           el("span", { class: "kbd", text: t("key.resize") }), el("span", { text: t("key.resize.d") }))));
     return;
   }
+  if (o.cover) { coverInspector(box, o); return; }
   const a = S.assets.get(o.assetId);
   const num = (key, label, unit, get, set) => {
     const input = el("input", { id: "f-" + key, inputmode: "decimal", value: get(), "aria-label": label });
@@ -3581,17 +3752,25 @@ async function getDownloads() {
   try { downloadsApi = window.claude?.use ? await window.claude.use("downloads") : null; } catch { downloadsApi = null; }
   return downloadsApi;
 }
-async function buildPdf() {
+// 1.3: pages (page indices to save, in order; all when null) and textFree (every page as a picture). Pages with a
+// cover box, and every page of a text-free copy, are rebuilt as pictures (rebuildForSave); then items go on top.
+async function buildPdf({ pages: only = null, textFree = false } = {}) {
   const { PDFDocument, degrees } = window.PDFLib;
-  let out;
-  try { out = await PDFDocument.load(S.doc.bytes, { updateMetadata: false }); }
-  catch (e) {
-    if (/encrypt/i.test(String(e?.message))) throw new Error(t("build.encrypted"));
-    throw new Error(t("build.odd"));
+  const keep = only || S.pages.map((p) => p.i), asPicture = picturePages(textFree);
+  const fresh = !!only || keep.some((i) => asPicture.has(i));
+  let out = null;
+  if (!fresh || keep.some((i) => !asPicture.has(i))) {
+    try { out = await PDFDocument.load(S.doc.bytes, { updateMetadata: false }); }
+    catch (e) {
+      if (/encrypt/i.test(String(e?.message))) throw new Error(t("build.encrypted"));
+      throw new Error(t("build.odd"));
+    }
   }
+  if (fresh) out = await rebuildForSave(out, keep, asPicture);
+  const where = new Map(keep.map((i, j) => [i, j]));
   const embedded = new Map(); const pages = out.getPages();
   for (const o of S.overlays) {
-    const a = S.assets.get(o.assetId); const p = S.pages[o.page]; if (!a || !p) continue;
+    const a = S.assets.get(o.assetId); const p = S.pages[o.page]; if (!a || !p || !where.has(o.page)) continue;
     const key = fxKey(a, o.fx) + (o.gan ? "|" + o.gan.side : "");
     if (!embedded.has(key)) {
       const r = await processed(a, o.fx);
@@ -3603,10 +3782,12 @@ async function buildPdf() {
       embedded.set(key, img);
     }
     // overlay box is in the page's displayed (rotated) space, y down; map its centre into PDF user space
-    const [pcx, pcy] = p.vp.convertToPdfPoint(o.x + o.w / 2, o.y + o.h / 2);
-    const theta = (((p.pg.rotate || 0) - o.rot) * Math.PI) / 180;
+    // (a page saved as a picture is upright, with its origin at the bottom left)
+    const flat = asPicture.has(o.page);
+    const [pcx, pcy] = flat ? [o.x + o.w / 2, p.h - (o.y + o.h / 2)] : p.vp.convertToPdfPoint(o.x + o.w / 2, o.y + o.h / 2);
+    const theta = (((flat ? 0 : p.pg.rotate || 0) - o.rot) * Math.PI) / 180;
     const c = Math.cos(theta), s = Math.sin(theta);
-    pages[o.page].drawImage(embedded.get(key), {
+    pages[where.get(o.page)].drawImage(embedded.get(key), {
       x: pcx + (-o.w / 2) * c - (-o.h / 2) * s, y: pcy + (-o.w / 2) * s + (-o.h / 2) * c,
       width: o.w, height: o.h, rotate: degrees((theta * 180) / Math.PI), opacity: o.opacity,
     });
@@ -3659,10 +3840,17 @@ function renderSaveSeal() {
   box.append(el("p", { class: "hint", style: "margin:0", text: t("save.seal.first") }),
     el("div", { class: "form-grid" }, el("label", {}, t("sealer.nameLbl"), input("save-seal-name", "sealName", "sealer.namePh")), el("label", {}, t("sealer.orgLbl"), input("save-seal-org", "sealOrg", "sealer.orgPh"))));
 }
-async function openSaveDialog() {
+async function openSaveDialog(opts = {}) {
   if (!S.doc || S.view !== "editor") return;
-  if (!S.overlays.length) { toast(t("save.nothing")); return; }
-  $("#save-name").value = S.rec?.export?.name ? stem(S.rec.export.name) : stem(S.doc.name) + t("save.suffix");
+  const { range = null, textFree = false } = opts instanceof Event ? {} : opts || {};
+  if (!S.overlays.length && !pagesEdited() && range == null && !textFree) { toast(t("save.nothing"), { actions: [{ label: t("save.nothing.tf"), fn: () => openSaveDialog({ textFree: true }) }] }); return; }
+  stopCoverDraw();
+  const some = range != null ? parseRange(range, S.pages.length) : null;
+  // a copy of some pages, or a text-free copy, is named apart from the document's own saved file
+  saveState.names = { plain: some ? stem(S.doc.name) + t("save.rangeSuffix", { r: rangeLabel(some) }) : S.rec?.export?.name ? stem(S.rec.export.name) : stem(S.doc.name) + t("save.suffix"), tf: stem(S.doc.name) + t("save.tfSuffix") };
+  $("#save-name").value = textFree ? saveState.names.tf : saveState.names.plain;
+  $("#save-range").value = range || ""; $("#save-textfree").checked = !!textFree; $("#save-more").open = range != null || !!textFree;
+  syncSaveExtras();
   saveState.dir = !S.fs ? null : OS.android && S.prefs.lastDir.saveTree ? S.prefs.lastDir.saveTree : S.rec?.export?.path ? dirname(S.rec.export.path) : S.rec?.source?.path ? dirname(S.rec.source.path) : S.prefs.lastDir.save || "~/Downloads";
   $("#save-dir-wrap").hidden = !S.fs;
   $("#save-dir").textContent = saveState.dir ? prettyDir(saveState.dir) : "";
@@ -3671,7 +3859,7 @@ async function openSaveDialog() {
   if (S.seal && SEAL.id === undefined) await loadSealIdentity();
   $("#save-seal").checked = !!S.prefs.sealOnSave; renderSaveSeal();
   $("#dlg-save").showModal();
-  const inp = $("#save-name"); inp.focus(); inp.select();
+  const inp = range != null ? $("#save-range") : $("#save-name"); inp.focus(); inp.select();
   checkSaveTarget();
 }
 $("#save-name").addEventListener("input", checkSaveTargetSoon);
@@ -3686,6 +3874,8 @@ $("#save-form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const name = cleanName($("#save-name").value); if (!name) return;
   const seal = sealOn(), msg = $("#save-msg"), ok = $("#save-ok");
+  const pages = parseRange($("#save-range").value, S.pages.length), textFree = $("#save-textfree").checked;
+  if (pages === false) { $("#save-more").open = true; syncSaveExtras(); $("#save-range").focus(); return; }
   if (S.seal) { S.prefs.sealOnSave = seal; persistPrefs(); }
   // first seal: make the identity before anything is built or written
   if (seal && !SEAL.id) {
@@ -3702,16 +3892,16 @@ $("#save-form").addEventListener("submit", async (e) => {
   const fileName = name + ".pdf";
   if (S.fs) { S.prefs.openAfterSave = $("#save-open").checked; persistPrefs(); }
   $("#dlg-save").close();
-  await performSave(fileName, saveState.dir, S.fs && $("#save-open").checked, { seal });
+  await performSave(fileName, saveState.dir, S.fs && $("#save-open").checked, { seal, pages, textFree });
 });
 let saving = false;
-async function performSave(fileName, dir, openAfter, { seal = false } = {}) {
+async function performSave(fileName, dir, openAfter, { seal = false, pages = null, textFree = false } = {}) {
   if (saving) return; saving = true;
   const btn = $("#btn-export"); const label = [...btn.childNodes];
   btn.disabled = true; btn.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
   const bb = $("#bb-save"), bbLabel = [...bb.childNodes]; bb.disabled = true; bb.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
   try {
-    let bytes = await buildPdf(), sealed = null;
+    let bytes = await buildPdf({ pages, textFree }), sealed = null;
     // seal the finished bytes; if that fails nothing is written
     if (seal) {
       try { bytes = new Uint8Array(await S.seal.sign(bytes, { lang: LANG, reason: t("seal.reason") })); }
@@ -3745,7 +3935,10 @@ async function performSave(fileName, dir, openAfter, { seal = false } = {}) {
       }
       toast(t(sealed ? "save.doneSealed" : "save.done", { file: fileName }));
     }
-    if (S.rec) {
+    if (S.rec && (pages || textFree)) { // some pages, or a text-free copy (1.3): listed among the saved files, not "the" saved file of this work
+      S.rec.exportLog = [...(S.rec.exportLog || []), { name: fileName, path: savedPath, at: Date.now(), ...(pages ? { part: true } : {}), ...(textFree ? { textFree: true } : {}), ...(sealed ? { sealed: true } : {}) }].slice(-20);
+      persistDocs();
+    } else if (S.rec) {
       // the saved file is an output only: the app keeps a fingerprint (of the sealed bytes, when sealed) to notice later edits in Finder, never reads it back
       autosave.flush();
       const at = Date.now(), seal = sealed ? { sealed } : {};
@@ -4237,6 +4430,532 @@ window.addEventListener("copy", (e) => {
   if (e.target.closest?.("input, textarea") || !S.sel || S.view !== "editor" || getOv(S.sel)?.gan) return;
   S.clip = { ...getOv(S.sel) }; e.preventDefault(); toast(t("copied"), { ms: 2200 });
 });
+
+/* ================================================================
+   1.3 Pages (쪽 정리) and cover boxes (가리기): docs/design/workflows.md, blocks 1 and 3.
+   A page edit rebuilds the document with pdf-lib (copyPages into a new document), keeps it as the
+   Library's copy and reloads it through openPdfBytes; the file the person opened is never written.
+   Placed items follow their page (and turn with it); a page edit is one undo step that holds the
+   previous bytes and items. A cover box is a placed item ({ cover: "black" | "white" }, no asset):
+   on save its page is rendered as a picture with the box burned in (pagePicture), so what was under
+   it is gone from the file; the text-free copy does the same for every page.
+   ================================================================ */
+const A4 = [595.28, 841.89];
+const PAGE_MARGIN = 12 * PT_PER_MM, SHEET_GAP = 6 * PT_PER_MM, SHEET_PER = [1, 2, 4, 6];
+const PICTURE_DPI = 200;
+const PICONS = {
+  up: '<path d="M8 13V3.5M4 7.5l4-4 4 4"/>',
+  down: '<path d="M8 3v9.5M4 8.5l4 4 4-4"/>',
+  left: '<path d="M13 8H3.5M7.5 4l-4 4 4 4"/>',
+  right: '<path d="M3 8h9.5M8.5 4l4 4-4 4"/>',
+  rot: '<path d="M12.5 7.5a4.75 4.75 0 1 1-1.4-3.35"/><path d="M12.25 1.75v2.75H9.5"/>',
+  cover: '<path d="M2.5 4.5h11M2.5 11.5h7"/><rect x="4.5" y="6.25" width="9" height="3.5" rx=".5" fill="currentColor"/>',
+};
+const PAGES = { busy: false, refocus: null };
+const pagesEdited = () => !!(S.rec?.edit || S.doc?.pagesEdited);
+const pageState = () => ({ pagesState: true, bytes: S.doc.bytes, overlays: snap(), edit: S.rec?.edit || null });
+function syncPagesBusy(on) {
+  PAGES.busy = on;
+  const list = $("#pg-list"); if (on) list.setAttribute("aria-busy", "true"); else list.removeAttribute("aria-busy");
+  for (const b of $$("#pg-add-pdf, #pg-add-img, #pg-save-range")) b.disabled = on;
+  $("#pg-status").textContent = on ? t("pages.busy") : "";
+}
+
+// a quarter turn clockwise of the page (W × H before the turn) carries an item's box along (display space, y down)
+function turnBox(o, W, H) {
+  const cx = o.x + o.w / 2, cy = o.y + o.h / 2, ncx = H - cy, ncy = cx;
+  if (o.cover) [o.w, o.h] = [o.h, o.w]; // a cover box stays an upright rectangle
+  else o.rot = ((o.rot || 0) + 90) % 360;
+  o.x = ncx - o.w / 2; o.y = ncy - o.h / 2;
+}
+
+// plan: one entry per page of the new document, in order: { from: i, turn: 0..3 } (a page of this document),
+// { ext: k } (page k of `ext`, another loaded document) or { imgs: [...], per } (an A4 page of pictures)
+async function applyPagePlan(plan, { ext = null, focus = null, done = null, toastDone = false, onUndo = false } = {}) {
+  if (PAGES.busy || !S.doc || !window.PDFLib) return null;
+  syncPagesBusy(true); autosave.flush();
+  const { PDFDocument, degrees } = window.PDFLib;
+  try {
+    let src;
+    try { src = await PDFDocument.load(S.doc.bytes, { updateMetadata: false }); }
+    catch (e) { toast(t(/encrypt/i.test(String(e?.message)) ? "pages.locked" : "pages.fail"), true); return null; }
+    const out = await PDFDocument.create({ updateMetadata: false });
+    const own = [...new Set(plan.filter((s) => s.from != null).map((s) => s.from))];
+    const copied = new Map((own.length ? await out.copyPages(src, own) : []).map((pg, k) => [own[k], pg]));
+    const extIdx = plan.filter((s) => s.ext != null).map((s) => s.ext);
+    const extPages = ext && extIdx.length ? await out.copyPages(ext, extIdx) : [];
+    let e = 0;
+    for (const s of plan) {
+      if (s.from != null) {
+        const pg = copied.get(s.from);
+        if (s.turn) pg.setRotation(degrees((((pg.getRotation().angle + 90 * s.turn) % 360) + 360) % 360));
+        out.addPage(pg);
+      } else if (s.ext != null) out.addPage(extPages[e++]);
+      else if (s.imgs) await addPicturePage(out, s.imgs, s.per || s.imgs.length);
+    }
+    const title = src.getTitle?.(); if (title) out.setTitle(title);
+    const bytes = await out.save({ useObjectStreams: true });
+
+    // items follow their page; a 간인 is laid again across the new page breaks
+    const before = pageState(), where = new Map();
+    plan.forEach((s, j) => { if (s.from != null) where.set(s.from, j); });
+    const items = [], gans = new Map();
+    let dropped = 0;
+    for (const o0 of before.overlays) {
+      const p0 = S.pages[o0.page]; if (!p0) continue;
+      if (o0.gan) {
+        if (!gans.has(o0.gan.g)) gans.set(o0.gan.g, { assetId: o0.assetId, fullW: o0.w * 2, yFrac: (o0.y + o0.h / 2) / p0.h, fx: { ...o0.fx }, opacity: o0.opacity });
+        continue;
+      }
+      const j = where.get(o0.page);
+      if (j == null) { dropped++; continue; }
+      const o = { ...o0, fx: { ...o0.fx }, page: j };
+      let W = p0.w, H = p0.h;
+      for (let k = 0; k < (plan[j].turn || 0); k++) { turnBox(o, W, H); [W, H] = [H, W]; }
+      items.push(o);
+    }
+    if (S.rec) {
+      try { await Store.putCopy(S.rec.id, bytes); } catch { toast(t("pages.copyFail"), true); return null; }
+      Object.assign(S.rec, { edit: { at: Date.now() }, overlays: items, editedAt: Date.now() }); persistDocs(); // the copy and its items stay in step
+    }
+    const history = [...S.history, before].slice(-150);
+    if (!(await reloadDoc(bytes, items, { history, future: [], focus, gans: [...gans.values()] }))) return null;
+    if (done) { announce(done); if (toastDone) toast(done, onUndo ? { ms: 8000, actions: [{ label: t("undo"), fn: () => { if (S.history[S.history.length - 1] === before) undo(); } }] } : {}); }
+    return { dropped };
+  } catch (e) {
+    console.warn("pages", e); toast(t("pages.fail"), true); return null;
+  } finally { syncPagesBusy(false); if ($("#dlg-pages").open) renderPagesDlg(); }
+}
+// the rebuilt document in place of the old one: same view, the given items and undo history
+async function reloadDoc(bytes, overlays, { history, future, focus = null, gans = [] }) {
+  const d = S.doc, top = stage.scrollTop;
+  const ok = await openPdfBytes(bytes, d.name, { sample: d.isSample, sampleLang: d.sampleLang, exampleId: d.exampleId, path: d.path, recId: S.rec?.id || null, quiet: true, keep: { overlays, history, future } });
+  if (!ok) return false;
+  S.doc.pagesEdited = true;
+  for (const g of gans) S.overlays.push(...ganPieces(g.assetId, g.fullW, g.yFrac, g));
+  syncOverlays(); syncInspector(); syncUndo(); autosave();
+  if (focus != null && S.pages[focus]) stage.scrollTop = Math.max(0, S.pages[focus].el.offsetTop - 16);
+  else stage.scrollTop = top;
+  updateCurrentPage(); scheduleRender();
+  return true;
+}
+// undo and redo of a page edit: swap in the other bytes and items (and keep the Library's copy in step)
+async function swapPages(dir) {
+  if (PAGES.busy) return;
+  const history = [...S.history], future = [...S.future];
+  const entry = dir === "undo" ? history.pop() : future.pop();
+  const cur = pageState();
+  if (dir === "undo") future.push(cur); else history.push(cur);
+  syncPagesBusy(true);
+  try {
+    if (S.rec) {
+      try { await Store.putCopy(S.rec.id, entry.bytes); } catch { toast(t("pages.copyFail"), true); return; }
+      if (entry.edit) S.rec.edit = entry.edit; else delete S.rec.edit;
+    }
+    await reloadDoc(entry.bytes, entry.overlays, { history, future });
+  } finally { syncPagesBusy(false); if ($("#dlg-pages").open) renderPagesDlg(); }
+}
+
+/* ---------- the page operations ---------- */
+const allPages = () => S.pages.map((p) => ({ from: p.i }));
+function movePageTo(from, to) {
+  to = clamp(to, 0, S.pages.length - 1);
+  if (to === from || PAGES.busy) return;
+  const order = S.pages.map((p) => p.i); order.splice(from, 1); order.splice(to, 0, from);
+  return applyPagePlan(order.map((i) => ({ from: i })), { done: t("pages.moved", { from: from + 1, to: to + 1 }) });
+}
+// dropped on page `target`, before or after it
+const dropIndex = (from, target, before) => { let to = target + (before ? 0 : 1); if (from < to) to--; return to; };
+function rotatePage(i) {
+  if (PAGES.busy) return;
+  return applyPagePlan(S.pages.map((p) => ({ from: p.i, turn: p.i === i ? 1 : 0 })), { done: t("pages.rotated", { n: i + 1 }) });
+}
+async function deletePage(i) {
+  if (PAGES.busy) return;
+  if (S.pages.length < 2) { toast(t("pages.onlyOne")); return; }
+  const k = S.overlays.filter((o) => o.page === i && !o.gan).length;
+  return applyPagePlan(allPages().filter((s) => s.from !== i), { done: t("pages.deleted", { n: i + 1, k }), toastDone: true, onUndo: true });
+}
+async function addPagesFromPdfBytes(bytes, name) {
+  const { PDFDocument } = window.PDFLib;
+  let ext;
+  try { ext = await PDFDocument.load(bytes, { updateMetadata: false }); }
+  catch (e) { toast(/encrypt/i.test(String(e?.message)) ? t("pages.locked") : t("open.readFail", { name }), true); return; }
+  const n = ext.getPageCount(); if (!n) return;
+  return applyPagePlan([...allPages(), ...Array.from({ length: n }, (_, k) => ({ ext: k }))], { ext, focus: S.pages.length, done: t("pages.added", { n }), toastDone: true });
+}
+async function addPagesFromPdf() {
+  if (S.fs) {
+    const picked = await browse({ kind: "pdf", title: t("pages.pickPdf") });
+    if (!picked?.length) return;
+    try {
+      const st = await S.fs.stat(picked[0]).catch(() => null);
+      if (st?.size > 300 * 1048576) { toast(t("open.tooBig"), true); return; }
+      await addPagesFromPdfBytes(new Uint8Array(await S.fs.readFile(picked[0])), basename(picked[0]));
+    } catch { toast(t("open.readFail", { name: basename(picked[0]) }), true); }
+    return;
+  }
+  const inp = $("#file-pagepdf"); inp.value = ""; inp.click();
+}
+$("#file-pagepdf").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  if (f.size > 300 * 1048576) { toast(t("open.tooBig"), true); return; }
+  await addPagesFromPdfBytes(new Uint8Array(await readFile(f, "buffer")), f.name);
+});
+async function addPagesFromImages() {
+  if (S.fs) {
+    const picked = await browse({ kind: "image", multiple: true, title: t("pages.pickImg") });
+    if (!picked?.length) return;
+    const items = [];
+    for (const p of picked) { try { items.push({ name: basename(p), src: await bytesToDataURL(await S.fs.readFile(p), mimeOf(p)) }); } catch { toast(t("open.readFail", { name: basename(p) }), true); } }
+    return imagesToPages(items);
+  }
+  const inp = $("#file-pageimg"); inp.value = ""; inp.click();
+}
+$("#file-pageimg").addEventListener("change", async (e) => {
+  const items = [];
+  for (const f of e.target.files) {
+    if (f.size > 25 * 1048576) { toast(t("img.tooBig", { name: f.name }), true); continue; }
+    items.push({ name: f.name, src: await readFile(f, "url") });
+  }
+  imagesToPages(items);
+});
+// each picture (re-encoded through a canvas, so a phone photo's orientation is applied) on an A4 portrait page,
+// or `per` of them on one page in a grid: a receipts sheet
+async function imagesToPages(items) {
+  const per = SHEET_PER.includes(S.prefs.sheetPer) ? S.prefs.sheetPer : 1, imgs = [];
+  for (const it of items) {
+    try { imgs.push(await pictureOf(it.src, per > 2 ? 1600 : 2400)); }
+    catch { toast(t("img.cantRead", { name: it.name || t("img.default") }), true); }
+  }
+  if (!imgs.length) return;
+  const sheets = []; for (let i = 0; i < imgs.length; i += per) sheets.push(imgs.slice(i, i + per));
+  return applyPagePlan([...allPages(), ...sheets.map((imgs) => ({ imgs, per }))], { focus: S.pages.length, done: t("pages.added", { n: sheets.length }), toastDone: true });
+}
+async function pictureOf(src, maxSide) {
+  const img = await loadImage(src);
+  const k = Math.min(1, maxSide / Math.max(img.naturalWidth, img.naturalHeight));
+  const w = Math.max(1, Math.round(img.naturalWidth * k)), h = Math.max(1, Math.round(img.naturalHeight * k));
+  const c = canvasOf(w, h), g = c.getContext("2d");
+  g.fillStyle = "#fff"; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+  const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.9));
+  return { bytes: new Uint8Array(await blob.arrayBuffer()), w, h };
+}
+// the grid (columns × rows) that shows these pictures largest
+function sheetGrid(imgs, per) {
+  const opts = { 1: [[1, 1]], 2: [[1, 2], [2, 1]], 4: [[2, 2]], 6: [[2, 3], [3, 2]] }[per] || [[1, 1]];
+  const [W, H] = A4, area = ([c, r]) => {
+    const cw = (W - 2 * PAGE_MARGIN - (c - 1) * SHEET_GAP) / c, ch = (H - 2 * PAGE_MARGIN - (r - 1) * SHEET_GAP) / r;
+    return imgs.reduce((s, im) => { const k = Math.min(cw / im.w, ch / im.h); return s + im.w * im.h * k * k; }, 0);
+  };
+  return opts.reduce((best, g) => (area(g) > area(best) ? g : best));
+}
+async function addPicturePage(out, imgs, per) {
+  const [W, H] = A4, page = out.addPage([W, H]);
+  const [cols, rows] = sheetGrid(imgs, per);
+  const cw = (W - 2 * PAGE_MARGIN - (cols - 1) * SHEET_GAP) / cols, ch = (H - 2 * PAGE_MARGIN - (rows - 1) * SHEET_GAP) / rows;
+  for (let k = 0; k < imgs.length; k++) {
+    const im = imgs[k], emb = await out.embedJpg(im.bytes), c = k % cols, r = Math.floor(k / cols);
+    const s = Math.min(cw / im.w, ch / im.h), w = im.w * s, h = im.h * s;
+    const x = PAGE_MARGIN + c * (cw + SHEET_GAP) + (cw - w) / 2, top = PAGE_MARGIN + r * (ch + SHEET_GAP) + (ch - h) / 2;
+    page.drawImage(emb, { x, y: H - top - h, width: w, height: h });
+  }
+}
+// "1-3, 5" (or 1~3) → page indices in order; null = every page; false = not understood
+function parseRange(str, n) {
+  const s = String(str || "").trim(); if (!s) return null;
+  const set = new Set();
+  for (const part of s.split(/[,，]/).map((x) => x.trim()).filter(Boolean)) {
+    const m = /^(\d+)(?:\s*[-~–—]\s*(\d+))?$/.exec(part); if (!m) return false;
+    let a = +m[1], b = m[2] ? +m[2] : a; if (a > b) [a, b] = [b, a];
+    if (a < 1 || b > n) return false;
+    for (let i = a; i <= b; i++) set.add(i - 1);
+  }
+  if (!set.size) return null;
+  const list = [...set].sort((x, y) => x - y);
+  return list.length === n ? null : list;
+}
+// page indices → "1-3,5" (for a file name)
+function rangeLabel(list) {
+  const out = [];
+  for (let k = 0; k < list.length; k++) {
+    let e = k; while (e + 1 < list.length && list[e + 1] === list[e] + 1) e++;
+    out.push(e > k ? `${list[k] + 1}-${list[e] + 1}` : `${list[k] + 1}`); k = e;
+  }
+  return out.join(",");
+}
+const pageList = (idx) => (LANG === "ko" ? idx.map((i) => i + 1).join(", ") : new Intl.ListFormat("en", { type: "conjunction" }).format(idx.map((i) => String(i + 1))));
+
+/* ---------- 쪽 정리 dialog ---------- */
+let pgThumbJob = Promise.resolve();
+function drawPageThumb(p, canvas, cssW) {
+  pgThumbJob = pgThumbJob.then(async () => {
+    if (!canvas.isConnected || !S.pages.includes(p)) return;
+    const vp = p.pg.getViewport({ scale: (cssW * Math.min(window.devicePixelRatio || 1, 2)) / p.w });
+    canvas.width = Math.ceil(vp.width); canvas.height = Math.ceil(vp.height);
+    const g = canvas.getContext("2d", { alpha: false });
+    if (p.thumbDone && p.thumbCanvas.width) { g.drawImage(p.thumbCanvas, 0, 0, canvas.width, canvas.height); return; }
+    try { await p.pg.render({ canvasContext: g, viewport: vp }).promise; } catch {}
+  }).catch(() => {});
+}
+function pageMenuItems(i) {
+  const n = S.pages.length;
+  return [
+    { label: t("pages.m.up"), iconNode: svgIcon(PICONS.up), disabled: i === 0, fn: () => movePageTo(i, i - 1) },
+    { label: t("pages.m.down"), iconNode: svgIcon(PICONS.down), disabled: i >= n - 1, fn: () => movePageTo(i, i + 1) },
+    { label: t("pages.m.rot"), iconNode: svgIcon(PICONS.rot), fn: () => rotatePage(i) },
+    { sep: true },
+    { label: t("pages.m.del"), icon: "trash", danger: true, disabled: n < 2, fn: () => deletePage(i) },
+    { sep: true },
+    { label: t("pages.m.open"), icon: "pages", fn: openPagesDlg },
+  ];
+}
+function renderPagesDlg() {
+  const list = $("#pg-list"), had = list.contains(document.activeElement) ? document.activeElement : null;
+  const keep = PAGES.refocus || (had ? { i: +had.closest(".pg-card")?.dataset.i, act: had.dataset.act || "go" } : null);
+  PAGES.refocus = null;
+  list.textContent = "";
+  $("#pg-hint").textContent = t(isTouch() ? "pages.hint.touch" : "pages.hint");
+  const per = SHEET_PER.includes(S.prefs.sheetPer) ? S.prefs.sheetPer : 1;
+  $("#pg-per").replaceChildren(...SHEET_PER.map((n) => el("button", { type: "button", "aria-pressed": String(n === per), "aria-label": t("pages.per.aria", { n }), onclick: () => { S.prefs.sheetPer = n; persistPrefs(); renderPagesDlg(); } }, t("pages.per.n", { n }))));
+  const counts = new Map(); for (const o of S.overlays) counts.set(o.page, (counts.get(o.page) || 0) + 1);
+  const n = S.pages.length, touch = isTouch(), cssW = touch ? 56 : 112;
+  for (const p of S.pages) {
+    const i = p.i, has = counts.has(i), cv = el("canvas");
+    const act = (key, label, ic, fn, disabled = false, danger = false) => el("button", { type: "button", class: "btn icon" + (danger ? " danger" : ""), "data-act": key, "aria-label": label, title: touch ? null : label, disabled: disabled || null, onclick: fn }, svgIcon(ic));
+    list.append(el("li", { class: "pg-card", "data-i": i, draggable: touch ? null : "true" },
+      el("button", { type: "button", class: "pg-thumb", "data-act": "go", "aria-label": t(has ? "pages.card.go.has" : "pages.card.go", { n: i + 1 }), onclick: () => { $("#dlg-pages").close(); goToPage(i); } },
+        el("span", { class: "pg-box", style: `aspect-ratio:${p.w}/${p.h}` }, cv, has ? el("i", { class: "dot", "aria-hidden": "true" }) : null),
+        el("span", { class: "pg-num", "aria-hidden": "true", text: t("pages.card", { n: i + 1 }) })),
+      el("div", { class: "pg-acts" },
+        act("up", t("pages.up", { n: i + 1 }), touch ? PICONS.up : PICONS.left, () => { PAGES.refocus = { i: i - 1, act: "up" }; movePageTo(i, i - 1); }, i === 0),
+        act("down", t("pages.down", { n: i + 1 }), touch ? PICONS.down : PICONS.right, () => { PAGES.refocus = { i: i + 1, act: "down" }; movePageTo(i, i + 1); }, i >= n - 1),
+        act("rot", t("pages.rot", { n: i + 1 }), PICONS.rot, () => { PAGES.refocus = { i, act: "rot" }; rotatePage(i); }),
+        act("del", t("pages.del", { n: i + 1 }), ICONS.trash, () => { PAGES.refocus = { i: Math.min(i, n - 2), act: "del" }; deletePage(i); }, n < 2, true))));
+    drawPageThumb(p, cv, cssW);
+  }
+  if (keep && Number.isFinite(keep.i)) {
+    const card = $(`.pg-card[data-i="${clamp(keep.i, 0, n - 1)}"]`, list);
+    const b = card && ([...card.querySelectorAll(`[data-act="${keep.act}"]`)].find((x) => !x.disabled) || card.querySelector("button:not(:disabled)"));
+    b?.focus({ preventScroll: true }); b?.scrollIntoView({ block: "nearest" });
+  }
+}
+function openPagesDlg() {
+  if (!S.doc || S.view !== "editor") return;
+  stopCoverDraw(); closeMenu(false); closeSheet(false);
+  PAGES.refocus = { i: S.cur, act: "go" };
+  const d = $("#dlg-pages"); if (!d.open) d.showModal();
+  renderPagesDlg();
+}
+// mouse: drag a card (dialog) or a thumbnail (rail) to a new place; a line shows where it lands
+function pageDnD(box, sel, vertical) {
+  let from = null;
+  const clear = () => { for (const n of box.querySelectorAll(".drop-before, .drop-after, .dragging")) n.classList.remove("drop-before", "drop-after", "dragging"); };
+  box.addEventListener("dragstart", (e) => {
+    const n = e.target.closest?.(sel); if (!n || PAGES.busy) return;
+    from = +n.dataset.i; e.dataTransfer.setData("text/x-pdfe-page", String(from)); e.dataTransfer.effectAllowed = "move"; n.classList.add("dragging");
+  });
+  box.addEventListener("dragover", (e) => {
+    if (from == null) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = "move";
+    const n = e.target.closest?.(sel); if (!n) return;
+    const r = n.getBoundingClientRect(), before = vertical ? e.clientY < r.top + r.height / 2 : e.clientX < r.left + r.width / 2;
+    for (const x of box.querySelectorAll(".drop-before, .drop-after")) if (x !== n) x.classList.remove("drop-before", "drop-after");
+    n.classList.toggle("drop-before", before); n.classList.toggle("drop-after", !before);
+  });
+  box.addEventListener("drop", (e) => {
+    if (from == null) return;
+    e.preventDefault();
+    const n = box.querySelector(".drop-before, .drop-after"), f = from; from = null;
+    const before = n?.classList.contains("drop-before"); clear();
+    if (!n) return;
+    const to = dropIndex(f, +n.dataset.i, before);
+    PAGES.refocus = { i: to, act: "go" };
+    movePageTo(f, to)?.then?.(() => { if (box === thumbsEl) S.pages[to]?.thumb.focus({ preventScroll: true }); });
+  });
+  box.addEventListener("dragend", () => { from = null; clear(); });
+}
+pageDnD($("#pg-list"), ".pg-card", false);
+pageDnD(thumbsEl, ".thumb", true);
+// the rail: right-click (or the context menu key) for a page's actions; ⌥↑ ⌥↓ move the focused page
+thumbsEl.addEventListener("contextmenu", (e) => {
+  const th = e.target.closest?.(".thumb"); if (!th || !S.doc) return;
+  e.preventDefault();
+  openMenu(pageMenuItems(+th.dataset.i), { at: { x: e.clientX, y: e.clientY }, label: t("page.n", { n: +th.dataset.i + 1 }) });
+});
+thumbsEl.addEventListener("keydown", (e) => {
+  const th = e.target.closest?.(".thumb"); if (!th) return;
+  const i = +th.dataset.i;
+  if (e.altKey && (e.key === "ArrowUp" || e.key === "ArrowDown")) {
+    e.preventDefault(); e.stopPropagation();
+    const to = i + (e.key === "ArrowUp" ? -1 : 1);
+    movePageTo(i, to)?.then?.(() => S.pages[clamp(to, 0, S.pages.length - 1)]?.thumb.focus({ preventScroll: true }));
+  } else if (e.key === "ContextMenu" || (e.shiftKey && e.key === "F10")) {
+    e.preventDefault(); e.stopPropagation();
+    const r = th.getBoundingClientRect();
+    openMenu(pageMenuItems(i), { at: { x: r.right, y: r.top + r.height / 2 }, label: t("page.n", { n: i + 1 }) });
+  }
+});
+$("#btn-pages").addEventListener("click", openPagesDlg);
+$("#pg-add-pdf").addEventListener("click", addPagesFromPdf);
+$("#pg-add-img").addEventListener("click", addPagesFromImages);
+$("#pg-save-range").addEventListener("click", () => {
+  $("#dlg-pages").close();
+  openSaveDialog({ range: String(S.cur + 1) });
+});
+
+/* ---------- cover boxes (가리기) ---------- */
+const COVER = { drawing: false, closeHint: null };
+const coverFill = () => (S.prefs.coverFill === "white" ? "white" : "black");
+// the toolbar button with a mouse: draw the box; the keyboard, the ⋮ menu and touch: a box in the middle of the page in view
+function startCover(e) {
+  if (!S.doc || S.view !== "editor") return;
+  if (COVER.drawing) { stopCoverDraw(); return; }
+  if (!e || !e.detail || isTouch()) { placeCover(); return; }
+  COVER.drawing = true; stage.classList.add("cover-draw"); $("#btn-cover").setAttribute("aria-pressed", "true");
+  select(null);
+  COVER.closeHint = toast(t("cover.draw"), { ms: 600000, actions: [{ label: t("cover.cancel"), fn: stopCoverDraw }] });
+}
+function stopCoverDraw() {
+  if (!COVER.drawing) return;
+  COVER.drawing = false; stage.classList.remove("cover-draw"); $("#btn-cover").setAttribute("aria-pressed", "false");
+  COVER.closeHint?.(); COVER.closeHint = null;
+}
+function placeCover(page = S.cur, box = null) {
+  const p = S.pages[page]; if (!p) return;
+  let { x, y, w, h } = box || {};
+  if (!box) {
+    w = Math.min(60 * PT_PER_MM, p.w * 0.6); h = 10 * PT_PER_MM;
+    const top = Math.max(stage.scrollTop, p.el.offsetTop), bottom = Math.min(stage.scrollTop + stage.clientHeight, p.el.offsetTop + p.el.offsetHeight);
+    const cy = clamp(((top + bottom) / 2 - p.el.offsetTop) / S.zoom, h / 2, p.h - h / 2);
+    x = (p.w - w) / 2; y = cy - h / 2;
+  }
+  const o = { id: uid(), cover: coverFill(), page, x, y, w, h, rot: 0, opacity: 1, fx: {} };
+  clampInside(o);
+  act(() => { S.overlays.push(o); S.sel = o.id; });
+  if (isCompact()) closeSheet(false);
+  overlayEls.get(o.id)?.focus({ preventScroll: true });
+  announce(t("ov.placed", { label: ovLabel(o) }));
+  return o;
+}
+$("#btn-cover").addEventListener("click", startCover);
+// drawing: press on a page and drag; the capture phase keeps the item gestures below out of it
+pagesEl.addEventListener("pointerdown", (e) => {
+  if (!COVER.drawing || e.button !== 0) return;
+  const pageEl = e.target.closest(".page"); if (!pageEl) return;
+  e.preventDefault(); e.stopPropagation();
+  const p = S.pages[+pageEl.dataset.i]; if (!p) return;
+  const a = pagePoint(p, e.clientX, e.clientY), ghost = el("div", { class: "ov cover ghost", "data-fill": coverFill() });
+  p.layer.append(ghost);
+  let b = { x: a.x, y: a.y, w: 0, h: 0 };
+  try { pageEl.setPointerCapture(e.pointerId); } catch {}
+  const move = (ev) => {
+    if (ev.pointerId !== e.pointerId) return;
+    const q = pagePoint(p, ev.clientX, ev.clientY), qx = clamp(q.x, 0, p.w), qy = clamp(q.y, 0, p.h);
+    b = { x: Math.min(a.x, qx), y: Math.min(a.y, qy), w: Math.abs(qx - a.x), h: Math.abs(qy - a.y) };
+    styleOverlay({ ...b, rot: 0, opacity: 1 }, ghost);
+  };
+  const up = (ev) => {
+    if (ev.pointerId !== e.pointerId) return;
+    pageEl.removeEventListener("pointermove", move); pageEl.removeEventListener("pointerup", up); pageEl.removeEventListener("pointercancel", up);
+    ghost.remove(); stopCoverDraw();
+    if (ev.type === "pointercancel") return;
+    if (b.w < 2 * PT_PER_MM && b.h < 2 * PT_PER_MM) { // a click: the usual size, centred there
+      const w = Math.min(60 * PT_PER_MM, p.w * 0.6), h = 10 * PT_PER_MM;
+      placeCover(p.i, { x: a.x - w / 2, y: a.y - h / 2, w, h });
+    } else placeCover(p.i, { x: b.x, y: b.y, w: Math.max(MIN_PT, b.w), h: Math.max(MIN_PT, b.h) });
+  };
+  pageEl.addEventListener("pointermove", move); pageEl.addEventListener("pointerup", up); pageEl.addEventListener("pointercancel", up);
+}, true);
+window.addEventListener("keydown", (e) => { if (COVER.drawing && e.key === "Escape") { e.preventDefault(); e.stopPropagation(); stopCoverDraw(); } }, true);
+// the inspector for a cover box: position and size (width and height apart), colour, and the usual actions
+function coverInspector(box, o) {
+  const field = (key, label, get, set) => {
+    const input = el("input", { id: "f-" + key, inputmode: "decimal", value: get(), "aria-label": label });
+    const commit = () => { const v = parseFloat(input.value); if (!Number.isFinite(v)) { input.value = get(); return; } act(() => { set(v); clampInside(o); }); };
+    input.addEventListener("change", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { commit(); input.blur(); } if (e.key === "Escape") { input.value = get(); input.blur(); } e.stopPropagation(); });
+    return el("div", { class: "field" }, el("label", { for: "f-" + key, text: label }), input, el("span", { class: "unit", text: "mm" }));
+  };
+  const size = (dim) => (v) => { const c = dim === "w" ? o.x + o.w / 2 : o.y + o.h / 2, s = Math.max(MIN_PT, v * PT_PER_MM); o[dim] = s; if (dim === "w") o.x = c - s / 2; else o.y = c - s / 2; };
+  const fills = [["black", "cover.black"], ["white", "cover.white"]];
+  box.append(
+    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: t("cover.title") }), el("span", { class: "hint", text: t("page.n", { n: o.page + 1 }) })),
+    el("p", { class: "hint", style: "margin:0 0 10px", text: t("cover.hint") }),
+    el("div", { class: "fields" },
+      field("x", "X", () => fmtMM(o.x), (v) => { o.x = v * PT_PER_MM; }), field("y", "Y", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
+      field("w", "W", () => fmtMM(o.w), size("w")), field("h", "H", () => fmtMM(o.h), size("h"))),
+    el("div", { class: "row" }, el("span", { class: "lbl", id: "f-cover-lbl", text: t("cover.fill") }),
+      el("div", { class: "seg", role: "group", "aria-labelledby": "f-cover-lbl" }, ...fills.map(([k, label]) => el("button", {
+        type: "button", "aria-pressed": String(o.cover === k), onclick: () => { S.prefs.coverFill = k; persistPrefs(); act(() => { o.cover = k; }); },
+      }, t(label))))),
+    el("div", { class: "actions" },
+      el("button", { class: "btn", type: "button", onclick: duplicateSel, title: kbd("⌘D") }, icon("copy"), t("insp.dup")),
+      el("button", { class: "btn", type: "button", onclick: () => centerSel(), title: t("insp.center.tip") }, icon("center"), t("insp.center")),
+      el("button", { class: "btn wide", type: "button", onclick: applyToAllPages, disabled: S.pages.length < 2 }, icon("pages"), t("insp.all")),
+      el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("insp.delete"))));
+}
+
+/* ---------- saving: pages as pictures (cover boxes, the text-free copy) and a range of pages ---------- */
+// the pages that are saved as pictures: those with a cover box, or every page for the text-free copy
+const picturePages = (textFree) => new Set(textFree ? S.pages.map((p) => p.i) : S.overlays.filter((o) => o.cover && S.pages[o.page]).map((o) => o.page));
+// the page as it looks (annotations included) at about 200 dpi, with its cover boxes burned in
+async function pagePicture(p) {
+  let s = PICTURE_DPI / 72; const px = p.w * p.h * s * s; if (px > MAX_CANVAS_PX) s *= Math.sqrt(MAX_CANVAS_PX / px);
+  const vp = p.pg.getViewport({ scale: s });
+  const c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height)), g = c.getContext("2d", { alpha: false });
+  g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+  await p.pg.render({ canvasContext: g, viewport: vp, annotationMode: pdfjsLib.AnnotationMode.ENABLE }).promise;
+  for (const o of S.overlays) {
+    if (!o.cover || o.page !== p.i) continue;
+    g.save(); g.translate((o.x + o.w / 2) * s, (o.y + o.h / 2) * s); g.rotate(((o.rot || 0) * Math.PI) / 180);
+    g.fillStyle = o.cover === "white" ? "#fff" : "#000";
+    g.fillRect((-o.w / 2) * s - 1, (-o.h / 2) * s - 1, o.w * s + 2, o.h * s + 2); // a pixel past the edge: nothing peeks out
+    g.restore();
+  }
+  const blob = await new Promise((r) => c.toBlob(r, "image/jpeg", 0.9));
+  c.width = 0; c.height = 0;
+  return new Uint8Array(await blob.arrayBuffer());
+}
+// a new document with only the kept pages (copied with what they use, nothing else); picture pages are drawn
+// from pdf.js, so nothing of their original content (text, vectors, images) reaches the file
+async function rebuildForSave(src, keep, asPicture) {
+  const { PDFDocument } = window.PDFLib;
+  const out = await PDFDocument.create({ updateMetadata: false });
+  const own = keep.filter((i) => !asPicture.has(i));
+  const copied = src && own.length ? await out.copyPages(src, own) : [];
+  let k = 0;
+  for (const i of keep) {
+    if (!asPicture.has(i)) { out.addPage(copied[k++]); continue; }
+    const p = S.pages[i], img = await out.embedJpg(await pagePicture(p));
+    out.addPage([p.w, p.h]).drawImage(img, { x: 0, y: 0, width: p.w, height: p.h });
+  }
+  return out;
+}
+function syncSaveExtras() {
+  if (!S.doc) return;
+  const n = S.pages.length, range = parseRange($("#save-range").value, n), tf = $("#save-textfree").checked;
+  const hint = $("#save-range-hint");
+  hint.classList.toggle("warn", range === false);
+  hint.textContent = range === false ? t("save.range.bad", { n }) : range ? t("save.range.some", { n: range.length }) : t("save.range.hint", { n });
+  const keep = range || S.pages.map((p) => p.i), pics = picturePages(tf), shown = keep.filter((i) => pics.has(i));
+  const note = $("#save-img-note");
+  note.textContent = tf ? t("save.img.all") : shown.length ? t("save.img.cover", { list: pageList(shown), n: shown.length }) : "";
+  note.hidden = !note.textContent;
+}
+$("#save-range").addEventListener("input", syncSaveExtras);
+$("#save-textfree").addEventListener("change", () => {
+  const inp = $("#save-name"), tf = $("#save-textfree").checked, n = saveState.names;
+  if (n && inp.value === (tf ? n.plain : n.tf)) { inp.value = tf ? n.tf : n.plain; checkSaveTarget(); }
+  syncSaveExtras();
+});
+// what changes with the language (rerenderAll)
+function syncPagesText() {
+  if ($("#dlg-pages").open) renderPagesDlg();
+  if ($("#dlg-save").open) syncSaveExtras();
+  if (COVER.drawing) { COVER.closeHint?.(); COVER.closeHint = toast(t("cover.draw"), { ms: 600000, actions: [{ label: t("cover.cancel"), fn: stopCoverDraw }] }); }
+}
+queueMicrotask(() => Object.assign(window.__pdfe || {}, { applyPagePlan, movePageTo, rotatePage, deletePage, imagesToPages, addPagesFromPdfBytes, openPagesDlg, placeCover, startCover, parseRange, picturePages }));
 
 /* ================================================================
    Keyboard
@@ -5636,6 +6355,7 @@ function rerenderAll() {
   if ($("#dlg-licenses").open && LIC) openLicenses($("#lic-select").value);
   if ($("#dlg-save").open) { renderSaveSeal(); checkSaveTarget(); }
   if ($("#dlg-text").open) textPresets();
+  syncPagesText();
   if ($("#dlg-files").open) { fbRenderChrome(); fbRenderList(); const [ttl, ok] = fbText(FB.kind); $("#fb-ok").textContent = ok; if (!FB.title) $("#fb-title").textContent = ttl; }
   if ($("#dlg-verify").open) renderVerify();
   if ($("#dlg-sealer").open) renderSealer();
