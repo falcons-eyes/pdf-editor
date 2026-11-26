@@ -4,9 +4,9 @@
 
 **PDF에 서명과 도장을 놓고 새 파일로 저장하세요. 봉인해 두면 나중에 고친 티가 납니다.**
 
-Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로드도 필요 없습니다. 파일은 내 컴퓨터 밖으로 나가지 않습니다.
+Mac·Windows용 무료 소스 공개 앱이고, Android와 앱 스토어 버전도 곧 나옵니다. 출력도, 스캔도, 업로드도, 계정도 필요 없습니다. 파일은 내 기기 밖으로 나가지 않습니다.
 
-[**다운로드 (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [사용법](#3단계면-끝) · [봉인](#봉인-고치면-티가-나는-pdf) · [처음 열 때 안내](#처음-열-때-안내) · [English](README.md)
+[**다운로드 (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [웹사이트](https://sealworks.falconoon.com/ko/) · [사용법](#3단계면-끝) · [예시](#이럴-때-쓰세요) · [봉인](#봉인-고치면-티가-나는-pdf) · [처음 열 때 안내](#처음-열-때-안내) · [English](README.md)
 
 <img src="docs/images/demo-ko.gif" alt="집주인이 보낸 월세 계약서를 보관함에서 열고, 서명과 도장을 끌어다 놓은 뒤 간인을 찍고 새 파일로 저장하는 모습" width="900">
 
@@ -30,6 +30,25 @@ Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로�
 1. **PDF 열기**: `새 PDF 열기`를 누르거나, PDF를 창에 끌어다 놓습니다.
 2. **서명·도장 놓기**: 오른쪽 `서명 · 도장` 목록에서 하나를 누르거나, 원하는 자리로 끌어다 놓습니다. 모서리를 끌면 크기가, 위쪽 동그라미를 끌면 각도가 바뀝니다.
 3. **새 파일로 저장**: `파일로 저장`을 누르면 원본 옆에 `계약서_서명.pdf`처럼 이름 뒤에 `_서명`이 붙은 새 PDF가 생깁니다. 원본은 그대로입니다. 나중에 고친 티가 나게 하려면 `봉인해서 저장`을 켭니다.
+
+## 이럴 때 쓰세요
+
+보관함 첫 화면의 예시 갤러리에서 열 가지 상황을 한국어·영어 예시 문서로 바로 열어 볼 수 있습니다. 그중 여섯 가지, 서명과 도장을 넣은 모습입니다.
+
+<table>
+  <tr>
+    <td width="50%"><img src="site/assets/uses/lease-ko.webp" alt="임대인과 임차인의 서명이 들어간 월세 계약서"><br><b>집주인이 월세 계약서를 메일로 보냈을 때</b><br>출력하지 않고 서명과 도장을 넣어서 바로 돌려보내요.</td>
+    <td width="50%"><img src="site/assets/uses/parttime-ko.webp" alt="사업주와 근로자가 서명한 근로계약서"><br><b>알바생 근로계약서를 받아야 할 때</b><br>매장 태블릿에서 바로 서명받고 사장님 도장까지 찍어요.</td>
+  </tr>
+  <tr>
+    <td><img src="site/assets/uses/quote-ko.webp" alt="공급자 칸에 회사 직인을 찍은 견적서"><br><b>견적서를 오늘 안에 보내야 할 때</b><br>회사 직인 사진의 흰 배경을 지우고 깔끔하게 찍어요.</td>
+    <td><img src="site/assets/uses/school-ko.webp" alt="동의 칸에 체크하고 보호자가 서명한 현장체험학습 신청서"><br><b>아이 현장체험학습 신청서를 낼 때</b><br>사진 찍어 보내지 말고 체크 표시와 보호자 서명을 깔끔하게 넣어요.</td>
+  </tr>
+  <tr>
+    <td><img src="site/assets/uses/expense-ko.webp" alt="결재란 담당 칸에 도장을 찍은 문서"><br><b>지출결의서에 결재 도장을 찍을 때</b><br>여러 쪽의 같은 자리에 도장을 한 번에 찍어요.</td>
+    <td><img src="site/assets/uses/freelance-ko.webp" alt="을의 서명과 회사 도장이 들어간 용역 계약서"><br><b>용역 계약서를 주고받을 때</b><br>서명하고 봉인해 두면 나중에 고쳐진 곳이 있는지 바로 알 수 있어요.</td>
+  </tr>
+</table>
 
 ## 봉인: 고치면 티가 나는 PDF
 
@@ -74,6 +93,9 @@ Mac·Windows용 무료 소스 공개 앱입니다. 출력도, 스캔도, 업로�
 | **글자·날짜 도장** | 이름, 오늘 날짜, `(인)`, `사본` 같은 글자를 고딕·손글씨·명조로 만듭니다. |
 | **자리 맞추기** | 크기, 회전, 불투명도, 잉크 색. mm 단위로 위치를 적을 수도 있고, 맞춤선이 도와 줍니다. |
 | **여러 쪽** | 고른 항목을 다른 쪽에 복사하거나, `모든 쪽의 같은 위치에 넣기`로 한 번에 넣습니다. |
+| **간인** | 쪽 경계에 걸쳐 도장을 찍으면 쪽마다 반쪽씩 들어가고, 저장한 PDF에도 그대로 남습니다. |
+| **체크 표시** | 글자 도장 창의 ✓ ✗ ○ 버튼으로 서식의 체크 칸 크기에 맞춰 넣습니다. |
+| **예시 갤러리** | 보관함 첫 화면에서 월세 계약서부터 비밀유지 서약서까지 열 가지 예시 문서를 바로 열어 봅니다. [위의 예시](#이럴-때-쓰세요)를 보세요. |
 | **한 번 등록하면 계속** | 등록한 서명·도장은 남아 있어서 다음 문서에서 바로 다시 씁니다. |
 | **봉인해서 저장** | 위·변조를 확인할 수 있는 디지털 서명을 넣어, 나중에 고치면 티가 나게 합니다. [위의 설명](#봉인-고치면-티가-나는-pdf)을 보세요. |
 | **보관함이 자동 저장** | 연 문서와 놓아 둔 서명은 앱에 자동으로 저장됩니다. 나중에 이어서 고칠 수 있습니다. 문서마다 `저장 전` · `파일 저장됨` · `확인 필요`로 상태를 보여 줍니다. |
@@ -104,12 +126,12 @@ Windows (1.1 버전, Windows 빌드 서버에서 찍은 영어 화면)
 
 | 컴퓨터 | 받을 파일 |
 | --- | --- |
-| Mac (Apple Silicon: M1, M2, M3, M4…), macOS 13 이상 | `Sealworks-1.1.0-arm64.dmg` |
-| Mac (Intel), macOS 13 이상 | `Sealworks-1.1.0-x64.dmg` |
-| Windows 10 · 11 (64비트) | `Sealworks-1.1.0-setup-x64.exe` (설치형) |
-| Windows, 설치 없이 | `Sealworks-1.1.0-portable-x64.exe` (바로 실행) |
+| Mac (Apple Silicon: M1, M2, M3, M4…), macOS 13 이상 | `Sealworks-1.2.0-arm64.dmg` |
+| Mac (Intel), macOS 13 이상 | `Sealworks-1.2.0-x64.dmg` |
+| Windows 10 · 11 (64비트) | `Sealworks-1.2.0-setup-x64.exe` (설치형) |
+| Windows, 설치 없이 | `Sealworks-1.2.0-portable-x64.exe` (바로 실행) |
 
-Mac App Store: 곧 나옵니다.
+Mac App Store, Microsoft Store, Google Play(Android 8 이상): 곧 나옵니다. 스토어 버전은 다른 앱처럼 설치하고 업데이트합니다.
 
 > 내 Mac이 어느 쪽인지 모르겠다면: 화면 왼쪽 위 사과 메뉴 › **이 Mac에 관하여**에서 `칩`이 Apple M…이면 Apple Silicon, `프로세서`가 Intel…이면 Intel입니다.
 
@@ -154,7 +176,8 @@ xattr -dr com.apple.quarantine "/Applications/Sealworks.app"
 
 앱 이름이 PDF Editor였을 때의 폴더 이름을 그대로 씁니다. 그래서 1.0에서 업데이트해도 문서가 모두 남아 있습니다. 보관함을 완전히 지우려면 앱을 닫고 이 폴더를 지우면 됩니다. 앱을 삭제해도 이 폴더는 남아 있습니다.
 
-- 봉인 키는 이 폴더 안의 `seal` 폴더에, macOS 키체인이나 Windows(DPAPI)가 지키는 키로 암호화해서 저장합니다. 컴퓨터 밖으로 나가지 않습니다. 다만 봉인한 PDF에는 내 이름, 인증서 지문, 봉인 시각이 들어가므로, 파일을 받는 사람도 볼 수 있습니다.
+- Android에서는 보관함이 다른 앱이 읽을 수 없는 앱 전용 저장공간에 있고, 앱을 삭제하면 함께 지워집니다.
+- 봉인 키는 이 폴더 안의 `seal` 폴더에, macOS 키체인, Windows(DPAPI), Android 키 저장소(Keystore)가 지키는 키로 암호화해서 저장합니다. 기기 밖으로 나가지 않습니다. 다만 봉인한 PDF에는 내 이름, 인증서 지문, 봉인 시각이 들어가므로, 파일을 받는 사람도 볼 수 있습니다.
 
 자세한 내용은 [개인정보 처리방침](PRIVACY.md#한국어)과 [이용약관](https://sealworks.falconoon.com/ko/terms/)을 보세요.
 
@@ -176,6 +199,16 @@ npm run dist:win    # desktop/dist/ 에 설치형·실행형 EXE
 
 자세한 내용은 [desktop/README.md](desktop/README.md)를 보세요.
 
+Android 앱은 같은 화면을 감싼 작은 Capacitor 앱입니다. JDK 21(Android Studio에 들어 있는 것도 됩니다)과 Android SDK가 필요합니다.
+
+```sh
+cd mobile
+npm ci
+npm run apk         # mobile/android/app/build/outputs/apk/debug/ 에 디버그 APK
+```
+
+자세한 내용은 [mobile/README.md](mobile/README.md)를 보세요.
+
 - 화면은 [web/pdf-editor.html](web/pdf-editor.html) 한 파일입니다. `python3 web/dev_server.py`로 브라우저에서 미리 볼 수 있습니다.
 - README 이미지는 [docs/tools/render.sh](docs/tools/render.sh)로 실제 화면에서 한국어·영어 두 벌을 다시 만들 수 있습니다. 가상의 문서만 씁니다.
 - 예전 Python(Tkinter) 시제품은 삭제했습니다. v1.1.0까지의 git 기록에 남아 있습니다.
@@ -188,7 +221,7 @@ Copyright (c) 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈). Sealworks �
 
 간단히 정리하면 이렇습니다. 효력이 있는 것은 [LICENSE](LICENSE)와 [LICENSE-PERMISSIONS.md](LICENSE-PERMISSIONS.md)의 영문 원문입니다.
 
-- **공식 앱은 누구나, 어떤 목적으로든 무료로 쓸 수 있습니다.** 회사를 포함해 누구나 GitHub Releases, Mac App Store, Microsoft Store(Google Play는 나중에)에서 받은 고치지 않은 공식 Sealworks 앱을 설치해 쓸 수 있습니다. 계약서 서명 같은 업무용도 됩니다.
+- **공식 앱은 누구나, 어떤 목적으로든 무료로 쓸 수 있습니다.** 회사를 포함해 누구나 GitHub Releases, Mac App Store, Microsoft Store, Google Play에서 받은 고치지 않은 공식 Sealworks 앱을 설치해 쓸 수 있습니다. 계약서 서명 같은 업무용도 됩니다.
 - **공식 앱은 나눠 줄 수 있습니다.** 공식 앱 파일을 고치지 않은 그대로, 무료로, 라이선스와 함께, Sealworks 이름과 아이콘을 그대로 둔 채 나눠 줄 수 있습니다.
 - **소스 코드는 비상업적 목적으로만 쓸 수 있습니다.** 개인 공부·취미·연구·실험, 그리고 자선단체, 교육기관, 공공 연구기관, 공공 안전·보건 기관, 환경보호 단체, 정부기관의 사용이 여기에 해당합니다.
 - **따로 라이선스가 필요한 것:** Sealworks를 고치거나 이를 바탕으로 새 저작물을 만드는 것(다시 포장하거나 이름을 바꾼 빌드 포함), 소스 코드나 고친 사본을 나눠 주는 것, 사본에 돈을 받는 것, 소스 코드의 상업적 사용, [TRADEMARKS.md](TRADEMARKS.md#한국어) 범위를 넘어 Sealworks 이름과 아이콘을 쓰는 것. [COMMERCIAL.md](COMMERCIAL.md#한국어)를 보거나 support@falconoon.com으로 문의하세요.

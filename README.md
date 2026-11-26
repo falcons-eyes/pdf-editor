@@ -4,9 +4,9 @@
 
 **Put your signature and stamp on a PDF, save a new copy, and seal it so any later edit shows.**
 
-Free and source-available for Mac and Windows. No printing, no scanning, no uploading. Your files never leave your computer.
+Free and source-available for Mac and Windows, with Android and the app stores coming soon. No printing, no scanning, no uploading, no account. Your files never leave your device.
 
-[**Download (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [How it works](#three-steps) · [Seal](#seal-tamper-evident-pdfs) · [First launch](#first-launch) · [한국어](README.ko.md)
+[**Download (macOS · Windows)**](https://github.com/falcons-eyes/pdf-editor/releases/latest) · [Website](https://sealworks.falconoon.com) · [How it works](#three-steps) · [Examples](#made-for-moments-like-these) · [Seal](#seal-tamper-evident-pdfs) · [First launch](#first-launch) · [한국어](README.ko.md)
 
 <img src="docs/images/demo-en.gif" alt="Opening the lease a landlord emailed from the Library, dragging a signature and the date onto it, initialing every page at once, then saving it as a new file" width="900">
 
@@ -30,6 +30,25 @@ If signing one page of a contract means any of these, Sealworks can help.
 1. **Open a PDF.** Click `Open new PDF`, or drop a PDF onto the window.
 2. **Place your signature.** Click a signature or stamp in the `Signatures & stamps` list on the right, or drag it where it belongs. Drag a corner to resize it and the round handle on top to rotate it.
 3. **Save a new file.** Click `Save as file`. Sealworks creates a new PDF next to the original, named like `Contract_signed.pdf`. Your original stays as it is. Turn on `Seal and save` if you want later edits to show.
+
+## Made for moments like these
+
+The Library home has an example gallery: ten everyday situations, each a ready-to-try document in English or Korean. Six of them, with the signatures and stamps already placed:
+
+<table>
+  <tr>
+    <td width="50%"><img src="site/assets/uses/lease-en.webp" alt="A lease with the landlord's and tenant's signatures on the signing lines"><br><b>Your landlord emailed the lease.</b> Sign it and send it straight back, no printer needed.</td>
+    <td width="50%"><img src="site/assets/uses/parttime-en.webp" alt="An employment agreement signed by the employer and the employee"><br><b>A new part-timer starts today.</b> They sign the contract on the shop tablet, and you add your stamp.</td>
+  </tr>
+  <tr>
+    <td><img src="site/assets/uses/quote-en.webp" alt="A quote with the company stamp in the Authorized by box"><br><b>The quote has to go out today.</b> Stamp your company seal from a photo, with the white paper removed.</td>
+    <td><img src="site/assets/uses/school-en.webp" alt="A field trip form with ticked consent boxes and the parent's signature"><br><b>The school sent a field trip form.</b> Tick the boxes and sign it neatly instead of sending a phone photo.</td>
+  </tr>
+  <tr>
+    <td><img src="site/assets/uses/expense-en.webp" alt="A leave request with initials in the Prepared box of the approval table"><br><b>Expense forms need your approval.</b> Put your stamp in the same spot on every page at once.</td>
+    <td><img src="site/assets/uses/freelance-en.webp" alt="A services agreement with Party B's signature and company stamp"><br><b>You're sending a freelance contract.</b> Sign and seal it, and you'll know right away if anyone edits it later.</td>
+  </tr>
+</table>
 
 ## Seal: tamper-evident PDFs
 
@@ -74,6 +93,9 @@ The result also shows who sealed it, when, and the certificate **fingerprint**.
 | **Text and date stamps** | Your name, today's date, “Approved”, “Copy” and more, in sans, handwriting or serif type. |
 | **Get the placement right** | Size, rotation, opacity and ink color. Type a position in mm, or let the guides snap it into place. |
 | **Many pages** | Copy a placed item to other pages, or use `Put on every page at the same spot`. |
+| **Seal across pages (간인)** | Stamp across the edge between pages, as on Korean contracts. Each page gets its half, and the halves stay in the saved PDF. |
+| **Check marks** | ✓, ✗ and ○ in the text stamp dialog, sized for the check boxes on a form. |
+| **Example gallery** | Ten everyday documents to try on the Library home, from a lease to an NDA. [See above](#made-for-moments-like-these). |
 | **Add once, reuse** | Signatures and stamps you add stay in the list, ready for the next document. |
 | **Seal and save** | A tamper-evident digital signature, so any later edit shows. [More above](#seal-tamper-evident-pdfs). |
 | **Library saves as you go** | Documents you open and the signatures you place are saved in the app automatically, so you can come back later. Each document shows whether it was saved as a file or needs a look. |
@@ -104,12 +126,12 @@ Windows (version 1.1, taken on a Windows runner)
 
 | Your computer | File to download |
 | --- | --- |
-| Mac with Apple silicon (M1, M2, M3, M4…), macOS 13 or later | `Sealworks-1.1.0-arm64.dmg` |
-| Mac with an Intel processor, macOS 13 or later | `Sealworks-1.1.0-x64.dmg` |
-| Windows 10 or 11 (64-bit) | `Sealworks-1.1.0-setup-x64.exe` (installer) |
-| Windows, without installing | `Sealworks-1.1.0-portable-x64.exe` (runs as is) |
+| Mac with Apple silicon (M1, M2, M3, M4…), macOS 13 or later | `Sealworks-1.2.0-arm64.dmg` |
+| Mac with an Intel processor, macOS 13 or later | `Sealworks-1.2.0-x64.dmg` |
+| Windows 10 or 11 (64-bit) | `Sealworks-1.2.0-setup-x64.exe` (installer) |
+| Windows, without installing | `Sealworks-1.2.0-portable-x64.exe` (runs as is) |
 
-Mac App Store: coming soon.
+Mac App Store, Microsoft Store and Google Play (Android 8 or later): coming soon. Store versions install and update like any other app.
 
 > Not sure which Mac you have? Choose Apple menu › **About This Mac**. If it says `Chip  Apple M…`, you have Apple silicon. If it says `Processor  … Intel …`, you have an Intel Mac.
 
@@ -154,7 +176,8 @@ xattr -dr com.apple.quarantine "/Applications/Sealworks.app"
 
 The folder keeps its old name from when the app was called PDF Editor, so updating from 1.0 keeps all your documents. To erase the Library completely, quit Sealworks and delete this folder. Uninstalling the app leaves the folder in place.
 
-- Your seal key is stored in that folder's `seal` subfolder, encrypted with a key that macOS Keychain or Windows (DPAPI) protects. It never leaves your computer. Your name, the certificate fingerprint and the time do go into each PDF you seal, so anyone you send it to can see them.
+- On Android, the Library stays in the app's private storage, which other apps can't read, and uninstalling the app removes it.
+- Your seal key is stored in that folder's `seal` subfolder, encrypted with a key that macOS Keychain, Windows (DPAPI) or the Android Keystore protects. It never leaves your device. Your name, the certificate fingerprint and the time do go into each PDF you seal, so anyone you send it to can see them.
 
 Read the full [privacy policy](PRIVACY.md) and the [terms of use](https://sealworks.falconoon.com/terms/).
 
@@ -176,6 +199,16 @@ npm run dist:win    # installer and portable EXE in desktop/dist/
 
 See [desktop/README.md](desktop/README.md) for details.
 
+The Android app is a small Capacitor shell around the same page. You need JDK 21 (Android Studio's bundled one works) and the Android SDK:
+
+```sh
+cd mobile
+npm ci
+npm run apk         # debug APK in mobile/android/app/build/outputs/apk/debug/
+```
+
+See [mobile/README.md](mobile/README.md) for details.
+
 - The whole interface is one file, [web/pdf-editor.html](web/pdf-editor.html). You can preview it in a browser with `python3 web/dev_server.py`.
 - The README images are made from the real interface with [docs/tools/render.sh](docs/tools/render.sh), in both languages, using made-up documents only.
 - The old Python (Tkinter) prototype has been removed. It is still in the git history up to v1.1.0.
@@ -188,7 +221,7 @@ Copyright (c) 2026 Falcon Eyes Inc. (주식회사 팔콘아이즈). Sealworks �
 
 What that means, in short (the [LICENSE](LICENSE) and [LICENSE-PERMISSIONS.md](LICENSE-PERMISSIONS.md) texts are what count):
 
-- **The official app is free for everyone, for any purpose.** Anyone, including businesses, may install and use the official, unmodified Sealworks app from GitHub Releases, the Mac App Store or the Microsoft Store (Google Play later), including for work such as signing contracts.
+- **The official app is free for everyone, for any purpose.** Anyone, including businesses, may install and use the official, unmodified Sealworks app from GitHub Releases, the Mac App Store the Microsoft Store or Google Play, including for work such as signing contracts.
 - **You can share the official app.** Pass on exact, unmodified copies of the official app files free of charge, together with the license and with the Sealworks name and icon unchanged.
 - **The source code is for noncommercial use only.** Personal study, hobby projects, research and experiments, and use by charities, schools, public research bodies, public safety or health organizations, environmental organizations and government institutions.
 - **Not allowed without a separate license:** changing Sealworks or making new works based on it (including repackaged or rebranded builds), sharing the source code or changed copies, charging for copies, commercial use of the source code, or using the Sealworks name and icon beyond [TRADEMARKS.md](TRADEMARKS.md). See [COMMERCIAL.md](COMMERCIAL.md) or write to support@falconoon.com.
