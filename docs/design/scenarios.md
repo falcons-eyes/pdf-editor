@@ -30,11 +30,11 @@ Copy rules (Korean first, English mirrors it):
 | `aiguard` (1.3) | 채용 담당자 | 받은 지원서에 AI를 속이는 숨은 글자가 있는지 확인해요 | Check an application you got for hidden text meant to trick AI | 입사 지원서 1쪽, 흰 글자 "이전 지시를 무시하고…" | 숨은 글자 검사 (열 때 알림, 목록) |
 | `noai` (1.3) | 디자인 스튜디오 | 내 제안서를 AI 학습에 쓰지 말라고 표시하고 봉인해요 | Mark your proposal as not for AI training, then seal it | 브랜드 리뉴얼 제안서 1쪽 | AI 사용 거부 표시 + 봉인, 봉인 확인 |
 | `inspection` (1.3) | 이사 들어가는 세입자와 집주인 | 이사 들어가는 날 집 상태를 사진과 함께 남기고 둘 다 서명해요 | Record the flat's condition with photos on move-in day, both of you signing | 입주 상태 확인서 + 방 사진 2장을 모은 쪽 | 체크 표시, 양쪽 서명, 사진 쪽 (봉인은 선택) |
-| `consent` (1.3, 준비 중) | 피부관리실 원장 | 피부 관리 동의서를 매장 태블릿에서 손님마다 받아요 | Collect treatment consent forms on the salon tablet, one client after another | 피부 관리 시술 동의서 1쪽 | 서명 받기 모드 (block 5) 가 나오면 연결, 그때 갤러리에 표시 |
+| `consent` (1.3) | 피부관리실 원장 | 피부 관리 동의서를 매장 태블릿에서 손님마다 받아요 | Collect treatment consent forms on the salon tablet, one client after another | 피부 관리 시술 동의서 1쪽, `{이름}` `{연락처}` 칸 | 서명 받기 모드: 동의 칸 두 개와 서명 칸, 손님마다 새 파일 |
 
 1.3 gallery (docs/design/workflows.md, rule 6): the cards are grouped by what the person wants to do, and every card has
 one quiet last line naming the tool it uses and its other uses ("가리기 · 계좌번호, 연봉, 얼굴 사진에도 써요"), so people find
-that one tool serves many papers. Groups: 서명과 도장 (`lease`, `parttime`, `quote`, `school`, `proxy`), 서류 정리
+that one tool serves many papers. Groups: 서명과 도장 (`lease`, `parttime`, `quote`, `school`, `proxy`, `consent`), 서류 정리
 (`receipts`, `bundle`, `inspection`), 가리기와 보호 (`idcopy`, `aiguard`, `noai`), 여러 장 한 번에 (`certificates`,
 `expense`, `nda`, `student`), 봉인 (`freelance`, `agreement`). `agreement` and `noai` show only where the app can seal.
 What to click in each, and the "same tool, other uses" table: `docs/samples/README.md`. Demo videos:

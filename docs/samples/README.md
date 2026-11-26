@@ -38,6 +38,7 @@ Demo videos of each example (recorded from the real app with `docs/tools/render.
 | 칸이 있는 도장과 여러 개 만들기 | 수료증 | 참가 확인서, 상장, 매달 쓰는 지출 서식, 급여 명세서 |
 | 숨은 글자 검사 | 숨은 글자가 있는 지원서 | 받은 계약서, 보고서, 이력서를 AI에 넣기 전 |
 | AI 사용 거부 표시와 봉인 | 제안서 | 포트폴리오, 원고, 강의 자료 |
+| 서명 받기 모드 | 피부 관리 동의서 | 헬스장 회원 약관, 학원 등록, 알바생 근로계약서 |
 
 ### 예시마다 해 볼 것
 
@@ -54,7 +55,7 @@ Demo videos of each example (recorded from the real app with `docs/tools/render.
 
 **수료증 여러 장** (`certificates`, 여러 장 한 번에)
 수료증의 성명과 과정명 자리에 `{이름}`, `{과정}` 칸이 놓여 있습니다. 열리면 나오는 안내에서 **여러 개 만들기…**를
-누르면 다섯 사람의 명단이 이미 들어 있습니다. 저장할 폴더를 고르고 **5개 만들기**를 누르면 `김하늘_수료증.pdf`처럼
+누르면 다섯 사람의 명단이 이미 들어 있습니다. 저장할 폴더를 고르고 **5개 만들기**를 누르면 `강하은_수료증.pdf`처럼
 사람마다 파일이 하나씩 생깁니다. 명단을 직접 넣어 보려면 `certificates-ko.csv`를 **CSV 파일 열기…**로 열거나,
 엑셀에서 여러 줄을 복사해 표의 첫 칸에 붙여 넣으세요. 첫 줄은 칸 이름입니다.
 **서식 → 서식으로 저장…**을 하면 같은 수료증을 다음에 열 때 이 칸들을 바로 다시 놓을 수 있습니다.
@@ -82,9 +83,11 @@ Demo videos of each example (recorded from the real app with `docs/tools/render.
 둘째 쪽에는 벽의 긁힘과 욕실 타일의 금을 찍은 방 사진 두 장이 한 쪽에 들어 있습니다. 저장할 때 **봉인해서 저장**을
 켜면 나중에 누가 사진이나 체크를 바꿨는지 알 수 있습니다.
 
-**피부 관리 시술 동의서** (`consent`, 서명 받기 모드용, 준비 중)
-문서와 내용은 준비되어 있고 서명 받기 모드가 나오면 갤러리에 들어갑니다. 지금은 `window.__pdfe.loadExample("consent")`로만
-열 수 있습니다.
+**피부 관리 시술 동의서** (`consent`, 서명과 도장)
+매장 태블릿에서 손님마다 받는 동의서입니다. 이름과 연락처 자리에 `{이름}`, `{연락처}` 칸이, 동의 칸 두 개와 고객 서명
+자리에 서명 받기 칸이 놓여 있습니다. 열리면 나오는 안내에서 **서명 받기 시작**을 누르고 저장할 폴더를 고른 뒤 **시작**을
+누르면 화면 전체가 손님용으로 바뀝니다. 손님은 이름과 연락처를 적고, 동의 칸을 누르고, 서명한 뒤 **완료**를 누릅니다.
+한 사람씩 새 파일로 저장되고, 화면은 다음 손님을 위해 비워집니다. 나가려면 오른쪽 위 단추를 길게 누르세요.
 
 ---
 
@@ -105,6 +108,7 @@ names the tool and a few other uses.
 | Stamps with fields and Make many | Certificates | Participation letters, awards, the monthly expense form, payslips |
 | Hidden text check | Application with hidden text | Contracts, reports and résumés before AI reads them |
 | No AI notice and the seal | Proposal | Portfolios, manuscripts, course notes |
+| Sign here mode | Treatment consent | Gym terms, class enrollments, part-timer contracts |
 
 ### What to try in each example
 
@@ -148,6 +152,9 @@ notice reserves rights; it isn't a technical lock.
 Filled in together on move-in day: check marks for each item, both signatures, and page 2 with two room photos (a scratch
 by the socket, a cracked tile). Turn on **Seal and save** to see later if anyone changed a photo or a tick.
 
-**Facial treatment consent** (`consent`, for sign here mode, coming)
-The document and its data are ready; it joins the gallery when sign here mode lands. For now it opens only with
-`window.__pdfe.loadExample("consent")`.
+**Facial treatment consent** (`consent`, Sign and stamp)
+A consent form a salon collects on its tablet from each client. The name and phone lines hold the fields `{name}` and
+`{phone}`, and the two consent boxes and the client's signature are sign here boxes. Press **Start sign here mode** in
+the hint, choose a folder and press **Start**: the screen becomes the client's. They type their name and phone, tap the
+boxes, sign and press **Done**. Each client is saved as a new file and the screen clears for the next one. To leave,
+press and hold the button at the top right.
