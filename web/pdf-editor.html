@@ -729,6 +729,116 @@ dialog.many-dlg { width: min(820px, calc(100vw - 32px)); }
   .st-field { grid-template-columns: minmax(0, 1fr); gap: 4px; }
 }
 
+/* 1.3 sign here mode */
+/* slots in the editor: a dashed box with its label; never drawn into a file saved the usual way */
+.ov.slot { display: grid; place-items: center; background: rgba(36, 70, 199, .07); outline: 1.5px dashed #2446c7; outline-offset: -1px; container-type: size; }
+.ov.slot.sel { outline: 2px solid #2446c7; outline-offset: -1px; }
+.ov.slot img, .ov.slot .h.rot { display: none; }
+.ov.slot .slot-lbl { max-width: 94%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(6px, 36cqh, 16px); font-weight: 600; color: #2446c7; pointer-events: none; }
+.ov.slot[data-kind="check"] .slot-lbl { position: absolute; left: calc(100% + 5px); top: 50%; transform: translateY(-50%); max-width: none; font-size: 11px; font-weight: 500; padding: 1px 4px; border-radius: 4px; background: rgba(255, 255, 255, .85); }
+/* the start screen */
+dialog.ks-dlg { width: min(680px, calc(100vw - 32px)); }
+.ks-dlg .dlg-body { display: flex; flex-direction: column; gap: 14px; max-height: min(72vh, 760px); overflow-y: auto; }
+.ks-dlg .dlg-body > * { flex: none; }
+:lang(ko) .ks-dlg .hint, :lang(ko) .ks-dlg .caveat { word-break: keep-all; }
+.ks-flds { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.ks-fld-row { display: grid; grid-template-columns: minmax(64px, 9em) auto minmax(0, 1fr); gap: 8px; align-items: center; font-size: 13px; }
+.ks-fld-row > strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 500; }
+.ks-fld-row .text-input { height: 34px; font-size: 14px; }
+.ks-fld-row .text-input[hidden] { display: none; }
+.ks-opts { display: grid; gap: 6px; }
+.ks-opts .toggle { align-items: flex-start; font-size: 13px; }
+.ks-opts .toggle input { margin-top: 2px; flex: none; }
+.ks-opts .ai-line { padding-left: 23px; font-size: 12.5px; }
+.ks-pin-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.ks-pin-row .text-input { width: 8.5em; letter-spacing: .3em; font-family: var(--font-num); }
+.touch .ks-fld-row .text-input, .touch .ks-pin-row .text-input { height: 44px; font-size: 16px; }
+.touch .ks-dlg .seg button { height: 40px; }
+@media (max-width: 699px) { .ks-fld-row { grid-template-columns: minmax(0, 1fr) auto; } .ks-fld-row .text-input { grid-column: 1 / -1; } }
+/* the full screen: a top line (progress, start over, the hold-to-leave control), the screen, the action bar */
+.ks { position: fixed; inset: 0; z-index: 200; display: grid; grid-template-rows: auto minmax(0, 1fr) auto; background: var(--bg); color: var(--fg); font-size: 17px; padding: var(--sat) var(--sar) var(--sab) var(--sal); }
+:lang(ko) .ks { word-break: keep-all; }
+.ks-top { display: flex; align-items: center; gap: 12px; min-height: 64px; padding: 4px 6px 4px 20px; }
+.ks-top .grow { flex: 1; }
+.ks-progress { margin: 0; font-size: 17px; font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.ks-exit { position: relative; width: 56px; height: 56px; border-radius: 50%; border: none; background: transparent; color: var(--faint); display: grid; place-items: center; cursor: pointer; touch-action: none; -webkit-touch-callout: none; flex: none; }
+.ks-exit svg { width: 30px; height: 30px; }
+.ks-exit .ring { stroke-dasharray: 88; stroke-dashoffset: 88; }
+.ks-exit.holding { color: var(--accent); }
+.ks-exit.holding .ring { stroke-dashoffset: 0; transition: stroke-dashoffset 2s linear; }
+.ks-tip { position: absolute; top: calc(var(--sat) + 64px); right: calc(var(--sar) + 12px); max-width: min(360px, calc(100vw - 24px)); padding: 10px 14px; border-radius: 10px; background: var(--fg); color: var(--surface); font-size: 15px; z-index: 6; }
+.ks-main { position: relative; overflow: auto; overscroll-behavior: contain; display: grid; min-height: 0; }
+.ks-center { place-self: center; display: grid; justify-items: center; gap: 22px; text-align: center; padding: 24px; max-width: 760px; }
+.ks-h1 { margin: 0; font-size: clamp(26px, 5vw, 42px); font-weight: 600; line-height: 1.25; }
+.ks-h1:focus { outline: none; }
+.ks-sub { margin: 0; font-size: 18px; color: var(--muted); line-height: 1.55; }
+.ks-small { margin: 0; font-size: 14px; color: var(--faint); line-height: 1.5; user-select: text; -webkit-user-select: text; }
+.ks-btn { min-height: 56px; min-width: 112px; padding: 0 24px; border-radius: 14px; border: 1px solid var(--line-strong); background: var(--surface); color: var(--fg); font-size: 18px; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 10px; touch-action: manipulation; }
+.ks-btn:hover:not(:disabled) { background: color-mix(in oklab, var(--fg) 6%, var(--surface)); }
+.ks-btn.primary { background: var(--accent); color: var(--accent-fg); border-color: transparent; }
+.ks-btn.primary:hover:not(:disabled) { background: color-mix(in oklab, var(--accent) 88%, black); }
+.ks-btn.danger { color: var(--seal); }
+.ks-btn.huge { min-height: 84px; min-width: 260px; font-size: 28px; border-radius: 22px; }
+.ks-btn.quiet { border-color: transparent; background: transparent; color: var(--muted); font-weight: 500; font-size: 16px; min-width: 0; padding: 0 16px; }
+.ks-btn:disabled { opacity: .4; cursor: default; }
+.ks-btn svg { width: 22px; height: 22px; flex: none; }
+.ks-bar { display: grid; gap: 10px; padding: 14px 20px 16px; background: var(--surface); border-top: 1px solid var(--line); }
+.ks-bar[hidden] { display: none; }
+.ks-prompt { margin: 0; font-size: 20px; font-weight: 600; line-height: 1.4; }
+.ks-prompt:focus { outline: none; }
+.ks-note { margin: 0; font-size: 15px; color: var(--muted); }
+.ks-note.warn { color: var(--amber); font-weight: 500; }
+.ks-note:empty { display: none; }
+.ks-acts { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.ks-acts .grow { flex: 1; }
+/* the document, read only, with the slots to fill */
+.ks-doc { display: grid; justify-items: center; align-content: start; gap: 16px; padding: 16px; }
+.ks-page { position: relative; width: min(100%, 1100px); background: #fff; box-shadow: var(--paper-shadow); }
+.ks-page canvas { display: block; width: 100%; height: 100%; }
+.ks-slot { position: absolute; display: grid; place-items: center; padding: 0; margin: 0; border: 2px dashed #2446c7; border-radius: 4px; background: rgba(36, 70, 199, .08); color: #2446c7; cursor: pointer; container-type: size; touch-action: manipulation; }
+.ks-slot[data-kind="check"]::before { content: ""; position: absolute; inset: -18px; }
+.ks-slot.cur { border: 3px solid #2446c7; background: rgba(36, 70, 199, .13); box-shadow: 0 0 0 5px rgba(36, 70, 199, .28); animation: ks-pulse 1.8s ease-in-out infinite; }
+.ks-slot.done { border-style: solid; border-color: rgba(25, 121, 74, .55); background: transparent; }
+.ks-slot.done.cur { border-color: #2446c7; }
+.ks-slot img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; pointer-events: none; }
+.ks-slot > svg { position: absolute; inset: 7%; width: 86%; height: 86%; color: #111318; pointer-events: none; }
+.ks-slot-lbl { max-width: 94%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: clamp(8px, 34cqh, 20px); font-weight: 600; pointer-events: none; }
+.ks-slot[data-kind="check"] .ks-slot-lbl { position: absolute; left: calc(100% + 8px); top: 50%; transform: translateY(-50%); max-width: none; font-size: 15px; padding: 2px 8px; border-radius: 6px; background: rgba(255, 255, 255, .92); }
+@keyframes ks-pulse { 50% { box-shadow: 0 0 0 9px rgba(36, 70, 199, .12); } }
+@media (prefers-reduced-motion: reduce) { .ks-slot.cur { animation: none; } .ks-exit.holding .ring { transition-duration: 0s; } }
+/* typed fields: a large form */
+.ks-form { display: grid; gap: 20px; width: min(640px, 100%); place-self: start center; padding: 32px 20px; box-sizing: border-box; }
+.ks-form label { display: grid; gap: 10px; font-size: 19px; font-weight: 600; }
+.ks-input { width: 100%; box-sizing: border-box; height: 62px; padding: 0 16px; border-radius: 12px; border: 2px solid var(--line-strong); background: var(--surface); color: var(--fg); font: inherit; font-size: 22px; font-weight: 400; user-select: text; -webkit-user-select: text; }
+.ks-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+.ks-input[aria-invalid="true"] { border-color: var(--seal); }
+/* saving, saved, couldn't save */
+.ks-spin { width: 56px; height: 56px; border-radius: 50%; border: 5px solid var(--accent); border-right-color: transparent; animation: spin .8s linear infinite; }
+.ks-mark { width: 104px; height: 104px; color: var(--ok); }
+.ks-mark.warn { color: var(--amber); }
+/* the confirmations inside the full screen (start over, leave) */
+.ks-confirm { position: absolute; inset: 0; z-index: 8; display: grid; place-items: center; padding: 20px; background: rgba(14, 18, 30, .5); }
+.ks-confirm-box { width: min(540px, 100%); box-sizing: border-box; display: grid; gap: 16px; padding: 26px; border-radius: 20px; background: var(--surface); box-shadow: 0 24px 60px rgba(10, 14, 30, .35); }
+.ks-confirm-box h2 { margin: 0; font-size: 24px; font-weight: 600; line-height: 1.35; }
+.ks-confirm-box h2:focus { outline: none; }
+.ks-confirm-box .ks-input { letter-spacing: .4em; font-family: var(--font-num); }
+/* the signature pad, large and touch friendly, for the person signing */
+dialog.ks-pad { width: min(1100px, calc(100vw - 24px)); max-width: none; }
+dialog.ks-pad .alt-row, dialog.ks-pad .opt-row { display: none; }
+dialog.ks-pad .pad-wrap canvas { height: min(52dvh, 460px); }
+dialog.ks-pad .dlg-head h2 { font-size: 21px; }
+dialog.ks-pad .dlg-head .btn.icon { width: 56px; height: 56px; }
+dialog.ks-pad .dlg-foot .btn { height: 56px; padding: 0 22px; font-size: 17px; border-radius: 12px; }
+dialog.ks-pad .pad-hint { font-size: 16px; }
+@media (max-width: 560px) {
+  .ks-acts > .ks-btn { flex: 1 1 auto; min-width: 0; padding: 0 14px; }
+  .ks-acts > .grow { display: none; }
+  dialog.ks-pad { width: 100%; }
+  dialog.ks-pad .dlg-foot { flex-wrap: wrap; }
+  dialog.ks-pad .dlg-foot .btn { flex: 1 1 auto; padding: 0 12px; }
+  dialog.ks-pad .dlg-foot .grow { display: none; }
+}
+
 /* ---------- narrow windows ---------- */
 @media (max-width: 1080px) {
   .main, .main.no-rail { grid-template-columns: 0 minmax(0, 1fr) var(--side-w); } .rail { visibility: hidden; } #btn-rail { display: none; }
@@ -2057,6 +2167,106 @@ const STR = {
   "many.short": ["쪽 수가 적은 PDF에는 있는 쪽까지만 항목을 놓았습니다.", "PDFs with fewer pages got only the items for the pages they have."],
   "many.made": ["만든 파일", "Files made"],
   "many.more": ["그 밖에 {n}개를 더 만들었습니다.", pl("1 more file was made.", "{n} more files were made.")],
+  // 1.3 sign here mode
+  // 서명 칸, 체크 칸, 사진 칸: 서식에 넣어 두고 서명 받기 모드에서 채우는 칸
+  "ks.slot.sign": ["서명 칸", "Signature box"], "ks.slot.check": ["체크 칸", "Check box"], "ks.slot.photo": ["사진 칸", "Photo box"],
+  "ks.add.sign": ["서명 칸 넣기", "Add a signature box"], "ks.add.check": ["체크 칸 넣기", "Add a check box"], "ks.add.photo": ["사진 칸 넣기", "Add a photo box"],
+  "ks.def.sign": ["서명", "Signature"], "ks.def.photo": ["사진", "Photo"],
+  "ks.slot.aria": ["{kind} ‘{label}’, {page}쪽", "{kind} “{label}”, page {page}"],
+  "ks.slot.aria.plain": ["{kind}, {page}쪽", "{kind}, page {page}"],
+  "ks.insp.hint": ["서명 받기 모드에서 서명하는 분이 채우는 칸입니다. 그냥 저장한 파일에는 들어가지 않습니다.", "The person signing fills this in, in sign here mode. It isn't in files you save the usual way."],
+  "ks.insp.label": ["칸 이름", "Label"],
+  "ks.insp.ph.sign": ["예: 고객 서명", "e.g. Customer signature"],
+  "ks.insp.ph.check": ["예: 개인정보 수집에 동의합니다", "e.g. I agree to the terms"],
+  "ks.insp.ph.photo": ["예: 현관 사진", "e.g. Front door"],
+  "ks.insp.kind": ["종류", "Kind"],
+  "ks.kind.sign": ["서명", "Signature"], "ks.kind.check": ["체크", "Check"], "ks.kind.photo": ["사진", "Photo"],
+  "ks.insp.required": ["채워야 다음으로 넘어감", "Must be filled in to go on"],
+  "ks.save.note": ["서명 칸, 체크 칸, 사진 칸은 이 파일에 들어가지 않습니다. 서명을 받으려면 서식 메뉴의 서명 받기를 쓰세요.", "Signature, check and photo boxes aren't saved in this file. To have people sign, use Sign here mode in the Forms menu."],
+  "ks.save.note@a": ["서명 칸, 체크 칸, 사진 칸은 이 파일에 들어가지 않습니다. 서명을 받으려면 메뉴의 서명 받기를 쓰세요.", "Signature, check and photo boxes aren't saved in this file. To have people sign, use Sign here mode in the menu."],
+  // 시작 화면
+  "ks.start": ["서명 받기 시작…", "Start sign here mode…"],
+  "ks.start.short": ["서명 받기", "Sign here mode"],
+  "ks.start.aria": ["{name} 서식으로 서명 받기", "Start sign here mode with the form {name}"],
+  "ks.needSlots": ["서명을 받으려면 먼저 서명 칸이나 체크 칸을 넣어 주세요.", "To have people sign, add a signature box or a check box first."],
+  "ks.title": ["서명 받기 시작", "Start sign here mode"],
+  "ks.intro": ["‘{name}’ 문서를 한 분씩 보여 주고 서명을 받아 새 파일로 저장합니다. 저장한 뒤에는 화면을 비우고 다음 분을 기다립니다.", "Shows “{name}” to one person at a time, takes their signature and saves it as a new file. After each save the screen is cleared for the next person."],
+  "ks.sum": ["서명 칸 {s}개, 체크 칸 {c}개, 사진 칸 {p}개가 있습니다.", "It has {s} signature, {c} check and {p} photo boxes."],
+  "ks.notLib": ["서명하는 분의 서명과 사진은 보관함에 남지 않고, 저장한 파일에만 들어갑니다.", "What people draw or add goes into their saved file only, never into your Library."],
+  "ks.pattern.hint": ["{날짜}는 오늘 날짜, {번호}는 저장한 차례입니다. 서명하는 분이 적는 칸 이름을 넣어도 됩니다. 같은 이름의 파일이 있으면 번호를 올리거나 뒤에 (2)를 붙이고, 있던 파일은 그대로 둡니다.", "{date} is today's date and {n} counts the saves. You can also use a field the person fills in. If a file with the name exists, the number goes up or (2) is added, and the existing file is left alone."],
+  "ks.fields": ["칸 채우기", "Fields"],
+  "ks.fields.hint": ["서명하는 분이 직접 적을 칸과 미리 정해 둘 칸을 고르세요.", "Choose which fields the person types in and which you set now for everyone."],
+  "ks.field.ask": ["서명하는 분이 적기", "They type it"],
+  "ks.field.fixed": ["미리 정하기", "Set now"],
+  "ks.field.mode": ["{name} 칸은 누가 채우나요", "Who fills in {name}"],
+  "ks.field.value": ["{name} 칸에 모두 똑같이 넣을 값", "{name} for everyone"],
+  "ks.pin": ["끝낼 때 물어볼 번호", "PIN to leave"],
+  "ks.pin.hint": ["숫자 네 자리를 정해 두면 서명 받기를 끝낼 때 이 번호를 물어봅니다. 정하지 않아도 됩니다.", "Set four digits and they're asked for when leaving sign here mode. You can leave it empty."],
+  "ks.pin.bad": ["번호는 숫자 네 자리로 정해 주세요. 정하지 않으려면 비워 두세요.", "The PIN must be four digits. Leave it empty for none."],
+  "ks.pinning@a": ["서명하는 분이 앱 밖으로 나가지 않게 하려면, 설정의 보안 메뉴에서 앱 고정을 켠 다음 최근 앱 화면에서 이 앱 아이콘을 눌러 고정을 고르세요.", "To keep people inside the app, turn on App pinning in Settings under Security, then open Recent apps, tap this app's icon and choose Pin."],
+  "ks.pinning": ["", ""],
+  "ks.leave.how": ["끝낼 때는 화면 오른쪽 위의 작은 단추를 2초 동안 누르고 있으세요.", "To leave, press and hold the small button in the top right corner for 2 seconds."],
+  "ks.go": ["시작", "Start"],
+  // 서명 받는 화면
+  "ks.region": ["서명 받기", "Sign here"],
+  "ks.wait": ["잠시만 기다려 주세요…", "One moment…"],
+  "ks.welcome.hint": ["준비가 되면 시작을 눌러 주세요.", "Press Start when you're ready."],
+  "ks.begin": ["시작", "Start"],
+  "ks.progress": ["{n}개 중 {k}번째", "{k} of {n}"],
+  "ks.fields.title": ["아래 칸을 채워 주세요", "Please fill in"],
+  "ks.fields.need": ["‘{name}’ 칸을 채워 주세요.", "Please fill in “{name}”."],
+  "ks.next": ["다음", "Next"],
+  "ks.prev": ["이전", "Back"],
+  "ks.do.sign": ["‘{label}’ 칸에 서명해 주세요.", "Please sign in the “{label}” box."],
+  "ks.do.sign.plain": ["여기에 서명해 주세요.", "Please sign here."],
+  "ks.do.check": ["{label}", "{label}"],
+  "ks.do.check.plain": ["해당하면 체크해 주세요.", "Check the box if it applies."],
+  "ks.do.photo": ["‘{label}’ 사진을 넣어 주세요.", "Please add a photo: {label}."],
+  "ks.do.photo.plain": ["사진을 넣어 주세요.", "Please add a photo."],
+  "ks.optional": ["넘어가도 됩니다.", "You can skip this."],
+  "ks.req.sign": ["서명해야 다음으로 넘어갈 수 있어요.", "Please sign to go on."],
+  "ks.req.check": ["체크해야 다음으로 넘어갈 수 있어요.", "Please check the box to go on."],
+  "ks.req.photo": ["사진을 넣어야 다음으로 넘어갈 수 있어요.", "Please add a photo to go on."],
+  "ks.act.sign": ["서명하기", "Sign"], "ks.act.resign": ["다시 서명하기", "Sign again"],
+  "ks.act.check": ["체크하기", "Check"], "ks.act.uncheck": ["체크 지우기", "Uncheck"],
+  "ks.act.photo": ["사진 넣기", "Add photo"], "ks.act.rephoto": ["다른 사진 넣기", "Change photo"],
+  "ks.photo.title": ["넣을 사진 고르기", "Choose a photo"],
+  "ks.photo.fail": ["사진을 읽지 못했어요. 다른 사진을 골라 주세요.", "Couldn't read that photo. Please choose another."],
+  "ks.pad.put": ["넣기", "Done"],
+  "ks.state.empty": ["비어 있음", "empty"], "ks.state.done": ["채움", "filled in"], "ks.state.checked": ["체크함", "checked"],
+  "ks.review.title": ["내용을 확인해 주세요", "Please check everything"],
+  "ks.review.hint": ["이대로 저장합니다. 고칠 곳이 있으면 다시 하기를 눌러 주세요.", "This is what will be saved. To change something, press Redo."],
+  "ks.redo": ["다시 하기", "Redo"],
+  "ks.finish": ["완료", "Done"],
+  "ks.saving": ["저장하는 중…", "Saving…"],
+  "ks.thanks": ["저장했습니다. 감사합니다", "Saved. Thank you"],
+  "ks.thanks.sub": ["잠시 뒤 처음 화면으로 돌아갑니다.", "Going back to the start in a moment."],
+  "ks.fail": ["저장하지 못했어요. 직원에게 알려 주세요", "We couldn't save this. Please let a staff member know"],
+  "ks.fail.kept": ["적은 내용은 지워지지 않고 그대로 있습니다.", "Everything filled in is still kept here."],
+  "ks.fail.staff": ["직원용 안내: {msg}", "For staff: {msg}"],
+  "ks.retry": ["다시 저장하기", "Try again"],
+  "ks.elsewhere": ["다른 폴더에 저장하기…", "Save to another folder…"],
+  "ks.restart": ["처음으로", "Start over"],
+  "ks.restart.q": ["적은 내용을 지우고 처음으로 돌아갈까요?", "Clear what's filled in and go back to the start?"],
+  "ks.restart.go": ["지우고 처음으로", "Clear and start over"],
+  "ks.keep": ["계속하기", "Keep going"],
+  "ks.exit.btn": ["서명 받기 끝내기, 2초 동안 누르고 있기", "Leave sign here mode, press and hold for 2 seconds"],
+  "ks.exit.hold": ["끝내려면 2초 동안 누르고 있으세요.", "Press and hold for 2 seconds to leave."],
+  "ks.exit.q": ["서명 받기를 끝낼까요?", "Leave sign here mode?"],
+  "ks.exit.lose": ["지금 적던 내용은 저장되지 않습니다.", "What's being filled in now won't be saved."],
+  "ks.exit.unsaved": ["저장하지 못한 내용이 있습니다. 끝내면 그 내용은 사라집니다.", "Something couldn't be saved. Leaving discards it."],
+  "ks.exit.pin": ["번호 네 자리", "Four-digit PIN"],
+  // staff-only steps: picking a photo and saving to another folder open file pickers, so they need the staff PIN
+  "ks.staff.q": ["직원 확인", "Staff check"],
+  "ks.staff.go": ["확인", "Continue"],
+  "ks.photo.staff": ["사진은 직원이 골라 넣습니다. 직원 번호를 넣으면 사진을 고를 수 있습니다.", "Staff add the photo. Enter the staff PIN to choose it."],
+  "ks.photo.nopin": ["사진 칸은 직원 번호를 정하고 시작해야 쓸 수 있습니다. 직원에게 알려 주세요.", "Photo slots need a staff PIN set at the start. Please tell a member of staff."],
+  "ks.pin.photo": ["사진 칸이 있어서 번호를 정해야 합니다. 사진을 고르는 창은 파일을 둘러볼 수 있어서, 직원이 번호를 넣은 뒤에만 열립니다.", "This form has a photo slot, so set a PIN. The photo picker can browse files, so it opens only after staff enter the PIN."],
+  "ks.elsewhere.staff": ["다른 폴더에 저장하려면 직원 번호를 넣어 주세요.", "Enter the staff PIN to save in another folder."],
+  "ks.exit.pinBad": ["번호가 맞지 않아요.", "That PIN isn't right."],
+  "ks.exit.go": ["끝내기", "Leave"],
+  "ks.done": ["서명 받기를 끝냈습니다. 파일 {n}개를 저장했습니다.", pl("Sign here mode ended. 1 file was saved.", "Sign here mode ended. {n} files were saved.")],
+  "ks.page": ["문서 {page}쪽", "Document page {page}"],
 
   // 1.3 examples (docs/design/scenarios.md, docs/samples/README.md): the gallery's groups, the new situations, and under
   // every card one quiet line: the tool it uses, then what else that tool is good for
@@ -3257,6 +3467,7 @@ $("#bb-fit").addEventListener("click", () => { if (S.fit === "width") COMMANDS.f
 
 /* ---------- Android back button (desktop.onBack): the top-most thing closes; false lets Android leave the app ---------- */
 function handleBack() {
+  if (KIOSK.on) return kioskBack(); // 1.3 sign here mode: back never leaves it
   hideTip();
   if (MENU.el) { closeMenu(); return true; }
   if (COVER.drawing) { stopCoverDraw(); return true; }
@@ -3354,7 +3565,7 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
         .catch(() => toast(t("open.copyFail"), true));
     }
     Object.assign(rec, { name, size: bytes.byteLength, pages: pdf.numPages, openedAt: now });
-    S.overlays = (rec.overlays || []).filter((o) => (o.cover || S.assets.has(o.assetId)) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
+    S.overlays = (rec.overlays || []).filter((o) => (o.cover || o.slot || S.assets.has(o.assetId)) && o.page < pdf.numPages).map((o) => ({ ...o, fx: { ...o.fx } }));
     S.rec = rec; persistDocs(); persistDocs.flush();
     setTimeout(() => makeThumb(rec, S.pages[0]), 400);
     if (S.fs) checkRecordFiles(rec).then(() => { if (S.rec === rec) { syncDocBar(); syncDocTitle(); } });
@@ -3541,7 +3752,8 @@ function syncOverlays(positionsOnly = false) {
     if (!positionsOnly) {
       const a = S.assets.get(o.assetId);
       n.classList.toggle("wm", wm);
-      if (a?.tpl) tplSyncEl(o, a, n); // 1.3 stamps: drawn for its page, with the fields filled in
+      if (o.slot) slotSyncEl(o, n); // 1.3 sign here mode: a dashed box with its label
+      else if (a?.tpl) tplSyncEl(o, a, n); // 1.3 stamps: drawn for its page, with the fields filled in
       else if (a) {
         const key = fxKey(a, o.fx);
         if (n.dataset.fx !== key) {
@@ -3554,6 +3766,7 @@ function syncOverlays(positionsOnly = false) {
       n.classList.toggle("sel", selected);
       n.classList.toggle("gan", !!o.gan); if (o.gan) n.dataset.side = o.gan.side; else delete n.dataset.side;
       n.classList.toggle("cover", !!o.cover); if (o.cover) n.dataset.fill = o.cover; else delete n.dataset.fill;
+      n.classList.toggle("slot", !!o.slot); // 1.3 sign here mode
       n.classList.toggle("gan-peer", !selected && !!o.gan && selO?.gan?.g === o.gan.g);
       n.setAttribute("aria-label", ovLabel(o)); n.setAttribute("aria-pressed", String(selected));
       if (selected && !n.querySelector(".h")) for (const k of ["tl", "tr", "bl", "br", "rot"]) n.append(el("div", { class: "h " + k, "data-h": k }));
@@ -3574,6 +3787,7 @@ function syncOverlays(positionsOnly = false) {
 function select(id) { if (S.sel === id) return; S.sel = id; syncOverlays(); syncInspector(); }
 // "Signature ‘Jordan Lee’, page 2": what a screen reader says for a placed item
 function ovLabel(o) {
+  if (o?.slot) return slotAria(o); // 1.3 sign here mode
   if (o?.cover) return t("cover.aria", { fill: t(o.cover === "white" ? "cover.white" : "cover.black"), page: o.page + 1 });
   const a = S.assets.get(o?.assetId);
   if (o?.gan) return t("gan.aria", { name: a?.name || t("ov.item"), page: o.page + 1, other: o.page + (o.gan.side === "l" ? 2 : 0) });
@@ -3606,7 +3820,7 @@ function endGesture() { ganFix(getOv(S.sel)); if (gestureBefore && !same(gesture
    the right edge of the page before the break; side "r" shows its right half against the left edge of the page
    after it, so the halves meet when the two pages lie side by side. The box is the visible half; the group moves,
    resizes and recolours as one (y, size, opacity, fx follow the piece being edited) and is removed as one. */
-const canGanin = (o) => !!o && !o.gan && !o.cover && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark" && !S.assets.get(o.assetId)?.tpl; // 1.3 stamps: not a stamp with fields
+const canGanin = (o) => !!o && !o.gan && !o.cover && !o.slot && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark" && !S.assets.get(o.assetId)?.tpl; // 1.3 stamps: not a stamp with fields
 function ganFix(src) {
   if (!src?.gan) return;
   for (const o of S.overlays) {
@@ -3802,7 +4016,7 @@ pagesEl.addEventListener("pointermove", (e) => {
     const ay = cy0 - sx * (o0.w / 2) * s - sy * (o0.h / 2) * c;
     const dx = pt.x - ax, dy = pt.y - ay;
     let lw = (dx * c + dy * s) * sx, lh = (-dx * s + dy * c) * sy;
-    if (!e.shiftKey !== !!o.cover) { const k = Math.max(lw / o0.w, lh / o0.h); lw = o0.w * k; lh = o0.h * k; }
+    if (!e.shiftKey !== !!(o.cover || o.slot)) { const k = Math.max(lw / o0.w, lh / o0.h); lw = o0.w * k; lh = o0.h * k; }
     lw = Math.max(MIN_PT, lw); lh = Math.max(MIN_PT, lh);
     const ncx = ax + sx * (lw / 2) * c - sy * (lh / 2) * s, ncy = ay + sx * (lw / 2) * s + sy * (lh / 2) * c;
     o.w = lw; o.h = lh; o.x = ncx - lw / 2; o.y = ncy - lh / 2;
@@ -3914,7 +4128,7 @@ function applyPinch() {
   const o = getOv(PINCH.id); if (!o) return;
   const o0 = PINCH.o0, k = c.d / PINCH.d0, ratio = o0.h / o0.w;
   const w = Math.max(MIN_PT, MIN_PT / ratio, o0.w * k), h = w * ratio;
-  let rot = o.cover ? 0 : o0.rot + (c.ang - PINCH.a0);
+  let rot = o.cover || o.slot ? 0 : o0.rot + (c.ang - PINCH.a0);
   rot = ((Math.round(rot) % 360) + 360) % 360;
   for (const sd of [0, 90, 180, 270, 360]) if (Math.abs(rot - sd) < 4) rot = sd % 360;
   const cx = o0.x + o0.w / 2 + (c.m.x - PINCH.m0.x) / S.zoom, cy = o0.y + o0.h / 2 + (c.m.y - PINCH.m0.y) / S.zoom;
@@ -4033,6 +4247,7 @@ function syncInspector() {
     return;
   }
   if (o.cover) { coverInspector(box, o); return; }
+  if (o.slot) { slotInspector(box, o); return; } // 1.3 sign here mode
   const a = S.assets.get(o.assetId);
   if (isWm(a)) { wmInspector(box, o, a); return; } // 1.3 stamps
   const num = (key, label, unit, get, set) => {
@@ -4196,7 +4411,7 @@ async function buildPdf({ pages: only = null, textFree = false, ai = null, src =
   const where = new Map(keep.map((i, j) => [i, j]));
   const embedded = new Map(); const pages = out.getPages();
   for (const o of D.overlays) {
-    const a = S.assets.get(o.assetId); const p = D.pages[o.page]; if (!a || !p || !where.has(o.page)) continue;
+    const a = o.asset || S.assets.get(o.assetId); const p = D.pages[o.page]; if (!a || !p || !where.has(o.page)) continue; // o.asset: 1.3 sign here mode
     if (a.tpl) { // 1.3 stamps: filled in for this page of the file (numbered as saved)
       await drawTplItem(out, pages[where.get(o.page)], o, a, p, { flat: asPicture.has(o.page), textFree, vals: { page: where.get(o.page) + 1, pages: keep.length, fields: D.fields || {} }, cache: embedded });
       continue;
@@ -4293,6 +4508,7 @@ async function openSaveDialog(opts = {}) {
   syncSaveAi(); // 1.3 seal: No AI notice option
   exampleSaveDefaults(); // 1.3 examples: the No AI example starts with the notice on
   syncSaveFields(); syncSaveMoreOn(); // 1.3 stamps, forms: fields to fill, what's on under "More options"
+  syncSaveSlots(); // 1.3 sign here mode: slots aren't in the file
   $("#dlg-save").showModal();
   const inp = range != null ? $("#save-range") : $("#save-name"); inp.focus(); inp.select();
   checkSaveTarget();
@@ -5013,7 +5229,7 @@ async function logSave({ fileName, path, bytes, sealed, overlays = S.overlays, d
   try {
     const items = [], seen = new Set(); let always = false;
     for (const o of overlays) {
-      const a = S.assets.get(o.assetId); if (!a || seen.has(a.id)) continue;
+      const a = o.asset || S.assets.get(o.assetId); if (!a || seen.has(a.id)) continue; // o.asset: 1.3 sign here mode
       seen.add(a.id); items.push({ name: a.name, kind: a.kind }); if (a.logUse) always = true;
     }
     if (!sealed && !always) return;
@@ -5433,7 +5649,7 @@ function syncPagesBusy(on) {
 // a quarter turn clockwise of the page (W × H before the turn) carries an item's box along (display space, y down)
 function turnBox(o, W, H) {
   const cx = o.x + o.w / 2, cy = o.y + o.h / 2, ncx = H - cy, ncy = cx;
-  if (o.cover || ovIsWm(o)) [o.w, o.h] = [o.h, o.w]; // a cover box stays an upright rectangle (and a 1.3 pattern keeps covering its page)
+  if (o.cover || o.slot || ovIsWm(o)) [o.w, o.h] = [o.h, o.w]; // a cover box stays an upright rectangle (and a 1.3 pattern keeps covering its page)
   else o.rot = ((o.rot || 0) + 90) % 360;
   o.x = ncx - o.w / 2; o.y = ncy - o.h / 2;
 }
@@ -5939,7 +6155,7 @@ const COMMANDS = {
   saveForm: () => openFormDialog(), makeMany: () => openMany(), // 1.3 stamps, forms, make many
 };
 const EDITOR_ONLY = new Set(["saveForm", "makeMany", "export", "undo", "redo", "zoomIn", "zoomOut", "actual", "fitWidth", "fitPage", "toggleRail", "duplicate", "delete"]);
-function runCommand(cmd) { if (EDITOR_ONLY.has(cmd) && S.view !== "editor") return; COMMANDS[cmd](); }
+function runCommand(cmd) { if (KIOSK.on || (EDITOR_ONLY.has(cmd) && S.view !== "editor")) return; COMMANDS[cmd](); } // KIOSK: 1.3 sign here mode
 window.addEventListener("keydown", (e) => {
   if (document.querySelector("dialog[open]")) return;
   const typing = e.target.matches?.("input, textarea, select");
@@ -6075,6 +6291,7 @@ $("#pad-save").onclick = async () => {
   const c = canvasOf(Math.ceil((maxX - minX) * scale), Math.ceil((maxY - minY) * scale));
   const g = c.getContext("2d"); g.translate(-minX * scale, -minY * scale);
   for (const s of pad.strokes) strokePath(g, s.pts, scale, s.color, s.width);
+  if (pad.onDone) { const done = pad.onDone; pad.onDone = null; $("#dlg-draw").close(); done(c); return; } // 1.3 sign here mode: into the slot, never the Library
   const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "draw", name: t("draw.name", { date: new Date().toLocaleDateString(LOCALE(), { month: "numeric", day: "numeric" }) }) });
   $("#dlg-draw").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast(t("draw.added"));
 };
@@ -7974,6 +8191,7 @@ function rerenderAll() {
   if ($("#dlg-sealer").open) renderSealer();
   if ($("#dlg-hidden").open) renderHiddenDialog(); // 1.3 seal
   syncStampsText(); // 1.3 stamps, forms, make many
+  syncKioskText(); // 1.3 sign here mode
   if (S.view === "home" || !S.doc?.isSample) { if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {}); }
   // the example document is rebuilt in the new language (it is never kept, so nothing is lost)
   else if (S.doc.sampleLang !== LANG) loadExample(S.doc.exampleId || "freelance");
@@ -8452,7 +8670,7 @@ const formItem = (o) => { const { id, ...it } = o; return { ...it, fx: { ...o.fx
 function mapItems(form, pages) {
   const out = [], groups = new Map(); let missing = 0, short = 0;
   for (const it of form.items) {
-    if (!it.cover && !S.assets.has(it.assetId)) { missing++; continue; }
+    if (!it.cover && !it.slot && !S.assets.has(it.assetId)) { missing++; continue; } // slot: 1.3 sign here mode
     const p = pages[it.page], f = form.pages[it.page] || p;
     if (!p) { short++; continue; }
     const o = { ...it, id: uid(), fx: { ...(it.fx || {}) } };
@@ -8577,7 +8795,8 @@ function formRow(f) {
     el("span", { class: "s-sub", text: [formSum(f), f.fields?.length ? t("form.sum.fields", { list: f.fields.join(", ") }) : null].filter(Boolean).join(" · ") }),
     el("div", { class: "btn-row" },
       el("button", { class: "btn outline sm form-open", type: "button", "aria-label": t("form.open.aria", { name: f.name }), onclick: () => openForm(f) }, t("open")),
-      el("button", { class: "btn outline sm", type: "button", "aria-label": t("form.many.aria", { name: f.name }), onclick: () => openMany({ form: f }) }, t("form.many"))));
+      el("button", { class: "btn outline sm", type: "button", "aria-label": t("form.many.aria", { name: f.name }), onclick: () => openMany({ form: f }) }, t("form.many")),
+      hasSlots(f.items) ? el("button", { class: "btn outline sm", type: "button", "aria-label": t("ks.start.aria", { name: f.name }), onclick: () => openKiosk({ form: f }) }, t("ks.start.short")) : null)); // 1.3 sign here mode
 }
 async function removeForm(f) {
   const i = FORMS.list.indexOf(f); if (i < 0) return;
@@ -8598,7 +8817,7 @@ async function openForm(f) {
 }
 // menus: the editor's forms button, the ⋮ menu, the app menu
 function formMenuItems() {
-  const items = [{ label: t("form.saveAs"), iconNode: svgIcon(FICONS.form), fn: openFormDialog, disabled: !S.overlays.length }];
+  const items = [{ label: t("form.saveAs"), iconNode: svgIcon(FICONS.form), fn: openFormDialog, disabled: !S.overlays.length }, ...slotMenuItems(), { sep: true }]; // slots: 1.3 sign here mode
   for (const f of (FORMS.list || []).slice().sort((a, b) => b.updated - a.updated).slice(0, 6)) items.push({ label: t("form.useOne", { name: f.name }), iconNode: svgIcon(FICONS.use), fn: () => applyForm(f) });
   items.push({ label: t("form.many"), iconNode: svgIcon(FICONS.many), fn: () => openMany() });
   return items;
@@ -8960,6 +9179,751 @@ function syncStampsText() {
 }
 window.__pdfeForms = { FORMS, MANY, loadForms, saveForms, saveFormFromDoc, openFormDialog, applyForm, mapItems, docPrint, printMatches, scheduleFormMatch, openForm, removeForm, renderFormsSide,
   openMany, runMany, stopMany, parseTable, putCells, loadTable, fillName, freeName, tplParts, tplText, tplFields, itemsFields, setField, wmLayout, fmtDateTpl, renderMany, drawn: () => TPL_DRAWN.list.slice() };
+
+/* ================================================================
+   1.3 Sign here mode (서명 받기 모드): docs/design/workflows.md, block 5.
+   A slot is a placed item without a Library item, like a cover box:
+     { id, slot: { kind: "sign" | "check" | "photo", label, required }, page, x, y, w, h, rot: 0, opacity: 1, fx: {} }
+   Slots stay in the document's items and in a form's items (forms stay v: 1; a form also remembers the last start
+   screen as form.kiosk = { pattern, ask: [field names the person types], fixed: { field: value } }). buildPdf draws
+   only items with a Library item, so a slot never reaches a file saved the usual way.
+   Sign here mode shows the document full screen to one person at a time: the fields they type, each slot in turn,
+   then the file as it will be saved. 완료 builds it (buildPdf with src), seals it if chosen, writes it as a new file
+   in the one picked folder and logs it (logSave). What a person drew, typed or added lives only in KIOSK.cur and is
+   dropped after their save; nothing of it reaches the Library or a document record.
+   From code: window.__pdfeKiosk.open({ form }) (or open() for the open document) shows the start screen;
+   begin({ form, name, dir, pattern, seal, ai, ask, fixed, pin }) starts without it.
+   ================================================================ */
+const SLOT_MM = { sign: [60, 18], check: [6, 6], photo: [70, 50] };
+const KICONS = {
+  sign: '<rect x="1.75" y="4.25" width="12.5" height="7.5" rx="1" stroke-dasharray="1.6 1.2"/><path d="M4 9.5c1-1.5 1.8.5 2.6-.8s1.3-1.2 1.8-.2 1.4-.3 2.1-.8"/>',
+  check: '<rect x="3" y="3" width="10" height="10" rx="1.5" stroke-dasharray="1.6 1.2"/><path d="m5.5 8 1.75 1.75L10.75 6.25"/>',
+  photo: '<rect x="2" y="3" width="12" height="10" rx="1.5" stroke-dasharray="1.6 1.2"/><circle cx="6" cy="6.5" r="1.2"/><path d="m3 11.5 3.5-3 2.5 2 2-1.5 2.5 2"/>',
+  kiosk: '<rect x="3" y="1.75" width="10" height="12.5" rx="1.5"/><path d="M5.25 9.25c.9-1.3 1.6.4 2.3-.7s1.2-1 1.6-.2 1.2-.3 1.8-.7"/><path d="M7 12.25h2"/>',
+  mark: '<path d="m2.75 8.5 3.5 3.5L13.25 4.5" stroke-width="2.2"/>',
+  ok: '<circle cx="8" cy="8" r="6.5"/><path d="m5 8.25 2 2 4-4.25"/>',
+  warn: '<circle cx="8" cy="8" r="6.5"/><path d="M8 4.75v4"/><circle cx="8" cy="11.25" r=".5" fill="currentColor"/>',
+  exit: '<circle cx="16" cy="16" r="14" opacity=".3"/><circle class="ring" cx="16" cy="16" r="14" transform="rotate(-90 16 16)" stroke-width="2.4"/><path d="M12.5 12.5l7 7M19.5 12.5l-7 7"/>',
+};
+const slotText = (s) => String(s?.label || "").trim();
+const slotName = (s) => slotText(s) || t(s.kind === "check" ? "ks.slot.check" : s.kind === "photo" ? "ks.def.photo" : "ks.def.sign");
+const hasSlots = (items) => !!items?.some((o) => o.slot);
+const slotAria = (o) => { const label = slotText(o.slot); return t(label ? "ks.slot.aria" : "ks.slot.aria.plain", { kind: t("ks.slot." + o.slot.kind), label, page: o.page + 1 }); };
+const newSlot = (kind) => ({ kind, label: kind === "sign" ? t("ks.def.sign") : kind === "photo" ? t("ks.def.photo") : "", required: kind !== "check" });
+const kIcon = (name, cls) => { const s = svgIcon(KICONS[name], name === "exit" ? "0 0 32 32" : "0 0 16 16"); if (cls) s.setAttribute("class", cls); return s; };
+
+/* ---------- slots in the editor ---------- */
+function placeSlot(kind, page = S.cur) {
+  if (!S.doc || S.view !== "editor") return null;
+  const p = S.pages[page]; if (!p) return null;
+  const [mw, mh] = SLOT_MM[kind], w = Math.min(mw * PT_PER_MM, p.w * 0.8), h = Math.min(mh * PT_PER_MM, p.h * 0.5);
+  const top = Math.max(stage.scrollTop, p.el.offsetTop), bottom = Math.min(stage.scrollTop + stage.clientHeight, p.el.offsetTop + p.el.offsetHeight);
+  const cy = clamp(((top + bottom) / 2 - p.el.offsetTop) / S.zoom, h / 2, p.h - h / 2);
+  const o = { id: uid(), slot: newSlot(kind), page, x: (p.w - w) / 2, y: cy - h / 2, w, h, rot: 0, opacity: 1, fx: {} };
+  clampInside(o);
+  act(() => { S.overlays.push(o); S.sel = o.id; });
+  if (isCompact()) closeSheet(false);
+  overlayEls.get(o.id)?.focus({ preventScroll: true });
+  announce(t("ov.placed", { label: ovLabel(o) }));
+  return o;
+}
+// the dashed box shows its label (a check box's label sits beside it)
+function slotSyncEl(o, n) {
+  n.dataset.kind = o.slot.kind;
+  let s = n.querySelector(".slot-lbl");
+  if (!s) { s = el("span", { class: "slot-lbl", "aria-hidden": "true" }); n.append(s); }
+  const label = slotText(o.slot) || (o.slot.kind === "check" ? "" : t("ks.slot." + o.slot.kind));
+  if (s.textContent !== label) s.textContent = label;
+}
+// a slot's inspector: label, kind, required, position and size; a slot object is replaced, never changed in place
+function slotInspector(box, o) {
+  const s = o.slot, setSlot = (patch) => act(() => { o.slot = { ...o.slot, ...patch }; });
+  const lbl = el("input", { class: "text-input", id: "f-slot-label", maxlength: "60", autocomplete: "off", spellcheck: "false", value: s.label || "", placeholder: t("ks.insp.ph." + s.kind) });
+  lbl.addEventListener("input", () => { const n = overlayEls.get(o.id)?.querySelector(".slot-lbl"); if (n) n.textContent = lbl.value.trim() || (s.kind === "check" ? "" : t("ks.slot." + s.kind)); });
+  lbl.addEventListener("change", () => { const v = lbl.value.trim().slice(0, 60); if (v !== (o.slot.label || "")) setSlot({ label: v }); });
+  lbl.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); lbl.blur(); } });
+  const field = (key, label, get, set) => {
+    const input = el("input", { id: "f-" + key, inputmode: "decimal", value: get(), "aria-label": label });
+    const commit = () => { const v = parseFloat(input.value); if (!Number.isFinite(v)) { input.value = get(); return; } act(() => { set(v); clampInside(o); }); };
+    input.addEventListener("change", commit);
+    input.addEventListener("keydown", (e) => { if (e.key === "Enter") { commit(); input.blur(); } if (e.key === "Escape") { input.value = get(); input.blur(); } e.stopPropagation(); });
+    return el("div", { class: "field" }, el("label", { for: "f-" + key, text: label }), input, el("span", { class: "unit", text: "mm" }));
+  };
+  const size = (dim) => (v) => { const c = dim === "w" ? o.x + o.w / 2 : o.y + o.h / 2, z = Math.max(MIN_PT, v * PT_PER_MM); o[dim] = z; if (dim === "w") o.x = c - z / 2; else o.y = c - z / 2; };
+  const setKind = (kind) => {
+    if (kind === s.kind) return;
+    const p = S.pages[o.page], [mw, mh] = SLOT_MM[kind], cx = o.x + o.w / 2, cy = o.y + o.h / 2;
+    const fresh = newSlot(kind), keep = slotText(s) && slotText(s) !== slotText(newSlot(s.kind));
+    act(() => {
+      o.slot = { ...fresh, ...(keep ? { label: s.label } : {}) };
+      o.w = Math.min(mw * PT_PER_MM, p.w * 0.8); o.h = Math.min(mh * PT_PER_MM, p.h * 0.5); o.x = cx - o.w / 2; o.y = cy - o.h / 2; clampInside(o);
+    });
+  };
+  add(box,
+    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: t("ks.slot." + s.kind) }), el("span", { class: "hint", text: t("page.n", { n: o.page + 1 }) })),
+    el("p", { class: "hint", style: "margin:0 0 10px", text: t("ks.insp.hint") }),
+    el("div", { style: "display:grid;gap:6px;margin-bottom:10px" }, el("label", { class: "fld-label", for: "f-slot-label", text: t("ks.insp.label") }), lbl),
+    el("div", { class: "row" }, el("span", { class: "lbl", id: "f-slot-kind", text: t("ks.insp.kind") }),
+      el("div", { class: "seg", role: "group", "aria-labelledby": "f-slot-kind" }, ...["sign", "check", "photo"].map((k) => el("button", { type: "button", "aria-pressed": String(s.kind === k), onclick: () => setKind(k) }, t("ks.kind." + k))))),
+    el("label", { class: "toggle", style: "margin:4px 0 10px;font-size:12.5px" }, el("input", { type: "checkbox", id: "f-slot-req", checked: !!s.required, onchange: (e) => setSlot({ required: e.target.checked }) }), el("span", { text: t("ks.insp.required") })),
+    el("div", { class: "fields" },
+      field("x", "X", () => fmtMM(o.x), (v) => { o.x = v * PT_PER_MM; }), field("y", "Y", () => fmtMM(o.y), (v) => { o.y = v * PT_PER_MM; }),
+      field("w", "W", () => fmtMM(o.w), size("w")), field("h", "H", () => fmtMM(o.h), size("h"))),
+    el("div", { class: "actions" },
+      el("button", { class: "btn", type: "button", onclick: duplicateSel, title: kbd("⌘D") }, icon("copy"), t("insp.dup")),
+      el("button", { class: "btn", type: "button", onclick: () => centerSel(), title: t("insp.center.tip") }, icon("center"), t("insp.center")),
+      el("button", { class: "btn wide", type: "button", id: "f-slot-kiosk", onclick: () => openKiosk() }, svgIcon(KICONS.kiosk), t("ks.start")),
+      el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("insp.delete"))));
+}
+// the editor's forms menu (and the ⋮ menu on a phone): add a slot, start sign here mode
+function slotMenuItems() {
+  return [{ sep: true },
+    { label: t("ks.add.sign"), iconNode: svgIcon(KICONS.sign), fn: () => placeSlot("sign") },
+    { label: t("ks.add.check"), iconNode: svgIcon(KICONS.check), fn: () => placeSlot("check") },
+    { label: t("ks.add.photo"), iconNode: svgIcon(KICONS.photo), fn: () => placeSlot("photo") },
+    { label: t("ks.start"), iconNode: svgIcon(KICONS.kiosk), fn: () => openKiosk(), disabled: !hasSlots(S.overlays) }];
+}
+// the save dialog says slots aren't saved in the file
+const slotNote = el("p", { class: "save-img-note", id: "save-slot-note", hidden: true });
+$("#save-img-note").after(slotNote);
+function syncSaveSlots() {
+  const on = S.view === "editor" && hasSlots(S.overlays);
+  slotNote.hidden = !on; slotNote.textContent = on ? t("ks.save.note") : "";
+}
+
+/* ---------- the start screen ---------- */
+const KIOSK = { on: false, setup: null, opts: null, base: null, slots: [], steps: [], cur: null, sessionView: null, step: null, n: 1, saved: 0,
+  err: "", retry: null, busy: false, timer: 0, confirm: null, inerted: [], checkPng: null, thanksMs: 4000 };
+const ksDlg = el("dialog", { id: "dlg-kiosk", class: "ks-dlg", "aria-labelledby": "ks-dlg-title" },
+  el("div", { class: "dlg-head" }, el("h2", { id: "ks-dlg-title" }), el("button", { class: "btn icon", type: "button", id: "ks-dlg-x", onclick: () => ksDlg.close() }, icon("x"))),
+  el("div", { class: "dlg-body", id: "ks-body" }), el("div", { class: "dlg-foot", id: "ks-foot" }));
+document.body.append(ksDlg);
+ksDlg.addEventListener("click", (e) => { if (e.target === ksDlg) ksDlg.close(); });
+ksDlg.addEventListener("close", () => { const o = ksDlg._ksOpener; ksDlg._ksOpener = null; if (!KIOSK.on && o?.isConnected) o.focus?.({ preventScroll: true }); });
+$("#dlg-sealer").addEventListener("close", () => { if (ksDlg.open && KIOSK.setup) { KIOSK.setup.seal = !!SEAL.id; renderKioskSetup(); } });
+const ksDefaultPattern = (name) => `{${t("st.f.date")}}_${cleanName(name) || "form"}_{${t("st.f.n")}}`;
+async function openKiosk({ form = null } = {}) {
+  if (KIOSK.on) return;
+  if (!form && (!S.doc || S.view !== "editor")) return;
+  const items = form ? form.items : S.overlays;
+  if (!hasSlots(items)) { toast(t("ks.needSlots")); return; }
+  if (S.seal && SEAL.id === undefined) await loadSealIdentity();
+  const name = form ? form.name : stem(S.doc.name), fields = form ? form.fields || [] : itemsFields(S.overlays);
+  const prev = form?.kiosk || {}, given = form ? prev.fixed || {} : S.fields || {};
+  const empty = (f) => !String(given[f] ?? "").trim();
+  KIOSK.setup = { form, name, fields, items, ask: new Set(fields.filter((f) => (Array.isArray(prev.ask) && prev.ask.includes(f)) || empty(f))),
+    fixed: Object.fromEntries(fields.map((f) => [f, String(given[f] ?? "")])), dir: S.fs ? S.prefs.lastDir.kiosk || null : null,
+    pattern: prev.pattern || ksDefaultPattern(name), seal: !!(S.seal && SEAL.id), ai: !!S.prefs.aiNotice, line: !!S.prefs.aiLine, pin: "", msg: "" };
+  closeMenu(false);
+  renderKioskSetup();
+  ksDlg._ksOpener = document.activeElement;
+  ksDlg.showModal();
+  requestAnimationFrame(() => (S.fs && !KIOSK.setup?.dir ? $("#ks-dir-btn") : $("#ks-go"))?.focus());
+}
+function ksFirstName() {
+  const st = KIOSK.setup, vals = {};
+  for (const f of st.fields) vals[f] = st.ask.has(f) ? f : st.fixed[f];
+  return (cleanName(fillName(st.pattern, vals, { n: 1 })) || `${cleanName(st.name)}_1`) + ".pdf";
+}
+function renderKioskSetup() {
+  const st = KIOSK.setup; if (!st) return;
+  $("#ks-dlg-title").textContent = t("ks.title"); $("#ks-dlg-x").setAttribute("aria-label", t("dlg.close"));
+  const body = $("#ks-body"), foot = $("#ks-foot"), scroll = body.scrollTop;
+  body.textContent = ""; foot.textContent = "";
+  const count = (k) => st.items.filter((o) => o.slot?.kind === k).length;
+  add(body, el("p", { class: "hint", style: "margin:0", text: t("ks.intro", { name: st.name }) }),
+    el("p", { class: "caveat", style: "margin:0", text: `${t("ks.sum", { s: count("sign"), c: count("check"), p: count("photo") })} ${t("ks.notLib")}` }));
+  if (S.fs) {
+    add(body, el("span", { class: "fld-label", text: t("many.folder") }),
+      el("div", { class: "dir-row" }, el("div", { class: "dir-box" }, icon("folder"), el("span", { class: "mono", id: "ks-dir", title: st.dir || "", text: st.dir ? prettyDir(st.dir) : t("many.folder.none") })),
+        el("button", { type: "button", class: "btn outline", id: "ks-dir-btn", onclick: ksPickDir }, t("many.folder.pick"))));
+  } else add(body, el("p", { class: "hint", style: "margin:0", text: t("many.dl") }));
+  const pat = el("input", { class: "text-input", id: "ks-pattern", value: st.pattern, autocomplete: "off", spellcheck: "false", "aria-describedby": "ks-pattern-hint ks-first" });
+  pat.addEventListener("input", () => { st.pattern = pat.value; $("#ks-first").textContent = t("many.first", { file: ksFirstName() }); });
+  pat.addEventListener("keydown", (e) => e.stopPropagation());
+  add(body, el("label", { class: "fld-label", for: "ks-pattern", text: t("many.pattern") }),
+    el("div", { class: "name-row" }, pat, el("span", { class: "ext", text: ".pdf" })),
+    el("p", { class: "hint", id: "ks-pattern-hint", style: "margin:0", text: t("ks.pattern.hint") }),
+    el("p", { class: "hint", id: "ks-first", style: "margin:0", "aria-live": "polite", text: t("many.first", { file: ksFirstName() }) }));
+  if (st.fields.length) {
+    add(body, el("span", { class: "fld-label", id: "ks-flds-h", text: t("ks.fields") }),
+      el("div", { class: "ks-flds", role: "group", "aria-labelledby": "ks-flds-h" }, el("p", { class: "hint", style: "margin:0", text: t("ks.fields.hint") }), ...st.fields.map(ksFieldRow)));
+  }
+  const toggle = (id, key, label, explain = null, onChange = null) => el("label", { class: "toggle" },
+    el("input", { type: "checkbox", id, checked: !!st[key], onchange: (e) => { st[key] = e.target.checked; onChange?.(); } }),
+    el("span", {}, el("b", { text: label }), explain ? el("small", { style: "display:block;color:var(--muted);font-size:12px;margin-top:2px", text: explain }) : null));
+  const opts = el("div", { class: "ks-opts" });
+  if (S.seal) add(opts, toggle("ks-seal", "seal", t("many.seal"), SEAL.id ? t("save.seal.as", { name: SEAL.id.org ? `${SEAL.id.name} · ${SEAL.id.org}` : SEAL.id.name }) : t("many.seal.need"),
+    () => { if (st.seal && !SEAL.id) { st.seal = false; renderKioskSetup(); openSealer(); } }));
+  add(opts, toggle("ks-ai", "ai", t("ai.opt"), null, () => { renderKioskSetup(); $("#ks-ai")?.focus(); }));
+  if (st.ai) add(opts, el("label", { class: "toggle ai-line" }, el("input", { type: "checkbox", id: "ks-ai-line", checked: !!st.line, onchange: (e) => { st.line = e.target.checked; } }), el("span", { text: t("ai.opt.line") })));
+  add(body, opts);
+  const pin = el("input", { class: "text-input", id: "ks-pin", value: st.pin, inputmode: "numeric", maxlength: "4", autocomplete: "off", spellcheck: "false", "aria-describedby": "ks-pin-hint" });
+  pin.addEventListener("input", () => { pin.value = pin.value.replace(/\D/g, "").slice(0, 4); st.pin = pin.value; });
+  pin.addEventListener("keydown", (e) => e.stopPropagation());
+  add(body, el("label", { class: "fld-label", for: "ks-pin", text: t("ks.pin") }), el("div", { class: "ks-pin-row" }, pin),
+    el("p", { class: "hint", id: "ks-pin-hint", style: "margin:0", text: t("ks.pin.hint") }));
+  const pinning = t("ks.pinning"); // Android only: the system's own app pinning
+  if (pinning) add(body, el("p", { class: "hint", id: "ks-pinning", style: "margin:0", text: pinning }));
+  add(body, el("p", { class: "hint", style: "margin:0", text: t("ks.leave.how") }), el("p", { class: "save-msg warn", id: "ks-msg", "aria-live": "polite", text: st.msg || "" }));
+  add(foot, el("span", { class: "grow" }), el("button", { class: "btn", type: "button", onclick: () => ksDlg.close() }, t("dlg.cancel")),
+    el("button", { class: "btn primary", type: "button", id: "ks-go", onclick: ksStart }, svgIcon(KICONS.kiosk), t("ks.go")));
+  body.scrollTop = scroll;
+}
+function ksFieldRow(f, i) {
+  const st = KIOSK.setup, asked = st.ask.has(f);
+  const inp = el("input", { class: "text-input", id: `ks-fld-${i}`, value: st.fixed[f] || "", hidden: asked, maxlength: "120", autocomplete: "off", spellcheck: "false", "aria-label": t("ks.field.value", { name: f }) });
+  inp.addEventListener("input", () => { st.fixed[f] = inp.value; $("#ks-first").textContent = t("many.first", { file: ksFirstName() }); });
+  inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter" && !e.isComposing) e.preventDefault(); });
+  const choose = (a) => {
+    if (a) st.ask.add(f); else st.ask.delete(f);
+    renderKioskSetup();
+    const row = $$("#ks-body .ks-fld-row")[i];
+    (a ? row?.querySelector('button[aria-pressed="true"]') : row?.querySelector("input"))?.focus();
+  };
+  return el("div", { class: "ks-fld-row" }, el("strong", { text: f, title: f }),
+    el("div", { class: "seg", role: "group", "aria-label": t("ks.field.mode", { name: f }) },
+      el("button", { type: "button", "aria-pressed": String(asked), onclick: () => choose(true) }, t("ks.field.ask")),
+      el("button", { type: "button", "aria-pressed": String(!asked), onclick: () => choose(false) }, t("ks.field.fixed"))),
+    inp);
+}
+async function ksPickDir() {
+  const st = KIOSK.setup;
+  const picked = await browse({ kind: "folder", title: t("many.folder.title"), start: st.dir || S.prefs.lastDir.save || null });
+  if (!picked?.length) return;
+  st.dir = picked[0]; st.msg = ""; renderKioskSetup(); $("#ks-go")?.focus();
+}
+async function ksStart() {
+  const st = KIOSK.setup; if (!st || KIOSK.on) return;
+  const stop = (key, focus) => { st.msg = t(key); renderKioskSetup(); $(focus)?.focus(); };
+  if (S.fs && !st.dir) return stop("many.folder.need", "#ks-dir-btn");
+  if (st.pin && !/^\d{4}$/.test(st.pin)) return stop("ks.pin.bad", "#ks-pin");
+  // a photo slot opens a file picker, which can browse the device: only staff may open it, so a PIN is required
+  if (!st.pin && (st.form ? st.form.items : S.overlays).some((o) => o.slot?.kind === "photo")) return stop("ks.pin.photo", "#ks-pin");
+  if (st.seal && S.seal && !SEAL.id) return stop("many.seal.need", "#ks-seal");
+  const opts = { form: st.form, name: st.name, dir: st.dir, pattern: st.pattern.trim() || ksDefaultPattern(st.name), seal: !!(st.seal && S.seal && SEAL.id),
+    ai: st.ai ? { notice: true, line: !!st.line } : null, ask: st.fields.filter((f) => st.ask.has(f)),
+    fixed: Object.fromEntries(st.fields.filter((f) => !st.ask.has(f)).map((f) => [f, String(st.fixed[f] || "").trim()])), pin: st.pin || null };
+  ksFullscreen(true); // asked while the click still counts as the person's own
+  $("#ks-go").disabled = true;
+  if (!(await beginKiosk(opts))) { ksFullscreen(false); const go = $("#ks-go"); if (go) go.disabled = false; return; }
+  S.prefs.aiNotice = !!st.ai; S.prefs.aiLine = !!st.line; if (st.dir) S.prefs.lastDir.kiosk = st.dir; persistPrefs();
+  if (st.form) { st.form.kiosk = { pattern: opts.pattern, ask: opts.ask, fixed: opts.fixed }; saveForms(); }
+  KIOSK.setup = null;
+}
+// the base document (the form's from the Library, or a copy of the open one) opened for the session; the editor
+// beneath is never changed
+async function beginKiosk(opts = {}) {
+  if (KIOSK.on) return false;
+  const form = opts.form || null;
+  let pdf = null;
+  try {
+    let bytes, docName;
+    if (form) {
+      const { bytes: b } = await formDocBytes(form);
+      if (!b) throw new Error(t("form.noDoc"));
+      bytes = new Uint8Array(b); docName = form.docName || form.name;
+    } else {
+      if (!S.doc) return false;
+      bytes = new Uint8Array(S.doc.bytes); docName = S.doc.name;
+    }
+    const opened = await openPages(bytes); pdf = opened.pdf;
+    const items = form ? mapItems(form, opened.pages).items : S.overlays.map((o) => ({ ...o, fx: { ...o.fx } }));
+    const slots = items.filter((o) => o.slot && opened.pages[o.page])
+      .sort((a, b) => a.page - b.page || Math.round(a.y / 14) - Math.round(b.y / 14) || a.x - b.x);
+    if (!slots.length) throw new Error(t("ks.needSlots"));
+    const name = opts.name || (form ? form.name : stem(docName));
+    Object.assign(KIOSK, { on: true, base: { bytes, pdf, pages: opened.pages, overlays: items.filter((o) => !o.slot), name: docName }, slots, steps: [], cur: null,
+      opts: { dir: null, seal: false, ai: null, pin: null, ...opts, name, pattern: opts.pattern || ksDefaultPattern(name), ask: opts.ask || [], fixed: opts.fixed || {} },
+      sessionView: null, step: null, n: 1, saved: 0, err: "", retry: null, busy: false, confirm: null });
+  } catch (e) {
+    try { pdf?.destroy(); } catch {}
+    const msg = errMsg(e) || t("save.fail");
+    if (ksDlg.open && KIOSK.setup) { KIOSK.setup.msg = msg; renderKioskSetup(); } else toast(msg, true);
+    return false;
+  }
+  if (ksDlg.open) ksDlg.close();
+  closeMenu(false); hideTip();
+  ksMount();
+  ksWelcome();
+  // the same document for everyone when nobody types a field: drawn once, while the first person reads the welcome
+  if (!KIOSK.opts.ask.length) ksBuild(false).then((b) => (KIOSK.on && !KIOSK.sessionView ? ksRenderDoc(b, true) : null)).then((v) => { if (!v) return; if (KIOSK.on && !KIOSK.sessionView) KIOSK.sessionView = v; else v.destroy(); }).catch(() => {});
+  return true;
+}
+function ksFullscreen(on) {
+  if (S.mobile || OS.android || !S.desktop?.window) return; // the Android app is full screen already; a browser tab keeps its window
+  try {
+    if (on && !document.fullscreenElement) document.documentElement.requestFullscreen?.()?.catch(() => {});
+    if (!on && document.fullscreenElement) document.exitFullscreen?.()?.catch(() => {});
+  } catch {}
+}
+
+/* ---------- the full screen ---------- */
+function ksMount() {
+  const root = el("div", { id: "kiosk", class: "ks", role: "region", "aria-label": t("ks.region") },
+    el("div", { class: "ks-top" }, el("p", { class: "ks-progress", id: "ks-progress", "aria-live": "polite" }), el("span", { class: "grow" }),
+      el("button", { type: "button", class: "ks-btn quiet", id: "ks-restart", hidden: true, onclick: ksAskRestart }, t("ks.restart")), ksExitButton()),
+    el("div", { class: "ks-main", id: "ks-main" }),
+    el("div", { class: "ks-bar", id: "ks-bar", hidden: true }));
+  // keys stay inside: Escape closes a confirmation and never leaves; the editor's shortcuts don't run
+  root.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.preventDefault(); if (KIOSK.confirm) ksCloseConfirm(); } e.stopPropagation(); });
+  KIOSK.inerted = [...document.body.children].filter((n) => !["DIALOG", "SCRIPT", "TEMPLATE"].includes(n.tagName) && !n.inert);
+  for (const n of KIOSK.inerted) n.inert = true;
+  document.body.append(root);
+  document.documentElement.classList.add("ks-on");
+}
+window.addEventListener("keydown", (e) => {
+  if (!KIOSK.on || e.target.closest?.("dialog[open]") || $("#kiosk")?.contains(e.target)) return;
+  e.stopPropagation(); if (e.key === "Escape" || e.metaKey || e.ctrlKey) e.preventDefault();
+}, true);
+// main: the screen's content (null keeps what's there); bar: the actions at the foot (null hides it)
+function ksScreen({ main = [], bar = null, progress = "", restart = false, focus = null }) {
+  const m = $("#ks-main"), b = $("#ks-bar"); if (!m) return;
+  if (main) { m.replaceChildren(...main.filter(Boolean)); m.scrollTop = 0; }
+  b.replaceChildren(...(bar || []).filter(Boolean)); b.hidden = !bar;
+  $("#ks-progress").textContent = progress;
+  $("#ks-restart").hidden = !restart;
+  if (focus) requestAnimationFrame(() => $(focus)?.focus({ preventScroll: true }));
+}
+const ksProgress = () => (KIOSK.cur ? t("ks.progress", { n: KIOSK.steps.length, k: KIOSK.cur.idx + 1 }) : "");
+function ksWaitScreen(key = "ks.wait") {
+  ksScreen({ main: [el("div", { class: "ks-center", role: "status" }, el("div", { class: "ks-spin", "aria-hidden": "true" }), el("p", { class: "ks-sub", text: t(key) }))], progress: ksProgress() });
+}
+function ksWelcome() {
+  clearTimeout(KIOSK.timer);
+  KIOSK.step = "welcome"; KIOSK.cur = null;
+  ksScreen({ main: [el("div", { class: "ks-center" },
+    el("h1", { class: "ks-h1", id: "ks-h", tabindex: "-1", text: KIOSK.opts.name }),
+    el("p", { class: "ks-sub", text: t("ks.welcome.hint") }),
+    el("button", { type: "button", class: "ks-btn primary huge", id: "ks-begin", onclick: ksBeginPerson }, t("ks.begin")))], focus: "#ks-begin" });
+}
+function ksBeginPerson() {
+  KIOSK.cur = { fields: {}, fills: new Map(), idx: 0, view: null, viewKey: null, review: null, built: null, out: null, sealed: null };
+  KIOSK.steps = [...(KIOSK.opts.ask.length ? [{ type: "fields" }] : []), ...KIOSK.slots.map((o) => ({ type: "slot", o }))];
+  ksGo(0);
+}
+async function ksGo(i, focus) {
+  const C = KIOSK.cur; if (!C) return;
+  const s = KIOSK.steps[i];
+  if (!s) return ksReview();
+  C.idx = i;
+  if (s.type === "fields") return ksFieldsStep();
+  if (!(await ksEnsureView())) return;
+  if (KIOSK.cur === C && C.idx === i) ksSlotStep(focus);
+}
+// the fields the person types: a large form
+function ksFieldsStep(missing = null) {
+  const C = KIOSK.cur, ask = KIOSK.opts.ask; KIOSK.step = "fields";
+  const inputs = ask.map((f, i) => {
+    const inp = el("input", { class: "ks-input", id: `ks-in-${i}`, value: C.fields[f] || "", autocomplete: "off", spellcheck: "false", maxlength: "120",
+      enterkeyhint: i === ask.length - 1 ? "done" : "next", "aria-invalid": missing === f ? "true" : null, "aria-describedby": "ks-need" });
+    inp.addEventListener("input", () => { C.fields[f] = inp.value; inp.removeAttribute("aria-invalid"); const n = $("#ks-need"); if (n) n.textContent = ""; });
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); const nx = $(`#ks-in-${i + 1}`); if (nx) nx.focus(); else ksFieldsNext(); } });
+    return el("label", {}, f, inp);
+  });
+  ksScreen({ main: [el("form", { class: "ks-form", onsubmit: (e) => { e.preventDefault(); ksFieldsNext(); } },
+      el("h1", { class: "ks-h1", id: "ks-h", tabindex: "-1", style: "font-size:clamp(24px,4vw,32px)", text: t("ks.fields.title") }), ...inputs)],
+    progress: ksProgress(), restart: true,
+    bar: [el("p", { class: "ks-note warn", id: "ks-need", "aria-live": "polite", text: missing ? t("ks.fields.need", { name: missing }) : "" }),
+      el("div", { class: "ks-acts" }, el("span", { class: "grow" }), el("button", { type: "button", class: "ks-btn primary", id: "ks-next", onclick: ksFieldsNext }, t("ks.next")))],
+    focus: `#ks-in-${Math.max(0, ask.indexOf(missing))}` });
+}
+function ksFieldsNext() {
+  const C = KIOSK.cur; if (!C) return;
+  const missing = KIOSK.opts.ask.find((f) => !String(C.fields[f] || "").trim());
+  if (missing) { ksFieldsStep(missing); return; }
+  for (const f of KIOSK.opts.ask) C.fields[f] = String(C.fields[f]).trim();
+  ksGo(C.idx + 1);
+}
+// the document with this person's fields, read only, with a button over each slot
+async function ksEnsureView() {
+  const C = KIOSK.cur, key = JSON.stringify(KIOSK.opts.ask.map((f) => C.fields[f] || ""));
+  if (C.view && C.viewKey === key) return true;
+  if (!KIOSK.opts.ask.length && KIOSK.sessionView) { C.view = KIOSK.sessionView; C.viewKey = key; return true; }
+  ksWaitScreen();
+  try {
+    const bytes = await ksBuild(false);
+    if (KIOSK.cur !== C) return false;
+    const view = await ksRenderDoc(bytes, true);
+    if (KIOSK.cur !== C) { view.destroy(); return false; }
+    if (C.view && C.view !== KIOSK.sessionView) C.view.destroy();
+    C.view = view; C.viewKey = key;
+    if (!KIOSK.opts.ask.length && !KIOSK.sessionView) KIOSK.sessionView = view;
+    return true;
+  } catch (e) { if (KIOSK.cur === C) { KIOSK.retry = () => ksGo(C.idx); ksFail(e, false); } return false; }
+}
+async function ksRenderDoc(bytes, withSlots, fit = false) { // fit: each page whole on the screen (the review)
+  const pdf = await openScanDoc(bytes);
+  const root = el("div", { class: "ks-doc" }), slotEls = new Map(), canvases = [];
+  try {
+    const W = Math.min(1100, Math.max(300, (window.innerWidth || 800) - 32)), dpr = Math.min(2, window.devicePixelRatio || 1);
+    for (let i = 0; i < pdf.numPages; i++) {
+      const pg = await pdf.getPage(i + 1), v1 = pg.getViewport({ scale: 1 });
+      let s = (W * dpr) / v1.width; const px = v1.width * v1.height * s * s; if (px > 9e6) s *= Math.sqrt(9e6 / px);
+      const vp = pg.getViewport({ scale: s }), c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height)), g = c.getContext("2d", { alpha: false });
+      g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
+      await pg.render({ canvasContext: g, viewport: vp }).promise;
+      c.setAttribute("role", "img"); c.setAttribute("aria-label", t("ks.page", { page: i + 1 }));
+      canvases.push(c);
+      const page = el("div", { class: "ks-page", style: `aspect-ratio:${v1.width} / ${v1.height}` + (fit ? `;width:min(100%, 1100px, calc((100dvh - 250px) * ${(v1.width / v1.height).toFixed(4)}))` : "") }, c);
+      if (withSlots) for (const o of KIOSK.slots) {
+        if (o.page !== i) continue;
+        const p = KIOSK.base.pages[o.page], pc = (v, d) => `${((v / d) * 100).toFixed(3)}%`;
+        const b = el("button", { type: "button", class: "ks-slot", "data-kind": o.slot.kind, "data-id": o.id,
+          style: `left:${pc(o.x, p.w)};top:${pc(o.y, p.h)};width:${pc(o.w, p.w)};height:${pc(o.h, p.h)}`, onclick: () => ksSlotTap(o) });
+        slotEls.set(o.id, b); page.append(b);
+      }
+      root.append(page);
+    }
+  } finally { try { pdf.destroy(); } catch {} }
+  return { root, slotEls, destroy: () => { for (const c of canvases) { c.width = 0; c.height = 0; } root.remove(); slotEls.clear(); } };
+}
+function ksSyncSlots() {
+  const C = KIOSK.cur, view = C?.view; if (!view) return;
+  const cur = KIOSK.steps[C.idx]?.o;
+  for (const o of KIOSK.slots) {
+    const b = view.slotEls.get(o.id); if (!b) continue;
+    const f = C.fills.get(o.id), label = slotText(o.slot), kids = [];
+    b.classList.toggle("cur", o === cur); b.classList.toggle("done", !!f);
+    if (f?.src) kids.push(el("img", { src: f.src, alt: "" }));
+    else if (f?.checked) kids.push(svgIcon(KICONS.mark));
+    if (o.slot.kind === "check" ? !!label : !f) kids.push(el("span", { class: "ks-slot-lbl", text: label || t("ks.slot." + o.slot.kind) }));
+    b.replaceChildren(...kids);
+    b.setAttribute("aria-label", `${slotName(o.slot)}, ${t(!f ? "ks.state.empty" : f.checked ? "ks.state.checked" : "ks.state.done")}`);
+    if (o === cur) b.setAttribute("aria-current", "step"); else b.removeAttribute("aria-current");
+  }
+}
+function ksSlotTap(o) {
+  const C = KIOSK.cur; if (!C || KIOSK.step !== "slot") return;
+  const i = KIOSK.steps.findIndex((s) => s.o === o); if (i < 0) return;
+  if (i === C.idx) ksAct(o); else ksGo(i);
+}
+// one slot: what to do, the action, back and next
+function ksSlotStep(focus = "#ks-act") {
+  const C = KIOSK.cur, i = C.idx, o = KIOSK.steps[i].o, s = o.slot, f = C.fills.get(o.id), label = slotText(s);
+  KIOSK.step = "slot";
+  const named = label && label !== t(s.kind === "sign" ? "ks.def.sign" : "ks.def.photo"); // "Please sign here" rather than "sign in the Signature box"
+  const prompt = s.kind === "check" ? label || t("ks.do.check.plain") : t(named ? `ks.do.${s.kind}` : `ks.do.${s.kind}.plain`, { label });
+  const act = { sign: f ? "ks.act.resign" : "ks.act.sign", check: f ? "ks.act.uncheck" : "ks.act.check", photo: f ? "ks.act.rephoto" : "ks.act.photo" }[s.kind];
+  const need = s.required && !f, m = $("#ks-main"), mount = !m.contains(C.view.root);
+  ksScreen({ main: mount ? [C.view.root] : null, progress: ksProgress(), restart: true, bar: [
+    el("p", { class: "ks-prompt", id: "ks-prompt", text: prompt }),
+    el("p", { class: "ks-note" + (need ? " warn" : ""), id: "ks-need", "aria-live": "polite", text: need ? t("ks.req." + s.kind) : s.required ? "" : t("ks.optional") }),
+    el("div", { class: "ks-acts" },
+      i > 0 ? el("button", { type: "button", class: "ks-btn", id: "ks-prev", onclick: () => ksGo(i - 1, "#ks-next") }, t("ks.prev")) : null,
+      el("span", { class: "grow" }),
+      el("button", { type: "button", class: "ks-btn" + (f ? "" : s.required || s.kind !== "check" ? " primary" : ""), id: "ks-act", "aria-describedby": "ks-prompt", onclick: () => ksAct(o) }, svgIcon(KICONS[s.kind]), t(act)),
+      el("button", { type: "button", class: "ks-btn" + (f || !s.required ? " primary" : ""), id: "ks-next", disabled: need, onclick: () => ksGo(i + 1) }, t("ks.next")))],
+    focus: focus === "#ks-next" && need ? "#ks-act" : focus });
+  ksSyncSlots();
+  C.view.slotEls.get(o.id)?.scrollIntoView({ block: "center", behavior: mount ? "auto" : "smooth" });
+}
+async function ksAct(o) {
+  const C = KIOSK.cur; if (!C) return;
+  if (o.slot.kind === "check") {
+    if (C.fills.has(o.id)) C.fills.delete(o.id); else C.fills.set(o.id, { checked: true });
+    ksSlotStep(C.fills.has(o.id) ? "#ks-next" : "#ks-act"); return;
+  }
+  if (o.slot.kind === "sign") {
+    ksPad(o, (c) => {
+      if (KIOSK.cur !== C) return;
+      C.fills.set(o.id, { src: c.toDataURL("image/png"), mime: "image/png", w: c.width, h: c.height });
+      c.width = 0; c.height = 0;
+      ksSlotStep("#ks-next");
+    });
+    return;
+  }
+  const ph = await ksPickPhoto();
+  if (!ph || KIOSK.cur !== C) return;
+  C.fills.set(o.id, ph);
+  ksSlotStep("#ks-next");
+}
+// the signature pad, large, for this slot; the drawing goes into the slot and never into the Library
+function ksPad(o, done) {
+  const d = $("#dlg-draw");
+  d.classList.add("ks-pad");
+  $("#dlg-draw-title").textContent = slotName(o.slot);
+  $("#pad-save").textContent = t("ks.pad.put");
+  pad.onDone = done;
+  openDraw();
+}
+$("#dlg-draw").addEventListener("close", (e) => {
+  const d = e.currentTarget; if (!d.classList.contains("ks-pad")) return;
+  d.classList.remove("ks-pad"); pad.onDone = null; pad.strokes = []; pad.cur = null; padDraw(); applyStatic(d); // the canvas keeps nothing of this person
+});
+// a tap beside the large pad doesn't throw the drawing away
+$("#dlg-draw").addEventListener("click", (e) => { if (e.target === e.currentTarget && e.currentTarget.classList.contains("ks-pad")) e.stopImmediatePropagation(); }, true);
+// staff steps (a file picker): the PIN set at the start, asked in the kiosk's own confirmation; no PIN, no picker
+function ksStaffGate(note) {
+  if (!KIOSK.opts.pin) { ksTip(t("ks.photo.nopin")); return Promise.resolve(false); }
+  return new Promise((res) => ksConfirm({ title: t("ks.staff.q"), note, pin: true, ok: t("ks.staff.go"), onOk: () => res(true), onNo: () => res(false) }));
+}
+async function ksPickPhoto() {
+  if (!(await ksStaffGate(t("ks.photo.staff")))) return null;
+  try {
+    let src = null;
+    if (S.fs) {
+      const picked = await browse({ kind: "image", title: t("ks.photo.title") });
+      if (!picked?.length) return null;
+      src = await bytesToDataURL(await S.fs.readFile(picked[0]), mimeOf(picked[0]));
+    } else {
+      const f = await new Promise((res) => {
+        const i = el("input", { type: "file", accept: "image/*" });
+        i.addEventListener("change", () => res(i.files[0] || null)); i.addEventListener("cancel", () => res(null)); i.click();
+      });
+      if (!f) return null;
+      src = await readFile(f, "url");
+    }
+    // at most 2,000 pixels on the long side, as JPEG: a phone photo stays a reasonable file
+    const img = await loadImage(src), k = Math.min(1, 2000 / Math.max(img.naturalWidth, img.naturalHeight));
+    const c = canvasOf(Math.max(1, Math.round(img.naturalWidth * k)), Math.max(1, Math.round(img.naturalHeight * k))), g = c.getContext("2d");
+    g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height); g.drawImage(img, 0, 0, c.width, c.height);
+    const out = { src: c.toDataURL("image/jpeg", 0.88), mime: "image/jpeg", w: c.width, h: c.height };
+    c.width = 0; c.height = 0;
+    return out;
+  } catch (e) {
+    console.warn("sign here photo", e);
+    const n = $("#ks-need"); if (n) { n.className = "ks-note warn"; n.textContent = t("ks.photo.fail"); }
+    return null;
+  }
+}
+// what goes into a slot in the file: the drawing or photo fitted inside it (never stretched), or a check mark
+async function ksCheckPng() {
+  if (!KIOSK.checkPng) {
+    const c = canvasOf(200, 200), g = c.getContext("2d");
+    g.strokeStyle = "#111318"; g.lineWidth = 26; g.lineCap = "round"; g.lineJoin = "round";
+    g.beginPath(); g.moveTo(34, 106); g.lineTo(82, 154); g.lineTo(168, 50); g.stroke();
+    KIOSK.checkPng = { src: c.toDataURL("image/png"), mime: "image/png", w: 200, h: 200 };
+  }
+  return KIOSK.checkPng;
+}
+async function ksFillItem(o, f) {
+  const src = f.checked ? await ksCheckPng() : f, inset = f.checked ? 0.06 : o.slot.kind === "sign" ? 0.05 : 0;
+  const bw = o.w * (1 - 2 * inset), bh = o.h * (1 - 2 * inset), k = Math.min(bw / src.w, bh / src.h), w = src.w * k, h = src.h * k;
+  const asset = { id: "ks-" + uid(), kind: o.slot.kind === "photo" ? "image" : "draw", name: slotName(o.slot), src: src.src, mime: src.mime, w: src.w, h: src.h };
+  return { id: uid(), assetId: asset.id, asset, page: o.page, x: o.x + (o.w - w) / 2, y: o.y + (o.h - h) / 2, w, h, rot: 0, opacity: 1, fx: {} };
+}
+const ksFieldsOf = (C) => { const v = { ...KIOSK.opts.fixed }; for (const f of KIOSK.opts.ask) v[f] = C?.fields[f] || ""; return v; };
+const ksForgetImages = () => { for (const k of [...fxCache.keys()]) if (k.startsWith("ks-")) fxCache.delete(k); };
+async function ksBuild(withFills) {
+  const C = KIOSK.cur, B = KIOSK.base;
+  const overlays = B.overlays.map((o) => ({ ...o, fx: { ...o.fx } }));
+  if (withFills && C) for (const o of KIOSK.slots) { const f = C.fills.get(o.id); if (f) overlays.push(await ksFillItem(o, f)); }
+  try { return await buildPdf({ ai: KIOSK.opts.ai, src: { bytes: B.bytes, pages: B.pages, overlays, pdf: B.pdf, fields: ksFieldsOf(C) } }); }
+  finally { ksForgetImages(); }
+}
+// the file as it will be saved
+async function ksReview() {
+  const C = KIOSK.cur; if (!C) return;
+  const miss = KIOSK.steps.findIndex((s) => s.type === "slot" && s.o.slot.required && !C.fills.has(s.o.id));
+  if (miss >= 0) return ksGo(miss);
+  ksWaitScreen();
+  try {
+    const bytes = await ksBuild(true);
+    if (KIOSK.cur !== C) return;
+    const view = await ksRenderDoc(bytes, false, true);
+    if (KIOSK.cur !== C) { view.destroy(); return; }
+    C.review?.destroy(); C.review = view; C.built = bytes; C.out = null; C.sealed = null;
+  } catch (e) { if (KIOSK.cur === C) { KIOSK.retry = ksReview; ksFail(e, false); } return; }
+  KIOSK.step = "review";
+  ksScreen({ main: [C.review.root], restart: true, bar: [
+    el("p", { class: "ks-prompt", id: "ks-prompt", tabindex: "-1", text: t("ks.review.title") }),
+    el("p", { class: "ks-note", text: t("ks.review.hint") }),
+    el("div", { class: "ks-acts" }, el("button", { type: "button", class: "ks-btn", id: "ks-redo", onclick: () => ksGo(0) }, t("ks.redo")), el("span", { class: "grow" }),
+      el("button", { type: "button", class: "ks-btn primary", id: "ks-done", onclick: ksFinish }, t("ks.finish")))],
+    focus: "#ks-prompt" });
+}
+// 완료: seal (once), write as a new file, log; then thanks and the welcome screen for the next person
+async function ksFinish() {
+  const C = KIOSK.cur; if (!C?.built || KIOSK.busy) return;
+  KIOSK.busy = true; KIOSK.step = "saving";
+  ksWaitScreen("ks.saving");
+  try {
+    if (!C.out) {
+      let bytes = C.built;
+      if (KIOSK.opts.seal) {
+        try { bytes = new Uint8Array(await S.seal.sign(bytes, { lang: LANG, reason: t("seal.reason") })); }
+        catch (e) { throw new Error(t("seal.signFail", { msg: errMsg(e) })); }
+        C.sealed = { at: Date.now(), fingerprint: SEAL.id?.fingerprint || null, name: SEAL.id?.name || null };
+      }
+      C.out = bytes;
+    }
+    const { fileName, path } = await ksWrite(C.out, ksFieldsOf(C));
+    // the log names the slots that were filled, never what's in them
+    const filled = KIOSK.slots.filter((o) => C.fills.has(o.id)).map((o) => ({ asset: { id: "ks-" + o.id, name: slotName(o.slot), kind: o.slot.kind === "photo" ? "image" : "draw" } }));
+    await logSave({ fileName, path, bytes: C.out, sealed: C.sealed, overlays: [...KIOSK.base.overlays, ...filled], doc: KIOSK.base.name });
+    KIOSK.saved++;
+  } catch (e) {
+    console.warn("sign here save", e);
+    KIOSK.busy = false; KIOSK.retry = ksFinish;
+    ksFail(e, true);
+    return;
+  }
+  KIOSK.busy = false;
+  ksClearPerson();
+  ksThanks();
+}
+async function ksWrite(bytes, fields) {
+  const O = KIOSK.opts, usesN = /\{\s*(n|번호)\s*\}/i.test(O.pattern);
+  const nameFor = (n) => cleanName(fillName(O.pattern, fields, { n })) || `${cleanName(O.name) || "form"}_${n}`;
+  if (S.fs && O.dir) {
+    let n = KIOSK.n, fileName = null;
+    if (usesN) { // the next number that makes a new name: nothing is ever replaced
+      for (let k = 0; ; k++, n++) {
+        if (k > 9999) throw new Error("EEXIST: no free file name");
+        const cand = nameFor(n) + ".pdf";
+        try { await S.fs.stat(joinPath(O.dir, cand)); } catch (e) { if (errCode(e) === "ENOENT") { fileName = cand; break; } throw e; }
+      }
+    } else fileName = (await freeName(O.dir, nameFor(n))).name;
+    const path = joinPath(O.dir, fileName);
+    await S.fs.writeFile(path, bytes);
+    KIOSK.n = n + 1;
+    return { fileName, path };
+  }
+  const fileName = nameFor(KIOSK.n++) + ".pdf", blob = new Blob([bytes], { type: "application/pdf" }), dl = await getDownloads();
+  if (dl) await dl.save({ filename: fileName, data: blob });
+  else { const a = el("a", { href: URL.createObjectURL(blob), download: fileName }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); }
+  return { fileName, path: null };
+}
+// a calm message for the person; the details and the ways out for staff; what they filled in is kept
+function ksFail(e, saving) {
+  KIOSK.step = "error"; KIOSK.err = errMsg(e) || t("save.fail");
+  ksScreen({ main: [el("div", { class: "ks-center", role: "alert" },
+    kIcon("warn", "ks-mark warn"),
+    el("h1", { class: "ks-h1", id: "ks-h", tabindex: "-1", text: t("ks.fail") }),
+    el("p", { class: "ks-sub", text: t("ks.fail.kept") }),
+    el("div", { class: "ks-acts", style: "justify-content:center" },
+      el("button", { type: "button", class: "ks-btn primary", id: "ks-retry", onclick: () => KIOSK.retry?.() }, t("ks.retry")),
+      saving && S.fs && KIOSK.opts.pin ? el("button", { type: "button", class: "ks-btn", id: "ks-elsewhere", onclick: ksSaveElsewhere }, t("ks.elsewhere")) : null),
+    el("p", { class: "ks-small", id: "ks-err", text: t("ks.fail.staff", { msg: KIOSK.err }) }))], restart: true, focus: "#ks-h" });
+}
+async function ksSaveElsewhere() {
+  if (!(await ksStaffGate(t("ks.elsewhere.staff")))) return;
+  const picked = await browse({ kind: "folder", title: t("many.folder.title"), start: KIOSK.opts.dir || null });
+  if (!picked?.length || !KIOSK.on) return;
+  KIOSK.opts.dir = picked[0]; KIOSK.n = 1; // this session only: the folder staff chose at the start stays the remembered one
+  ksFinish();
+}
+function ksThanks() {
+  KIOSK.step = "thanks";
+  ksScreen({ main: [el("div", { class: "ks-center", role: "status" }, kIcon("ok", "ks-mark"),
+    el("h1", { class: "ks-h1", id: "ks-h", tabindex: "-1", text: t("ks.thanks") }), el("p", { class: "ks-sub", text: t("ks.thanks.sub") }))], focus: "#ks-h" });
+  clearTimeout(KIOSK.timer);
+  KIOSK.timer = setTimeout(() => { if (KIOSK.on && KIOSK.step === "thanks") ksWelcome(); }, KIOSK.thanksMs);
+}
+// nothing of this person stays: their drawings, photos, fields, the built file and the pictures of it
+function ksClearPerson() {
+  const C = KIOSK.cur; KIOSK.cur = null; KIOSK.retry = null; KIOSK.err = "";
+  if (C) {
+    C.fills.clear(); C.fields = {}; C.built = C.out = C.sealed = null;
+    C.review?.destroy(); C.review = null;
+    if (C.view && C.view !== KIOSK.sessionView) C.view.destroy();
+    C.view = null;
+  }
+  if (KIOSK.sessionView) for (const b of KIOSK.sessionView.slotEls.values()) { b.replaceChildren(); b.classList.remove("cur", "done"); b.removeAttribute("aria-label"); b.removeAttribute("aria-current"); }
+  TPL_DRAWN.list = []; TPL_DRAWN.cache = null;
+  ksForgetImages();
+  if ($("#dlg-draw").open) $("#dlg-draw").close();
+  pad.strokes = []; pad.cur = null; padDraw();
+  const m = $("#ks-main"); if (m) m.textContent = "";
+}
+
+/* ---------- start over, and leaving: a long press on the corner control, then a confirmation ---------- */
+function ksExitButton() {
+  const b = el("button", { type: "button", class: "ks-exit", id: "ks-exit", "aria-label": t("ks.exit.btn") }, kIcon("exit"));
+  let timer = 0, fired = false;
+  const begin = () => {
+    if (timer || KIOSK.confirm || KIOSK.busy) return;
+    fired = false; b.classList.add("holding");
+    timer = setTimeout(() => { timer = 0; fired = true; b.classList.remove("holding"); ksAskExit(); }, 2000);
+  };
+  const stop = () => { if (!timer) return; clearTimeout(timer); timer = 0; b.classList.remove("holding"); };
+  b.addEventListener("pointerdown", (e) => { if (e.button > 0) return; e.preventDefault(); try { b.setPointerCapture(e.pointerId); } catch {} begin(); });
+  for (const ev of ["pointerup", "pointercancel", "lostpointercapture", "blur"]) b.addEventListener(ev, stop);
+  b.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (!e.repeat) begin(); } });
+  b.addEventListener("keyup", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); stop(); } });
+  b.addEventListener("click", (e) => { e.preventDefault(); if (!fired && !KIOSK.confirm) ksTip(t("ks.exit.hold")); fired = false; });
+  b.addEventListener("contextmenu", (e) => e.preventDefault());
+  return b;
+}
+function ksTip(text) {
+  const root = $("#kiosk"); if (!root) return;
+  root.querySelector(".ks-tip")?.remove();
+  const tip = el("div", { class: "ks-tip", role: "status", text });
+  root.append(tip); setTimeout(() => tip.remove(), 3200);
+}
+function ksConfirm({ title, note = "", pin = false, ok, onOk, onNo = null }) {
+  ksCloseConfirm();
+  const root = $("#kiosk"); if (!root) return;
+  const input = pin ? el("input", { class: "ks-input", id: "ks-pin-in", inputmode: "numeric", maxlength: "4", autocomplete: "off", spellcheck: "false", style: "-webkit-text-security:disc" }) : null;
+  const err = el("p", { class: "ks-note warn", id: "ks-confirm-err", "aria-live": "assertive" });
+  const go = () => {
+    if (pin && input.value !== KIOSK.opts.pin) { err.textContent = t("ks.exit.pinBad"); input.value = ""; input.focus(); return; }
+    ksCloseConfirm(false); onOk();
+  };
+  input?.addEventListener("input", () => { input.value = input.value.replace(/\D/g, "").slice(0, 4); err.textContent = ""; });
+  input?.addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing) { e.preventDefault(); go(); } });
+  const box = el("div", { class: "ks-confirm", role: "alertdialog", "aria-modal": "true", "aria-labelledby": "ks-confirm-h", "aria-describedby": note ? "ks-confirm-note" : null },
+    el("div", { class: "ks-confirm-box" },
+      el("h2", { id: "ks-confirm-h", tabindex: "-1", text: title }),
+      note ? el("p", { class: "ks-note", id: "ks-confirm-note", text: note }) : null,
+      pin ? el("label", { class: "ks-note", for: "ks-pin-in", text: t("ks.exit.pin") }) : null, input, err,
+      el("div", { class: "ks-acts" }, el("button", { type: "button", class: "ks-btn primary", id: "ks-confirm-no", onclick: () => { ksCloseConfirm(); onNo?.(); } }, t("ks.keep")), el("span", { class: "grow" }),
+        el("button", { type: "button", class: "ks-btn danger", id: "ks-confirm-ok", onclick: go }, ok))));
+  KIOSK.confirm = { el: box, back: document.activeElement };
+  for (const n of root.children) n.inert = true;
+  root.append(box);
+  (input || $("#ks-confirm-no")).focus();
+}
+function ksCloseConfirm(restore = true) {
+  const c = KIOSK.confirm; if (!c) return;
+  KIOSK.confirm = null; c.el.remove();
+  for (const n of $("#kiosk")?.children || []) n.inert = false;
+  if (restore && c.back?.isConnected) c.back.focus({ preventScroll: true });
+}
+const ksHasData = () => !!KIOSK.cur && (KIOSK.cur.fills.size > 0 || Object.values(KIOSK.cur.fields).some((v) => String(v || "").trim()));
+function ksAskRestart() { ksConfirm({ title: t("ks.restart.q"), ok: t("ks.restart.go"), onOk: () => { ksClearPerson(); ksWelcome(); } }); }
+function ksAskExit() {
+  if (!KIOSK.on || KIOSK.busy) return;
+  if ($("#dlg-draw").open) $("#dlg-draw").close();
+  ksConfirm({ title: t("ks.exit.q"), note: KIOSK.step === "error" ? t("ks.exit.unsaved") : ksHasData() ? t("ks.exit.lose") : "", pin: !!KIOSK.opts.pin, ok: t("ks.exit.go"), onOk: ksExit });
+}
+function ksExit() {
+  if (!KIOSK.on || KIOSK.busy) return;
+  clearTimeout(KIOSK.timer);
+  ksCloseConfirm(false);
+  ksClearPerson();
+  KIOSK.sessionView?.destroy();
+  try { KIOSK.base?.pdf.destroy(); } catch {}
+  const saved = KIOSK.saved;
+  Object.assign(KIOSK, { on: false, base: null, slots: [], steps: [], opts: null, sessionView: null, step: null, err: "", retry: null, checkPng: null });
+  $("#kiosk")?.remove();
+  for (const n of KIOSK.inerted) n.inert = false;
+  KIOSK.inerted = [];
+  document.documentElement.classList.remove("ks-on");
+  ksFullscreen(false);
+  toast(t("ks.done", { n: saved }));
+  (S.view === "editor" ? stage : $("#home-main"))?.focus?.({ preventScroll: true });
+}
+// the Android back button: closes the pad, the picker or a confirmation; never leaves sign here mode
+function kioskBack() {
+  const dlg = $$("dialog[open]").pop();
+  if (dlg) { dlg.close(); return true; }
+  if (KIOSK.confirm) { ksCloseConfirm(); return true; }
+  return true;
+}
+// what changes with the language (rerenderAll)
+function syncKioskText() {
+  if ($("#dlg-save").open) syncSaveSlots();
+  if (ksDlg.open) renderKioskSetup();
+  if (!KIOSK.on) return;
+  $("#kiosk").setAttribute("aria-label", t("ks.region")); $("#ks-restart").textContent = t("ks.restart"); $("#ks-exit").setAttribute("aria-label", t("ks.exit.btn"));
+  if (KIOSK.confirm) return;
+  if (KIOSK.step === "welcome") ksWelcome();
+  else if (KIOSK.step === "fields") ksFieldsStep();
+  else if (KIOSK.step === "slot") ksSlotStep();
+}
+window.__pdfeKiosk = { KIOSK, open: openKiosk, begin: beginKiosk, exit: ksExit, askExit: ksAskExit, placeSlot, hasSlots, back: kioskBack };
 
 /* ================================================================
    Wiring & boot
