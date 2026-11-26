@@ -495,7 +495,7 @@ async function requestAccess(p, o = {}) {
 /* ---------------- store build: import data from the previous version ---------------- */
 // what the page keeps in its store; never seal/ (the key is bound to the other build's Keychain
 // item: move it with a .p12 backup) and never .electron/ (Chromium caches, window bounds)
-const IMPORT_ITEMS = ["prefs.json", "documents.json", "library.json", "library", "docs", "thumbs"];
+const IMPORT_ITEMS = ["prefs.json", "documents.json", "library.json", "seal-log.json", "forms.json", "library", "docs", "thumbs"];
 async function importPreviousData() {
   const l = L();
   let src = null;
