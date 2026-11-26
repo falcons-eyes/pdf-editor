@@ -312,8 +312,12 @@ async function runMode(browser, mode) {
     await rows.nth(shopRow).getByRole("button", { name: await T("ks.field.fixed") }).click();
     await page.fill(`#ks-fld-${shopRow}`, shopName);
     if (!(await page.isChecked("#ks-ai"))) await page.check("#ks-ai");
-    const pin = mode === "desktop" ? "2580" : "";
-    if (pin) { await page.fill("#ks-pin", "12"); await page.click("#ks-go"); check("start screen: a PIN must be four digits", (await page.locator("#ks-msg").innerText()) === (await T("ks.pin.bad"))); await page.fill("#ks-pin", pin); }
+    const pin = mode === "desktop" ? "2580" : "1357";
+    // the form has a photo slot, whose picker can browse files: starting without a staff PIN is refused
+    await page.fill("#ks-pin", ""); await page.click("#ks-go");
+    check("start screen: a photo slot needs a staff PIN", (await page.locator("#ks-msg").innerText()) === (await T("ks.pin.photo")) && !(await K("KIOSK.on")));
+    await page.fill("#ks-pin", "12"); await page.click("#ks-go"); check("start screen: a PIN must be four digits", (await page.locator("#ks-msg").innerText()) === (await T("ks.pin.bad")));
+    await page.fill("#ks-pin", pin);
     const pattern = await page.inputValue("#ks-pattern");
     check("start screen: file names default to {date}_{form name}_{n}", pattern === `{${await T("st.f.date")}}_${fromDoc ? "terms" : formName}_{${await T("st.f.n")}}`, pattern);
     await shot(page, `${mode}-start-screen`);
@@ -398,6 +402,16 @@ async function runMode(browser, mode) {
       check(`person ${k + 1}: progress “4 of 4” on the photo`, (await page.locator("#ks-progress").innerText()) === (await T("ks.progress", { n: 4, k: 4 })));
       await page.evaluate((f) => { window.__shimDialogNext = [`~/Documents/${f}`]; }, `photo${(k % 2) + 1}.png`);
       await page.click("#ks-act");
+      // the photo picker can browse files, so staff confirm it with the PIN first; a wrong PIN or 계속하기 opens nothing
+      await page.waitForSelector("#ks-pin-in");
+      if (k === 0) {
+        await page.click("#ks-confirm-no");
+        check("photo: without the staff PIN no picker opens", !(await page.evaluate(() => !!document.querySelector('.ks-slot.done[data-kind="photo"] img'))) && (await page.locator("#ks-pin-in").count()) === 0);
+        await page.click("#ks-act"); await page.waitForSelector("#ks-pin-in");
+        await page.fill("#ks-pin-in", "0000"); await page.click("#ks-confirm-ok");
+        check("photo: a wrong PIN is refused", (await page.locator("#ks-confirm-err").innerText()) === (await T("ks.exit.pinBad")));
+      }
+      await page.fill("#ks-pin-in", pin); await page.click("#ks-confirm-ok");
       await page.waitForFunction(() => !!document.querySelector('.ks-slot.done[data-kind="photo"] img'));
       if (shots) await shot(page, `${mode}-slot-photo`);
       await page.click("#ks-next");

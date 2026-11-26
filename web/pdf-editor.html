@@ -2245,6 +2245,13 @@ const STR = {
   "ks.exit.lose": ["지금 적던 내용은 저장되지 않습니다.", "What's being filled in now won't be saved."],
   "ks.exit.unsaved": ["저장하지 못한 내용이 있습니다. 끝내면 그 내용은 사라집니다.", "Something couldn't be saved. Leaving discards it."],
   "ks.exit.pin": ["번호 네 자리", "Four-digit PIN"],
+  // staff-only steps: picking a photo and saving to another folder open file pickers, so they need the staff PIN
+  "ks.staff.q": ["직원 확인", "Staff check"],
+  "ks.staff.go": ["확인", "Continue"],
+  "ks.photo.staff": ["사진은 직원이 골라 넣습니다. 직원 번호를 넣으면 사진을 고를 수 있습니다.", "Staff add the photo. Enter the staff PIN to choose it."],
+  "ks.photo.nopin": ["사진 칸은 직원 번호를 정하고 시작해야 쓸 수 있습니다. 직원에게 알려 주세요.", "Photo slots need a staff PIN set at the start. Please tell a member of staff."],
+  "ks.pin.photo": ["사진 칸이 있어서 번호를 정해야 합니다. 사진을 고르는 창은 파일을 둘러볼 수 있어서, 직원이 번호를 넣은 뒤에만 열립니다.", "This form has a photo slot, so set a PIN. The photo picker can browse files, so it opens only after staff enter the PIN."],
+  "ks.elsewhere.staff": ["다른 폴더에 저장하려면 직원 번호를 넣어 주세요.", "Enter the staff PIN to save in another folder."],
   "ks.exit.pinBad": ["번호가 맞지 않아요.", "That PIN isn't right."],
   "ks.exit.go": ["끝내기", "Leave"],
   "ks.done": ["서명 받기를 끝냈습니다. 파일 {n}개를 저장했습니다.", pl("Sign here mode ended. 1 file was saved.", "Sign here mode ended. {n} files were saved.")],
@@ -8700,6 +8707,8 @@ async function ksStart() {
   const stop = (key, focus) => { st.msg = t(key); renderKioskSetup(); $(focus)?.focus(); };
   if (S.fs && !st.dir) return stop("many.folder.need", "#ks-dir-btn");
   if (st.pin && !/^\d{4}$/.test(st.pin)) return stop("ks.pin.bad", "#ks-pin");
+  // a photo slot opens a file picker, which can browse the device: only staff may open it, so a PIN is required
+  if (!st.pin && (st.form ? st.form.items : S.overlays).some((o) => o.slot?.kind === "photo")) return stop("ks.pin.photo", "#ks-pin");
   if (st.seal && S.seal && !SEAL.id) return stop("many.seal.need", "#ks-seal");
   const opts = { form: st.form, name: st.name, dir: st.dir, pattern: st.pattern.trim() || ksDefaultPattern(st.name), seal: !!(st.seal && S.seal && SEAL.id),
     ai: st.ai ? { notice: true, line: !!st.line } : null, ask: st.fields.filter((f) => st.ask.has(f)),
@@ -8953,7 +8962,13 @@ $("#dlg-draw").addEventListener("close", (e) => {
 });
 // a tap beside the large pad doesn't throw the drawing away
 $("#dlg-draw").addEventListener("click", (e) => { if (e.target === e.currentTarget && e.currentTarget.classList.contains("ks-pad")) e.stopImmediatePropagation(); }, true);
+// staff steps (a file picker): the PIN set at the start, asked in the kiosk's own confirmation; no PIN, no picker
+function ksStaffGate(note) {
+  if (!KIOSK.opts.pin) { ksTip(t("ks.photo.nopin")); return Promise.resolve(false); }
+  return new Promise((res) => ksConfirm({ title: t("ks.staff.q"), note, pin: true, ok: t("ks.staff.go"), onOk: () => res(true), onNo: () => res(false) }));
+}
 async function ksPickPhoto() {
+  if (!(await ksStaffGate(t("ks.photo.staff")))) return null;
   try {
     let src = null;
     if (S.fs) {
@@ -9088,13 +9103,14 @@ function ksFail(e, saving) {
     el("p", { class: "ks-sub", text: t("ks.fail.kept") }),
     el("div", { class: "ks-acts", style: "justify-content:center" },
       el("button", { type: "button", class: "ks-btn primary", id: "ks-retry", onclick: () => KIOSK.retry?.() }, t("ks.retry")),
-      saving && S.fs ? el("button", { type: "button", class: "ks-btn", id: "ks-elsewhere", onclick: ksSaveElsewhere }, t("ks.elsewhere")) : null),
+      saving && S.fs && KIOSK.opts.pin ? el("button", { type: "button", class: "ks-btn", id: "ks-elsewhere", onclick: ksSaveElsewhere }, t("ks.elsewhere")) : null),
     el("p", { class: "ks-small", id: "ks-err", text: t("ks.fail.staff", { msg: KIOSK.err }) }))], restart: true, focus: "#ks-h" });
 }
 async function ksSaveElsewhere() {
+  if (!(await ksStaffGate(t("ks.elsewhere.staff")))) return;
   const picked = await browse({ kind: "folder", title: t("many.folder.title"), start: KIOSK.opts.dir || null });
   if (!picked?.length || !KIOSK.on) return;
-  KIOSK.opts.dir = picked[0]; KIOSK.n = 1; S.prefs.lastDir.kiosk = picked[0]; persistPrefs();
+  KIOSK.opts.dir = picked[0]; KIOSK.n = 1; // this session only: the folder staff chose at the start stays the remembered one
   ksFinish();
 }
 function ksThanks() {
@@ -9145,7 +9161,7 @@ function ksTip(text) {
   const tip = el("div", { class: "ks-tip", role: "status", text });
   root.append(tip); setTimeout(() => tip.remove(), 3200);
 }
-function ksConfirm({ title, note = "", pin = false, ok, onOk }) {
+function ksConfirm({ title, note = "", pin = false, ok, onOk, onNo = null }) {
   ksCloseConfirm();
   const root = $("#kiosk"); if (!root) return;
   const input = pin ? el("input", { class: "ks-input", id: "ks-pin-in", inputmode: "numeric", maxlength: "4", autocomplete: "off", spellcheck: "false", style: "-webkit-text-security:disc" }) : null;
@@ -9161,7 +9177,7 @@ function ksConfirm({ title, note = "", pin = false, ok, onOk }) {
       el("h2", { id: "ks-confirm-h", tabindex: "-1", text: title }),
       note ? el("p", { class: "ks-note", id: "ks-confirm-note", text: note }) : null,
       pin ? el("label", { class: "ks-note", for: "ks-pin-in", text: t("ks.exit.pin") }) : null, input, err,
-      el("div", { class: "ks-acts" }, el("button", { type: "button", class: "ks-btn primary", id: "ks-confirm-no", onclick: () => ksCloseConfirm() }, t("ks.keep")), el("span", { class: "grow" }),
+      el("div", { class: "ks-acts" }, el("button", { type: "button", class: "ks-btn primary", id: "ks-confirm-no", onclick: () => { ksCloseConfirm(); onNo?.(); } }, t("ks.keep")), el("span", { class: "grow" }),
         el("button", { type: "button", class: "ks-btn danger", id: "ks-confirm-ok", onclick: go }, ok))));
   KIOSK.confirm = { el: box, back: document.activeElement };
   for (const n of root.children) n.inert = true;
