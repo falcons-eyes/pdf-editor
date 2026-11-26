@@ -654,6 +654,73 @@ html:not(.has-seal) .seal-only { display: none !important; }
 .touch .sealer-nav button { min-height: 48px; }
 .touch .s-list .btn.sm { min-height: 36px; }
 
+/* 1.3 stamps, forms, make many */
+/* the text stamp dialog: look, presets, fields to insert, the "for whom" line, the lines under a boxed stamp */
+#txt-sub { height: auto; min-height: 64px; padding: 8px 12px; line-height: 1.5; resize: vertical; font: inherit; font-size: 15px; }
+#txt-sub[hidden], #txt-who-row[hidden], #txt-font-row[hidden], #txt-marks-row[hidden] { display: none; }
+#txt-who-row .text-input { flex: 1; min-width: 160px; height: 36px; font-size: 14px; }
+#txt-vars-hint { flex-basis: 100%; margin: -4px 0 0; }
+#dlg-text .opt-row .lbl { width: 64px; }
+#txt-who-row .lbl { width: auto; color: var(--fg); font-size: 13px; }
+:lang(ko) #txt-vars-hint, :lang(ko) .many-dlg .hint, :lang(ko) .st-fields .hint { word-break: keep-all; }
+.touch #txt-presets .sw, .touch #txt-wm-presets .sw, .touch #txt-vars .sw { height: 36px; padding: 0 12px; font-size: 13px; }
+/* a pattern covers its page: it stays under the other items and has no handles */
+.ov.wm { cursor: default; }
+.ov.wm, .ov.wm.sel, .ov.wm:focus-visible { z-index: 0; }
+.ov.wm .h { display: none; }
+@media (hover: hover) { .ov.wm:hover { outline: none; } }
+.ov.wm.sel { outline: 1.5px dashed var(--accent); outline-offset: -2px; }
+/* fields: in the inspector, the save dialog and make many */
+.st-fields { display: grid; gap: 8px; margin: 0 0 12px; padding: 10px 12px; border-radius: 10px; background: var(--panel); border: 1px solid var(--line); }
+.st-fields-h { font-size: 12px; font-weight: 600; color: var(--muted); }
+.st-field { display: grid; grid-template-columns: minmax(64px, auto) minmax(0, 1fr); align-items: center; gap: 8px; font-size: 12.5px; }
+.st-field label { color: var(--fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 12em; }
+.st-field .text-input { height: 32px; font-size: 13px; }
+.touch .st-field .text-input { height: 44px; font-size: 16px; }
+.st-save-fields { display: grid; gap: 8px; padding: 10px 12px; border-radius: 10px; border: 1px solid color-mix(in oklab, var(--accent) 30%, var(--line)); background: var(--accent-soft); }
+.st-save-fields[hidden] { display: none; }
+.st-save-grid { display: grid; gap: 6px; }
+/* save dialog: "More options" says what's on while it's closed */
+.save-more > summary .save-more-on { margin-left: 8px; color: var(--accent); font-weight: 400; font-size: 12px; }
+.save-more .ai-opt { padding: 4px 0 0; border: none; background: none; }
+/* forms in the Library home side panel */
+.form-list li .btn-row { margin-top: 4px; }
+.touch .form-list .btn.sm { height: 40px; padding: 0 14px; font-size: 13px; }
+.touch .form-list .btn.icon.sm { width: 40px; }
+.tb-forms .btn { gap: 6px; padding: 0 10px; }
+/* make many */
+dialog.many-dlg { width: min(820px, calc(100vw - 32px)); }
+/* a column of parts that never shrink: the table scrolls inside itself, the dialog's body scrolls around it */
+.many-dlg .dlg-body { display: flex; flex-direction: column; gap: 14px; max-height: min(72vh, 760px); overflow-y: auto; }
+.many-dlg .dlg-body > * { flex: none; }
+.many-scroll { overflow: auto; max-height: 300px; border: 1px solid var(--line); border-radius: 10px; background: var(--surface); }
+.many-table { border-collapse: collapse; width: 100%; font-size: 13px; }
+.many-table th, .many-table td { border-bottom: 1px solid var(--line); padding: 0; }
+.many-table th + th, .many-table td + td { border-left: 1px solid var(--line); }
+.many-table thead th { position: sticky; top: 0; background: var(--panel); z-index: 1; }
+.many-table thead .many-cell { font-weight: 600; }
+.many-cell { width: 100%; min-width: 110px; box-sizing: border-box; height: 34px; padding: 0 8px; border: none; background: transparent; font: inherit; color: inherit; user-select: text; -webkit-user-select: text; }
+.many-cell:focus { outline: 2px solid var(--accent); outline-offset: -2px; background: var(--surface); }
+.many-n { width: 34px; min-width: 34px; text-align: center; color: var(--muted); font-family: var(--font-num); font-size: 11.5px; }
+.many-x { width: 36px; text-align: center; }
+.many-x .btn.icon.sm { width: 28px; height: 28px; }
+.touch .many-cell { height: 44px; font-size: 16px; }
+.touch .many-x .btn.icon.sm { width: 40px; height: 40px; }
+.many-opts { display: grid; gap: 6px; }
+.many-opts .ai-line { padding-left: 23px; font-size: 12.5px; }
+.many-opts .toggle { align-items: flex-start; font-size: 13px; }
+.many-opts .toggle input { margin-top: 2px; flex: none; }
+.many-dlg .btn-row { align-items: center; }
+.many-status { margin: 0; font-size: 14px; font-weight: 500; }
+#many-progress { width: 100%; height: 10px; accent-color: var(--accent); }
+.many-pdfs { max-height: 220px; overflow-y: auto; }
+@media (max-width: 699px), (pointer: coarse) and (max-height: 520px) {
+  dialog.many-dlg { width: 100%; }
+  .many-dlg .dlg-body { max-height: none; }
+  .many-scroll { max-height: 46dvh; }
+  .st-field { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
+
 /* ---------- narrow windows ---------- */
 @media (max-width: 1080px) {
   .main, .main.no-rail { grid-template-columns: 0 minmax(0, 1fr) var(--side-w); } .rail { visibility: hidden; } #btn-rail { display: none; }
@@ -910,6 +977,10 @@ html:not(.has-seal) .seal-only { display: none !important; }
         <button class="btn" id="btn-pages" type="button" data-i18n-tip="pages.tip" aria-haspopup="dialog"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><rect x="2" y="3.5" width="7" height="10" rx="1"/><rect x="7" y="2.5" width="7" height="10" rx="1"/></svg><span data-i18n="pages.btn"></span></button>
         <button class="btn" id="btn-cover" type="button" data-i18n-tip="cover.tip" aria-pressed="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 4.5h11M2.5 11.5h7"/><rect x="4.5" y="6.25" width="9" height="3.5" rx=".5" fill="currentColor"/></svg><span data-i18n="cover.btn"></span></button>
       </div>
+      <!-- 1.3 stamps, forms, make many -->
+      <div class="tb-group tb-pages tb-forms">
+        <button class="btn" id="btn-forms" type="button" data-i18n-tip="form.tip" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M9.5 1.75v3h3"/><rect x="5.75" y="7.5" width="5" height="2" rx=".4" stroke-dasharray="1.2 .9"/><path d="M5.75 11.75h3"/></svg><span data-i18n="form.btn"></span></button>
+      </div>
       <button class="btn icon outline" id="btn-rail" data-i18n-tip="ed.rail" data-k="⌘\" data-i18n-label="ed.rail"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M5.75 2.25v11.5"/></svg></button>
     </div>
     <button class="btn icon outline" id="btn-side" data-i18n-tip="ed.side" data-k="⌥⌘\" data-i18n-label="ed.side"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.75" y="2.25" width="12.5" height="11.5" rx="1.5"/><path d="M10.25 2.25v11.5"/></svg></button>
@@ -965,6 +1036,7 @@ html:not(.has-seal) .seal-only { display: none !important; }
         <div class="lib" id="home-lib"></div>
         <p class="hint lib-hint" style="margin:10px 0 0" data-i18n="lib.hint.home"></p>
       </section>
+      <section class="sec" id="forms-side" data-i18n-label="form.list"></section><!-- 1.3 stamps, forms, make many -->
       <section class="sec seal-side seal-only" id="seal-info" data-i18n-label="sealer.title"></section>
       <section class="sec store-info" id="store-info" data-i18n-label="store.aria"></section>
       <section class="sec" id="about-side" data-i18n-label="about.title"></section>
@@ -1061,10 +1133,16 @@ html:not(.has-seal) .seal-only { display: none !important; }
 <dialog id="dlg-text" aria-labelledby="dlg-text-title">
   <div class="dlg-head"><h2 id="dlg-text-title" data-i18n="text.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
   <div class="dlg-body">
-    <input class="text-input" id="txt-input" maxlength="60" data-i18n-ph="text.ph" autocomplete="off">
+    <!-- 1.3 stamps: the look (text, boxed, pattern), the lines under a boxed stamp, "for whom", fields to insert -->
+    <div class="opt-row"><span class="lbl" id="txt-look-lbl" data-i18n="st.look"></span><div class="seg" id="txt-look" role="group" aria-labelledby="txt-look-lbl"><button type="button" data-look="plain" aria-pressed="true" data-i18n="st.look.plain"></button><button type="button" data-look="box" aria-pressed="false" data-i18n="st.look.box"></button><button type="button" data-look="wm" aria-pressed="false" data-i18n="st.look.wm"></button></div></div>
+    <input class="text-input" id="txt-input" maxlength="80" data-i18n-ph="text.ph" autocomplete="off">
+    <textarea class="text-input" id="txt-sub" rows="2" maxlength="160" data-i18n-label="st.sub" data-i18n-ph="st.sub" hidden></textarea>
+    <div class="opt-row" id="txt-who-row" hidden><label class="lbl" for="txt-who" data-i18n="st.who"></label><input class="text-input" id="txt-who" maxlength="40" autocomplete="off" data-i18n-ph="st.who.ph"></div>
     <div class="chips" id="txt-presets"></div>
-    <div class="opt-row"><span class="lbl" id="txt-marks-lbl" data-i18n="text.marks"></span><div class="chips" id="txt-marks" role="group" aria-labelledby="txt-marks-lbl" aria-describedby="txt-marks-hint"></div><span class="hint" id="txt-marks-hint" data-i18n="text.marks.hint"></span></div>
-    <div class="opt-row"><span class="lbl" data-i18n="text.font"></span><div class="seg" id="txt-font"><button type="button" data-f="sans" aria-pressed="true" data-i18n="text.sans"></button><button type="button" data-f="pen" data-i18n="text.pen"></button><button type="button" data-f="serif" data-i18n="text.serif"></button></div></div>
+    <div class="opt-row"><span class="lbl" id="txt-wm-lbl" data-i18n="st.row.wm"></span><div class="chips" id="txt-wm-presets" role="group" aria-labelledby="txt-wm-lbl"></div></div>
+    <div class="opt-row"><span class="lbl" id="txt-vars-lbl" data-i18n="st.vars"></span><div class="chips" id="txt-vars" role="group" aria-labelledby="txt-vars-lbl" aria-describedby="txt-vars-hint"></div><span class="hint" id="txt-vars-hint" data-i18n="st.vars.hint"></span></div>
+    <div class="opt-row" id="txt-marks-row"><span class="lbl" id="txt-marks-lbl" data-i18n="text.marks"></span><div class="chips" id="txt-marks" role="group" aria-labelledby="txt-marks-lbl" aria-describedby="txt-marks-hint"></div><span class="hint" id="txt-marks-hint" data-i18n="text.marks.hint"></span></div>
+    <div class="opt-row" id="txt-font-row"><span class="lbl" data-i18n="text.font"></span><div class="seg" id="txt-font"><button type="button" data-f="sans" aria-pressed="true" data-i18n="text.sans"></button><button type="button" data-f="pen" data-i18n="text.pen"></button><button type="button" data-f="serif" data-i18n="text.serif"></button></div></div>
     <div class="opt-row"><span class="lbl" data-i18n="text.color"></span><div class="swatches" id="txt-colors"></div></div>
     <div class="preview-box"><canvas id="txt-preview"></canvas></div>
   </div>
@@ -1082,26 +1160,28 @@ html:not(.has-seal) .seal-only { display: none !important; }
       <p class="hint sandbox-only" style="margin:0" data-i18n="save.sandboxNote" hidden></p>
       <label class="toggle"><input type="checkbox" id="save-open"> <span data-i18n="save.openAfter"></span></label>
     </div>
+    <!-- 1.3 stamps, forms: fields still to fill before saving (an empty one is saved blank) -->
+    <div class="st-save-fields" id="save-fields" hidden></div>
     <!-- 1.3 pages, cover, text-free copy: which pages to save, the text-free copy, and which pages become pictures -->
     <p class="save-img-note" id="save-img-note" hidden></p>
+    <div class="seal-opt seal-only" id="save-seal-wrap">
+      <label class="toggle"><input type="checkbox" id="save-seal"><span><b data-i18n="seal.action"></b> · <span data-i18n="seal.subtitle"></span><small data-i18n="save.seal.explain"></small></span></label>
+      <div id="save-sealer"></div>
+    </div>
     <details class="save-more" id="save-more">
-      <summary data-i18n="save.more"></summary>
+      <summary><span data-i18n="st.save.more"></span><span class="save-more-on" id="save-more-on"></span></summary><!-- 1.3 stamps, forms: one "More options" for the less common choices -->
       <div class="save-more-body">
         <label class="fld-label" for="save-range" data-i18n="save.range"></label>
         <input class="text-input" id="save-range" inputmode="numeric" autocomplete="off" spellcheck="false" data-i18n-ph="save.range.ph" aria-describedby="save-range-hint">
         <p class="hint" id="save-range-hint" style="margin:0" aria-live="polite"></p>
         <label class="toggle tf-opt"><input type="checkbox" id="save-textfree" aria-describedby="save-tf-explain"><span><b data-i18n="save.tf"></b><small id="save-tf-explain" data-i18n="save.tf.explain"></small></span></label>
+        <!-- 1.3 seal: No AI notice (AI 사용 거부 표시) -->
+        <div class="seal-opt ai-opt" id="save-ai-wrap">
+          <label class="toggle"><input type="checkbox" id="save-ai"><span><b data-i18n="ai.opt"></b><small data-i18n="ai.opt.explain"></small></span></label>
+          <label class="toggle ai-line" id="save-ai-line-row"><input type="checkbox" id="save-ai-line"><span data-i18n="ai.opt.line"></span></label>
+        </div>
       </div>
     </details>
-    <div class="seal-opt seal-only" id="save-seal-wrap">
-      <label class="toggle"><input type="checkbox" id="save-seal"><span><b data-i18n="seal.action"></b> · <span data-i18n="seal.subtitle"></span><small data-i18n="save.seal.explain"></small></span></label>
-      <div id="save-sealer"></div>
-    </div>
-    <!-- 1.3 seal: No AI notice (AI 사용 거부 표시) -->
-    <div class="seal-opt ai-opt" id="save-ai-wrap">
-      <label class="toggle"><input type="checkbox" id="save-ai"><span><b data-i18n="ai.opt"></b><small data-i18n="ai.opt.explain"></small></span></label>
-      <label class="toggle ai-line" id="save-ai-line-row"><input type="checkbox" id="save-ai-line"><span data-i18n="ai.opt.line"></span></label>
-    </div>
     <p class="save-msg" id="save-msg"></p>
     <p class="hint" style="margin:0" data-i18n="save.hint"></p>
   </form>
@@ -1126,6 +1206,20 @@ html:not(.has-seal) .seal-only { display: none !important; }
 </dialog>
 <input type="file" id="file-pagepdf" accept="application/pdf,.pdf" hidden>
 <input type="file" id="file-pageimg" accept="image/png,image/jpeg,image/webp,image/gif,image/bmp" multiple hidden>
+
+<!-- 1.3 stamps, forms, make many: 서식으로 저장, 여러 개 만들기 -->
+<dialog id="dlg-form" aria-labelledby="dlg-form-title">
+  <div class="dlg-head"><h2 id="dlg-form-title" data-i18n="form.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <form class="dlg-body" id="form-body"></form>
+  <div class="dlg-foot"><span class="grow"></span><button class="btn" type="button" data-close data-i18n="dlg.cancel"></button><button class="btn primary" id="form-save" type="submit" form="form-body" data-i18n="save.save"></button></div>
+</dialog>
+<dialog id="dlg-many" class="many-dlg" aria-labelledby="dlg-many-title">
+  <div class="dlg-head"><h2 id="dlg-many-title" data-i18n="many.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body" id="many-body"></div>
+  <div class="dlg-foot" id="many-foot"></div>
+</dialog>
+<input type="file" id="file-csv" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values,text/plain" hidden>
+<input type="file" id="file-many" accept="application/pdf,.pdf" multiple hidden>
 
 <dialog id="dlg-verify" aria-labelledby="dlg-verify-title">
   <div class="dlg-head"><h2 id="dlg-verify-title" data-i18n="seal.verify"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
@@ -1817,7 +1911,6 @@ const STR = {
   "cover.aria": ["{fill} 가리기 상자, {page}쪽", "{fill} cover box, page {page}"],
   "cover.hint": ["저장할 때 이 쪽은 그림으로 바뀌고, 상자 아래 있던 글자와 그림은 파일에서 지워집니다. 가리기 상자가 없는 쪽은 글자를 그대로 둡니다.", "When you save, this page becomes a picture and the text and images under the box are removed from the file. Pages without a cover box keep their text."],
   "cover.fill": ["색", "Color"], "cover.black": ["검정", "Black"], "cover.white": ["흰색", "White"],
-  "save.more": ["쪽 고르기와 글자 없는 사본", "Choose pages, or a text-free copy"],
   "save.range": ["저장할 쪽", "Pages to save"],
   "save.range.ph": ["모든 쪽", "All pages"],
   "save.range.hint": ["비워 두면 모든 쪽을 저장합니다. 몇 쪽만 저장하려면 1~3, 5처럼 적으세요. 이 문서는 {n}쪽입니다.", "Leave it empty to save every page. To save only some, type for example 1-3, 5. This document has {n} pages."],
@@ -1831,6 +1924,128 @@ const STR = {
   "save.img.all": ["모든 쪽을 그림으로 바꿔 저장해서 파일에 글자가 남지 않습니다.", "Every page is saved as a picture, so the file keeps no text."],
   "save.nothing.tf": ["글자 없는 사본 만들기", "Make a text-free copy"],
   "home.more.aria": ["{name} 작업 더 보기", "More actions for {name}"],
+  // 1.3 stamps, forms, make many
+  // 글자 도장의 모양과 프리셋, {칸}
+  "st.look": ["모양", "Style"],
+  "st.look.plain": ["글자", "Text"], "st.look.box": ["상자", "Boxed"], "st.look.wm": ["반복 무늬", "Pattern"],
+  "st.sub": ["아랫줄", "Lines below"],
+  "st.row.wm": ["반복 무늬", "Patterns"],
+  "st.p.pageno": ["쪽 번호", "Page numbers"],
+  "st.p.pageno.text": ["{쪽} / {전체쪽}", "Page {page} of {pages}"],
+  "st.p.cert": ["원본대조필", "Certified copy"],
+  "st.p.cert.title": ["원본과 상이 없음", "Certified true copy"],
+  "st.p.cert.sub": ["{날짜}\n확인자 {이름} (인)", "{date}\nCertified by {name}"],
+  "st.p.for": ["제출용", "For one use"],
+  "st.p.for.text": ["제출용: {who}, {날짜}, 다른 용도 사용 금지", "For {who} only, {date}, not for any other use"],
+  "st.p.copy": ["사본 COPY", "사본 COPY"],
+  "st.p.conf": ["대외비 CONFIDENTIAL", "대외비 CONFIDENTIAL"],
+  "st.who": ["누구에게 내나요?", "Who is it for?"],
+  "st.who.ph": ["예: 한빛은행", "e.g. Northwind Bank"],
+  "st.who.field": ["제출처", "recipient"],
+  "st.vars": ["넣을 값", "Insert"],
+  "st.var.page": ["쪽 번호", "Page number"], "st.var.pages": ["전체 쪽 수", "Page count"], "st.var.date": ["오늘 날짜", "Today's date"], "st.var.name": ["이름 칸", "Name field"],
+  "st.var.aria": ["{what} 넣기", "Insert {what}"],
+  "st.vars.hint": ["{이름}처럼 중괄호로 감싼 말은 칸이 됩니다. 쪽 번호와 날짜는 저절로 채워지고, 다른 칸은 저장할 때 채웁니다.", "A word in braces, like {name}, becomes a field. Page numbers and the date fill themselves in, and other fields are filled in when you save."],
+  "st.f.page": ["쪽", "page"], "st.f.pages": ["전체쪽", "pages"], "st.f.date": ["날짜", "date"], "st.f.name": ["이름", "name"], "st.f.n": ["번호", "n"], "st.f.file": ["파일", "file"],
+  "st.wm.grey": ["회색", "Gray"],
+  "st.added.wm": ["보관함에 반복 무늬를 추가했습니다.", "Pattern added to the Library."],
+  "st.allPages.ask": ["모든 쪽의 같은 자리에 넣을까요? 쪽마다 제 번호가 들어갑니다.", "Put it on every page at the same spot? Each page gets its own number."],
+  "st.allPages.wm": ["모든 쪽에 같은 무늬를 넣을까요?", "Put the pattern on every page?"],
+  "st.allPages.go": ["모든 쪽에 넣기", "Every page"],
+  "st.fields": ["칸 채우기", "Fields"],
+  "st.fields.hint": ["여기 적은 값은 이 문서에서 이름이 같은 칸에 모두 들어갑니다. 비워 두면 저장할 때 묻습니다.", "A value here goes into every field with that name in this document. Leave one empty and you'll be asked when saving."],
+  "st.field.aria": ["{name} 칸에 넣을 값", "Value for {name}"],
+  "st.wm.title": ["반복 무늬", "Pattern"],
+  "st.wm.hint": ["쪽 전체를 덮는 무늬라서 옮기거나 크기를 바꾸지 않습니다. 진하기와 색을 고를 수 있습니다.", "It covers the whole page, so it isn't moved or resized. You can choose how strong it is and its color."],
+  "st.wm.strength": ["진하기", "Strength"],
+  "st.wm.all": ["모든 쪽에 넣기", "Put on every page"],
+  "st.save.fields": ["저장하기 전에 칸 채우기", "Fill in before saving"],
+  "st.save.fields.hint": ["비워 둔 칸은 빈칸으로 저장됩니다.", "Fields you leave empty are saved blank."],
+  "st.save.more": ["설정 더 보기", "More options"],
+  "st.save.on": ["켜짐: {list}", "On: {list}"],
+  "st.save.on.tf": ["글자 없는 사본", "text-free copy"],
+  "st.save.on.ai": ["AI 사용 거부 표시", "No AI notice"],
+  // 서식: 놓은 항목의 자리를 저장해 두고 같은 문서에 다시 쓰기
+  "form.btn": ["서식", "Forms"],
+  "form.tip": ["놓은 항목을 서식으로 저장하거나, 서식으로 여러 개를 만듭니다", "Save the placed items as a form, or make many files from one"],
+  "form.saveAs": ["서식으로 저장…", "Save as form…"],
+  "form.useOne": ["‘{name}’ 서식 쓰기", "Use “{name}”"],
+  "form.many": ["여러 개 만들기…", "Make many…"],
+  "form.title": ["서식으로 저장", "Save as form"],
+  "form.name": ["서식 이름", "Form name"],
+  "form.what": ["이 문서에 놓은 항목의 자리와 칸을 서식으로 저장합니다. 같은 문서를 다시 열면 이 서식을 쓸지 물어봅니다.", "Saves where the items on this document go, with their fields, as a form. When the same document opens again, you'll be offered the form."],
+  "form.sum": [(p) => "{pages}쪽, 항목 {n}개", (p) => `${p.pages === 1 ? "1 page" : "{pages} pages"}, ${p.n === 1 ? "1 item" : "{n} items"}`],
+  "form.sum.fields": ["칸: {list}", "Fields: {list}"],
+  "form.scan": ["글자가 없는 스캔 문서라서 쪽 크기로만 같은 문서를 알아봅니다.", "This looks like a scan without text, so the same document is recognized by its page sizes only."],
+  "form.nothing": ["서식으로 저장할 항목이 없습니다. 먼저 서명이나 도장, 글자를 놓아 주세요.", "Nothing to save as a form yet. Place a signature, stamp or text first."],
+  "form.saved": ["‘{name}’ 서식을 저장했습니다.", "Saved the form “{name}”."],
+  "form.saveFail": ["서식을 저장하지 못했습니다.", "Couldn't save the form."],
+  "form.list": ["서식", "Forms"],
+  "form.empty": ["저장한 서식이 없습니다. 문서에 항목을 놓은 뒤 ‘서식으로 저장’을 고르면 여기에 생깁니다.", "No forms yet. Place items on a document, then choose “Save as form”."],
+  "form.open.aria": ["{name} 서식 열기", "Open the form {name}"],
+  "form.rename.aria": ["{name} 서식 이름 바꾸기", "Rename the form {name}"],
+  "form.remove": ["서식 지우기", "Delete form"],
+  "form.remove.aria": ["{name} 서식 지우기", "Delete the form {name}"],
+  "form.many.aria": ["{name} 서식으로 여러 개 만들기", "Make many from the form {name}"],
+  "form.removed": ["‘{name}’ 서식을 지웠습니다.", "Deleted the form “{name}”."],
+  "form.match": ["‘{name}’ 서식을 쓸까요?", "Use the “{name}” form?"],
+  "form.match.go": ["서식 쓰기", "Use form"],
+  "form.applied": ["‘{name}’ 서식의 항목 {n}개를 놓았습니다.", pl("Placed 1 item from the form “{name}”.", "Placed {n} items from the form “{name}”.")],
+  "form.missing": ["보관함에 없는 항목 {n}개는 빼고 놓았습니다.", pl("1 item that's no longer in the Library was left out.", "{n} items that are no longer in the Library were left out.")],
+  "form.noDoc": ["이 서식의 문서가 보관함에 없습니다. 같은 PDF를 골라 주세요.", "This form's document isn't in the Library anymore. Please choose the same PDF."],
+  "form.pickDoc": ["PDF 고르기", "Choose PDF"],
+  // 여러 개 만들기
+  "many.title": ["여러 개 만들기", "Make many"],
+  "many.src.doc": ["‘{name}’에 놓은 항목 {n}개로 만듭니다.", pl("Uses the item placed on “{name}”.", "Uses the {n} items placed on “{name}”.")],
+  "many.src.form": ["‘{name}’ 서식의 항목 {n}개로 만듭니다.", pl("Uses the 1 item of the form “{name}”.", "Uses the {n} items of the form “{name}”.")],
+  "many.needItems": ["여러 개 만들려면 먼저 문서에 항목을 놓거나 서식을 고르세요.", "To make many, place items on a document first, or pick a form."],
+  "many.mode": ["방법", "How"],
+  "many.mode.list": ["목록으로", "From a list"], "many.mode.pdfs": ["여러 PDF에", "On many PDFs"],
+  "many.list.hint": ["첫 줄은 칸 이름이고, 그 아래 한 줄이 파일 하나가 됩니다. 스프레드시트에서 여러 줄을 복사해 붙여 넣어도 됩니다.", "The first row names the fields, and each row below becomes one file. You can paste rows from a spreadsheet."],
+  "many.rowNo": ["줄 번호", "Row"],
+  "many.head": ["칸 이름 {n}", "Field name {n}"],
+  "many.cell": ["{row}번째 줄의 {col}", "Row {row}, {col}"],
+  "many.addCol": ["칸 추가", "Add a column"],
+  "many.addRow": ["줄 추가", "Add row"],
+  "many.delRow": ["{n}번째 줄 지우기", "Remove row {n}"],
+  "many.csv": ["CSV 파일 열기…", "Open a CSV file…"],
+  "many.csvFail": ["CSV 파일을 읽지 못했습니다.", "Couldn't read the CSV file."],
+  "many.rows": ["채운 줄 {n}개", pl("1 row filled in", "{n} rows filled in")],
+  "many.missingCols": ["표에 {list} 칸이 없어서 그 자리는 빈칸으로 만듭니다.", "The table has no column for {list}, so those are left blank."],
+  "many.pdfs.hint": ["고른 PDF마다 같은 쪽 같은 자리에 같은 항목을 놓아 새 파일로 만듭니다. 고른 원본은 바뀌지 않습니다.", "Each chosen PDF gets the same items in the same places, as a new file. The originals stay as they are."],
+  "many.pdfs.pick": ["PDF 고르기…", "Choose PDFs…"],
+  "many.pdfs.title": ["항목을 놓을 PDF 고르기", "Choose PDFs to put the items on"],
+  "many.pdfs.n": ["PDF {n}개", pl("1 PDF", "{n} PDFs")],
+  "many.pdfs.remove": ["{name} 빼기", "Remove {name}"],
+  "many.pdfs.fields": ["모든 파일에 넣을 값", "Values for every file"],
+  "many.pattern": ["파일 이름", "File names"],
+  "many.pattern.hint": ["{이름}처럼 칸 이름을 넣으면 줄마다 그 값이 들어갑니다. {번호}는 줄 번호, {파일}은 원래 파일 이름입니다. 같은 이름의 파일이 있으면 뒤에 (2)를 붙이고, 있던 파일은 그대로 둡니다.", "Put a field name in braces, like {name}, for each row's value. {n} is the row number and {file} the original file's name. If a file with the name exists, (2) is added and the existing file is left alone."],
+  "many.first": ["첫 파일: {file}", "First file: {file}"],
+  "many.folder": ["저장할 폴더", "Save to folder"],
+  "many.folder.pick": ["폴더 고르기…", "Choose folder…"],
+  "many.folder.title": ["만든 파일을 넣을 폴더 고르기", "Choose a folder for the new files"],
+  "many.folder.need": ["파일을 넣을 폴더를 골라 주세요.", "Choose a folder for the files."],
+  "many.folder.none": ["아직 고르지 않음", "Not chosen yet"],
+  "many.dl": ["이 화면에서는 파일마다 내려받기로 저장됩니다.", "Here, each file is saved as a download."],
+  "many.seal": ["하나씩 봉인하기", "Seal each file"],
+  "many.seal.need": ["봉인하려면 먼저 봉인하는 사람 정보를 만들어 주세요.", "To seal, set up the sealer first."],
+  "many.tf": ["글자 없는 사본으로 만들기", "Make text-free copies"],
+  "many.go": ["{n}개 만들기", pl("Make 1 file", "Make {n} files")],
+  "many.go.seal": ["{n}개 봉인해서 만들기", pl("Seal and make 1 file", "Seal and make {n} files")],
+  "many.confirm": ["파일 {n}개를 하나씩 만들어 {who} 이름으로 봉인합니다. 시작할까요?", pl("1 file will be made and sealed as {who}. Start?", "{n} files will be made one by one, each sealed as {who}. Start?")],
+  "many.confirm.go": ["시작", "Start"],
+  "many.progress": ["{n}개 가운데 {k}번째 만드는 중…", "Making {k} of {n}…"],
+  "many.stop": ["그만두기", "Stop"],
+  "many.stopping": ["지금 만드는 파일까지만 만들고 멈춥니다…", "Stopping after this file…"],
+  "many.done": ["파일 {n}개를 {dir}에 만들었습니다.", pl("Made 1 file in {dir}.", "Made {n} files in {dir}.")],
+  "many.doneSealed": ["파일 {n}개를 봉인해서 {dir}에 만들었습니다.", pl("Made and sealed 1 file in {dir}.", "Made and sealed {n} files in {dir}.")],
+  "many.stopped": ["{n}개를 만들고 멈췄습니다. 나머지는 만들지 않았습니다.", pl("Stopped after 1 file. The rest weren't made.", "Stopped after {n} files. The rest weren't made.")],
+  "many.fail": ["{n}개를 만든 뒤 멈췄습니다. {msg}", pl("Stopped after 1 file. {msg}", "Stopped after {n} files. {msg}")],
+  "many.renamed": ["같은 이름의 파일이 있어서 {n}개는 이름 뒤에 번호를 붙였습니다.", pl("A file with the same name was there, so 1 new file got a number added.", "Files with the same names were there, so {n} new files got a number added.")],
+  "many.skipped": ["열 수 없어서 건너뛴 PDF가 있습니다. {list}", "Some PDFs couldn't be opened and were skipped. {list}"],
+  "many.short": ["쪽 수가 적은 PDF에는 있는 쪽까지만 항목을 놓았습니다.", "PDFs with fewer pages got only the items for the pages they have."],
+  "many.made": ["만든 파일", "Files made"],
+  "many.more": ["그 밖에 {n}개를 더 만들었습니다.", pl("1 more file was made.", "{n} more files were made.")],
 
   // Android app (docs/design/android.md): a key + "@a" replaces the key there
   "os.fmAndroid": ["파일 앱", "Files"],
@@ -2224,6 +2439,9 @@ const Store = (() => {
     // 1.3 seal: the seal and stamp log (사용 기록), a file of its own so documents.json stays small
     async loadLog() { const v = fs ? await readJSON("seal-log.json", []) : await B.get("sealLog"); return Array.isArray(v) ? v : []; },
     async saveLog(v) { fs ? await writeJSON("seal-log.json", v) : await B.set("sealLog", v); },
+    // 1.3 stamps, forms, make many: forms (서식), a file of their own like the seal log
+    async loadForms() { const v = fs ? await readJSON("forms.json", []) : await B.get("forms"); return Array.isArray(v) ? v : []; },
+    async saveForms(v) { fs ? await writeJSON("forms.json", v) : await B.set("forms", v); },
     async saveAssets(list) {
       if (fs) return writeJSON("library.json", list.map(metaOf));
       await tx("assets", "readwrite", (s) => { s.clear(); for (const a of list) s.put(a); });
@@ -2670,7 +2888,7 @@ function renderHome() {
         el("small", { class: f.cls === "warn" ? "warn" : "", text: f.sub, "data-tip": exportsN > 1 ? t("home.exports", { n: exportsN, list: d.exportLog.slice(-3).reverse().map((x) => x.name).join(", ") }) : null })),
       acts));
   }
-  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderAboutSide(); syncSandboxUi(); syncLibrary(); syncDocTitle(); syncStatus(); renderExamples();
+  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderFormsSide(); renderAboutSide(); syncSandboxUi(); // renderFormsSide: 1.3 forms syncLibrary(); syncDocTitle(); syncStatus(); renderExamples();
 }
 function removeRecord(id) {
   const i = S.docs.findIndex((d) => d.id === id); if (i < 0) return;
@@ -2834,10 +3052,12 @@ function closeMenu(restore = true) {
 // ⋮ in the compact title bar: what the hidden toolbar buttons, the status bar and the menu bar offer on a desktop
 function moreItems() {
   const items = [];
-  if (S.view === "home") items.push({ label: t("lib.items"), icon: "pen", fn: () => openSheet("home") });
+  if (S.view === "home") items.push({ label: t("lib.items"), icon: "pen", fn: () => openSheet("home") },
+    { label: t("form.list"), iconNode: svgIcon(FICONS.form), fn: () => { openSheet("home"); requestAnimationFrame(() => $("#forms-side")?.scrollIntoView({ block: "start" })); } }); // 1.3 forms
   else {
     items.push({ label: t("open.new"), icon: "folder", fn: choosePdf }, { sep: true },
       { label: t("pages.m.open"), icon: "pages", fn: openPagesDlg }, { label: t("cover.btn"), iconNode: svgIcon(PICONS.cover), fn: () => startCover() }, { sep: true },
+      ...formMenuItems(), { sep: true }, // 1.3 stamps, forms, make many
       { label: t("ed.zoomIn"), icon: "zoomIn", fn: COMMANDS.zoomIn, keepFocus: true }, { label: t("ed.zoomOut"), icon: "zoomOut", fn: COMMANDS.zoomOut, keepFocus: true },
       { label: t("ed.fitW"), icon: "fitW", fn: COMMANDS.fitWidth }, { label: t("ed.fitP"), icon: "fitP", fn: COMMANDS.fitPage }, { label: t("ed.actual"), icon: "actual", fn: COMMANDS.actual });
   }
@@ -2987,6 +3207,7 @@ function handleBack() {
   if (COVER.drawing) { stopCoverDraw(); return true; }
   const dlg = $$("dialog[open]").pop();
   if (dlg) {
+    if (dlg.id === "dlg-many" && MANY.running) { stopMany(); return true; } // 1.3 make many
     if (dlg.id === "dlg-sealer" && (SEAL.id || SEALER.mode === "trusted" || SEALER.mode === "log") && SEALER.mode !== "main" && !SEALER.busy) { sealerMode("main"); return true; } // 1.3 seal: trusted, log
     dlg.close(); return true;
   }
@@ -3092,11 +3313,13 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
   }
 
   if (keep) S.overlays = keep.overlays; // 1.3 pages: the rebuilt document keeps its items and view
+  S.fields = { ...(S.rec?.fields || {}) }; // 1.3 stamps: this document's field values
   $("#sample-bar").hidden = !sample;
   if (!keep) { S.fit = "width"; stage.scrollTop = 0; stage.scrollLeft = 0; }
   showEditor();
   layoutPages(); syncOverlays(); syncInspector(); syncUndo();
   scheduleHiddenScan(bytes, { sample }); // 1.3 seal: hidden text check, a gentle notice only when something is found
+  if (!keep) scheduleFormMatch({ sample }); // 1.3 forms: offer a saved form for the same document
   return true;
 }
 async function openRecord(rec) {
@@ -3257,12 +3480,14 @@ function syncOverlays(positionsOnly = false) {
       n = el("div", { class: "ov", "data-id": o.id, "data-asset": o.assetId, role: "button", tabindex: "0", "aria-describedby": "ov-help" }, el("img", { alt: "" }));
       overlayEls.set(o.id, n); positionsOnly = false;
     }
-    const layer = S.pages[o.page]?.layer;
-    if (layer && n.parentNode !== layer) layer.append(n);
+    const layer = S.pages[o.page]?.layer, wm = ovIsWm(o); // 1.3 stamps: a pattern stays under the other items
+    if (layer && n.parentNode !== layer) { if (wm) layer.prepend(n); else layer.append(n); }
     styleOverlay(o, n);
     if (!positionsOnly) {
       const a = S.assets.get(o.assetId);
-      if (a) {
+      n.classList.toggle("wm", wm);
+      if (a?.tpl) tplSyncEl(o, a, n); // 1.3 stamps: drawn for its page, with the fields filled in
+      else if (a) {
         const key = fxKey(a, o.fx);
         if (n.dataset.fx !== key) {
           n.dataset.fx = key; const img = n.firstChild;
@@ -3326,7 +3551,7 @@ function endGesture() { ganFix(getOv(S.sel)); if (gestureBefore && !same(gesture
    the right edge of the page before the break; side "r" shows its right half against the left edge of the page
    after it, so the halves meet when the two pages lie side by side. The box is the visible half; the group moves,
    resizes and recolours as one (y, size, opacity, fx follow the piece being edited) and is removed as one. */
-const canGanin = (o) => !!o && !o.gan && !o.cover && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark";
+const canGanin = (o) => !!o && !o.gan && !o.cover && S.pages.length > 1 && S.assets.get(o.assetId)?.kind !== "mark" && !S.assets.get(o.assetId)?.tpl; // 1.3 stamps: not a stamp with fields
 function ganFix(src) {
   if (!src?.gan) return;
   for (const o of S.overlays) {
@@ -3414,6 +3639,7 @@ function placeAsset(assetId, page = S.cur, at = null) {
     cx = p.w / 2; cy = clamp(((top + bottom) / 2 - p.el.offsetTop) / S.zoom, h / 2, p.h - h / 2);
   }
   const o = { id: uid(), assetId, page, x: cx - w / 2, y: cy - h / 2, w, h, rot: 0, opacity: 1, fx: { removeBg: !!a.autoRemoveBg, ink: null } };
+  tplPlace(a, o, p, at); // 1.3 stamps: a pattern covers the page, page numbers start at its foot
   clampInside(o);
   act(() => { S.overlays.push(o); S.sel = o.id; });
   if (isCompact()) closeSheet(false);
@@ -3421,6 +3647,7 @@ function placeAsset(assetId, page = S.cur, at = null) {
   // focus follows the new item, so the keyboard can move it right away
   overlayEls.get(o.id)?.focus({ preventScroll: true });
   announce(t("ov.placed", { label: ovLabel(o) }));
+  tplPlaced(a); // 1.3 stamps: offer every page for page numbers and patterns
 }
 function clampInside(o) {
   const p = S.pages[o.page]; if (!p) return;
@@ -3469,6 +3696,7 @@ pagesEl.addEventListener("pointerdown", (e) => {
   if (touch) armHold(e, ovEl);
   if (!ovEl) { if (!touch && e.target.closest(".page")) { select(null); stage.focus({ preventScroll: true }); } return; }
   const o = getOv(ovEl.dataset.id); if (!o) return;
+  if (ovIsWm(o)) { if (!touch) { e.preventDefault(); ovEl.focus({ preventScroll: true }); select(o.id); } return; } // 1.3 stamps: a pattern isn't dragged
   if (touch && S.sel !== o.id) return;
   e.preventDefault();
   ovEl.focus({ preventScroll: true });
@@ -3751,6 +3979,7 @@ function syncInspector() {
   }
   if (o.cover) { coverInspector(box, o); return; }
   const a = S.assets.get(o.assetId);
+  if (isWm(a)) { wmInspector(box, o, a); return; } // 1.3 stamps
   const num = (key, label, unit, get, set) => {
     const input = el("input", { id: "f-" + key, inputmode: "decimal", value: get(), "aria-label": label });
     const commit = () => {
@@ -3814,6 +4043,7 @@ function syncInspector() {
       canGanin(o) ? el("button", { class: "btn wide", type: "button", id: "f-ganin", onclick: ganinSel, title: t("gan.make.tip") }, icon("ganin"), t("gan.make")) : null,
       el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("insp.delete"))),
   ].filter(Boolean));
+  if (a?.tpl) tplInspector(box, o, a); // 1.3 stamps: its fields
   processed(a, o.fx).then((r) => { const t = $("#insp-thumb"); if (t && S.sel === o.id) t.src = r.url; });
 }
 
@@ -3841,6 +4071,7 @@ function applyToAllPages() {
       if (p.i === o.page) continue;
       if (S.overlays.some((x) => x.page === p.i && x.assetId === o.assetId && Math.abs(x.x - o.x) < 1 && Math.abs(x.y - o.y) < 1)) continue;
       const fx = (o.x + o.w / 2) / p0.w, fy = (o.y + o.h / 2) / p0.h;
+      if (ovIsWm(o)) { S.overlays.push({ ...o, id: uid(), page: p.i, fx: { ...o.fx }, x: 0, y: 0, w: p.w, h: p.h }); added++; continue; } // 1.3 stamps: a pattern covers each page
       S.overlays.push({ ...o, id: uid(), page: p.i, fx: { ...o.fx }, x: fx * p.w - o.w / 2, y: fy * p.h - o.h / 2 }); added++;
     }
   });
@@ -3861,7 +4092,7 @@ function flushKeyGesture() {
   else announce(t("ov.pos", { x: fmtMM(o.x), y: fmtMM(o.y) }));
 }
 function nudge(dx, dy) {
-  const o = getOv(S.sel); if (!o) return false;
+  const o = getOv(S.sel); if (!o || ovIsWm(o)) return false; // 1.3 stamps: a pattern covers its page
   if (!gestureBefore) beginGesture();
   o.x += dx; o.y += dy; clampInside(o); styleSel(o);
   keyGestureSoon("pos");
@@ -3869,7 +4100,7 @@ function nudge(dx, dy) {
 }
 // ⌥ arrows: right/up grow, left/down shrink, about the centre, keeping the proportions (⇧: bigger steps)
 function resizeSel(dx, dy, big) {
-  const o = getOv(S.sel); if (!o) return false;
+  const o = getOv(S.sel); if (!o || ovIsWm(o)) return false; // 1.3 stamps
   if (!gestureBefore) beginGesture();
   const step = big ? 0.1 : 0.02, k = dx > 0 || dy < 0 ? 1 + step : 1 / (1 + step);
   const cx = o.x + o.w / 2, cy = o.y + o.h / 2, ratio = o.h / o.w;
@@ -3892,23 +4123,29 @@ async function getDownloads() {
 // 1.3: pages (page indices to save, in order; all when null) and textFree (every page as a picture). Pages with a
 // cover box, and every page of a text-free copy, are rebuilt as pictures (rebuildForSave); then items go on top.
 // ai (1.3 seal): the No AI notice, added last so it lands on whatever pages the file ends up with.
-async function buildPdf({ pages: only = null, textFree = false, ai = null } = {}) {
+// src (1.3 make many): { bytes, pages, overlays, pdf, fields } of another document or another row; the open one when null.
+async function buildPdf({ pages: only = null, textFree = false, ai = null, src = null } = {}) {
   const { PDFDocument, degrees } = window.PDFLib;
-  const keep = only || S.pages.map((p) => p.i), asPicture = picturePages(textFree);
+  const D = src || { bytes: S.doc.bytes, pages: S.pages, overlays: S.overlays, pdf: S.doc.pdf, fields: S.fields };
+  const keep = only || D.pages.map((p) => p.i), asPicture = picturePages(textFree, D);
   const fresh = !!only || keep.some((i) => asPicture.has(i));
   let out = null;
   if (!fresh || keep.some((i) => !asPicture.has(i))) {
-    try { out = await PDFDocument.load(S.doc.bytes, { updateMetadata: false }); }
+    try { out = await PDFDocument.load(D.bytes, { updateMetadata: false }); }
     catch (e) {
       if (/encrypt/i.test(String(e?.message))) throw new Error(t("build.encrypted"));
       throw new Error(t("build.odd"));
     }
   }
-  if (fresh) out = await rebuildForSave(out, keep, asPicture);
+  if (fresh) out = await rebuildForSave(out, keep, asPicture, D);
   const where = new Map(keep.map((i, j) => [i, j]));
   const embedded = new Map(); const pages = out.getPages();
-  for (const o of S.overlays) {
-    const a = S.assets.get(o.assetId); const p = S.pages[o.page]; if (!a || !p || !where.has(o.page)) continue;
+  for (const o of D.overlays) {
+    const a = S.assets.get(o.assetId); const p = D.pages[o.page]; if (!a || !p || !where.has(o.page)) continue;
+    if (a.tpl) { // 1.3 stamps: filled in for this page of the file (numbered as saved)
+      await drawTplItem(out, pages[where.get(o.page)], o, a, p, { flat: asPicture.has(o.page), textFree, vals: { page: where.get(o.page) + 1, pages: keep.length, fields: D.fields || {} }, cache: embedded });
+      continue;
+    }
     const key = fxKey(a, o.fx) + (o.gan ? "|" + o.gan.side : "");
     if (!embedded.has(key)) {
       const r = await processed(a, o.fx);
@@ -3931,7 +4168,7 @@ async function buildPdf({ pages: only = null, textFree = false, ai = null } = {}
     });
   }
   // 1.3 seal: No AI notice hook (XMP reservation in /Metadata, optional visible line on every page), last step before writing
-  if (ai?.notice) await addAiNotice(out, ai);
+  if (ai?.notice) await addAiNotice(out, ai, D.pdf);
   return out.save({ useObjectStreams: true });
 }
 // the left or right half of an item's image (as drawn, after background removal and ink) as PNG bytes
@@ -3999,6 +4236,7 @@ async function openSaveDialog(opts = {}) {
   if (S.seal && SEAL.id === undefined) await loadSealIdentity();
   $("#save-seal").checked = !!S.prefs.sealOnSave; renderSaveSeal();
   syncSaveAi(); // 1.3 seal: No AI notice option
+  syncSaveFields(); syncSaveMoreOn(); // 1.3 stamps, forms: fields to fill, what's on under "More options"
   $("#dlg-save").showModal();
   const inp = range != null ? $("#save-range") : $("#save-name"); inp.focus(); inp.select();
   checkSaveTarget();
@@ -4352,10 +4590,10 @@ function saveAiChoice() {
   return notice ? { notice: true, line: $("#save-ai-line").checked } : null;
 }
 // the document's language: Korean when its first pages have Hangul, English when they have Latin text, else the UI's
-async function docLang() {
+async function docLang(pdf = S.doc?.pdf) { // pdf: 1.3 make many builds other documents
   try {
-    if (S.doc?.isSample && LANGS.includes(S.doc.sampleLang)) return S.doc.sampleLang; // an example knows its language
-    const pdf = S.doc?.pdf; if (!pdf) return LANG;
+    if (pdf === S.doc?.pdf && S.doc?.isSample && LANGS.includes(S.doc.sampleLang)) return S.doc.sampleLang; // an example knows its language
+    if (!pdf) return LANG;
     let text = "";
     for (let i = 1; i <= Math.min(3, pdf.numPages) && text.length < 4000; i++) text += (await (await pdf.getPage(i)).getTextContent()).items.map((x) => x.str || "").join(" ");
     return /[가-힣]/.test(text) ? "ko" : /[A-Za-z]{3}/.test(text) ? "en" : LANG;
@@ -4395,9 +4633,9 @@ function aiXmp(existing, lang) {
   const body = new XMLSerializer().serializeToString(d.documentElement);
   return `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>\n${body}\n${(" ".repeat(99) + "\n").repeat(20)}<?xpacket end="w"?>`;
 }
-async function addAiNotice(out, { line = false } = {}) {
+async function addAiNotice(out, { line = false } = {}, pdf = S.doc?.pdf) {
   const { PDFName, PDFRawStream, PDFStream, decodePDFRawStream } = window.PDFLib;
-  const lang = await docLang();
+  const lang = await docLang(pdf);
   let existing = null;
   try {
     const s = out.context.lookup(out.catalog.get(PDFName.of("Metadata")));
@@ -4715,17 +4953,17 @@ function loadLog() {
 async function sha256Hex(bytes) {
   try { return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((b) => b.toString(16).padStart(2, "0")).join(""); } catch { return null; }
 }
-async function logSave({ fileName, path, bytes, sealed }) {
+async function logSave({ fileName, path, bytes, sealed, overlays = S.overlays, doc = S.doc?.name || null }) { // overlays, doc: 1.3 make many
   try {
     const items = [], seen = new Set(); let always = false;
-    for (const o of S.overlays) {
+    for (const o of overlays) {
       const a = S.assets.get(o.assetId); if (!a || seen.has(a.id)) continue;
       seen.add(a.id); items.push({ name: a.name, kind: a.kind }); if (a.logUse) always = true;
     }
     if (!sealed && !always) return;
     const rec = { at: Date.now(), file: fileName, path: path || null, size: bytes.byteLength, sha256: await sha256Hex(bytes), sealed: !!sealed,
       sealer: sealed ? { name: SEAL.id?.name || sealed.name || null, org: SEAL.id?.org || null, fingerprint: sealed.fingerprint || null } : null,
-      doc: S.doc?.name || null, items };
+      doc, items };
     await loadLog();
     LOG.list.push(rec);
     if (LOG.list.length > LOG_MAX) LOG.list.splice(0, LOG.list.length - LOG_MAX);
@@ -5139,7 +5377,7 @@ function syncPagesBusy(on) {
 // a quarter turn clockwise of the page (W × H before the turn) carries an item's box along (display space, y down)
 function turnBox(o, W, H) {
   const cx = o.x + o.w / 2, cy = o.y + o.h / 2, ncx = H - cy, ncy = cx;
-  if (o.cover) [o.w, o.h] = [o.h, o.w]; // a cover box stays an upright rectangle
+  if (o.cover || ovIsWm(o)) [o.w, o.h] = [o.h, o.w]; // a cover box stays an upright rectangle (and a 1.3 pattern keeps covering its page)
   else o.rot = ((o.rot || 0) + 90) % 360;
   o.x = ncx - o.w / 2; o.y = ncy - o.h / 2;
 }
@@ -5573,15 +5811,15 @@ function coverInspector(box, o) {
 
 /* ---------- saving: pages as pictures (cover boxes, the text-free copy) and a range of pages ---------- */
 // the pages that are saved as pictures: those with a cover box, or every page for the text-free copy
-const picturePages = (textFree) => new Set(textFree ? S.pages.map((p) => p.i) : S.overlays.filter((o) => o.cover && S.pages[o.page]).map((o) => o.page));
+const picturePages = (textFree, D = S) => new Set(textFree ? D.pages.map((p) => p.i) : D.overlays.filter((o) => o.cover && D.pages[o.page]).map((o) => o.page)); // D: 1.3 make many
 // the page as it looks (annotations included) at about 200 dpi, with its cover boxes burned in
-async function pagePicture(p) {
+async function pagePicture(p, overlays = S.overlays) { // overlays: 1.3 make many
   let s = PICTURE_DPI / 72; const px = p.w * p.h * s * s; if (px > MAX_CANVAS_PX) s *= Math.sqrt(MAX_CANVAS_PX / px);
   const vp = p.pg.getViewport({ scale: s });
   const c = canvasOf(Math.ceil(vp.width), Math.ceil(vp.height)), g = c.getContext("2d", { alpha: false });
   g.fillStyle = "#fff"; g.fillRect(0, 0, c.width, c.height);
   await p.pg.render({ canvasContext: g, viewport: vp, annotationMode: pdfjsLib.AnnotationMode.ENABLE }).promise;
-  for (const o of S.overlays) {
+  for (const o of overlays) {
     if (!o.cover || o.page !== p.i) continue;
     g.save(); g.translate((o.x + o.w / 2) * s, (o.y + o.h / 2) * s); g.rotate(((o.rot || 0) * Math.PI) / 180);
     g.fillStyle = o.cover === "white" ? "#fff" : "#000";
@@ -5594,7 +5832,7 @@ async function pagePicture(p) {
 }
 // a new document with only the kept pages (copied with what they use, nothing else); picture pages are drawn
 // from pdf.js, so nothing of their original content (text, vectors, images) reaches the file
-async function rebuildForSave(src, keep, asPicture) {
+async function rebuildForSave(src, keep, asPicture, D = S) { // D: 1.3 make many
   const { PDFDocument } = window.PDFLib;
   const out = await PDFDocument.create({ updateMetadata: false });
   const own = keep.filter((i) => !asPicture.has(i));
@@ -5602,7 +5840,7 @@ async function rebuildForSave(src, keep, asPicture) {
   let k = 0;
   for (const i of keep) {
     if (!asPicture.has(i)) { out.addPage(copied[k++]); continue; }
-    const p = S.pages[i], img = await out.embedJpg(await pagePicture(p));
+    const p = D.pages[i], img = await out.embedJpg(await pagePicture(p, D.overlays));
     out.addPage([p.w, p.h]).drawImage(img, { x: 0, y: 0, width: p.w, height: p.h });
   }
   return out;
@@ -5642,8 +5880,9 @@ const COMMANDS = {
   toggleRail: () => { S.prefs.railHidden = !S.prefs.railHidden; $("#main").classList.toggle("no-rail", S.prefs.railHidden); persistPrefs(); setTimeout(() => S.fit && applyFit(), 0); },
   duplicate: duplicateSel, delete: deleteSel, toggleSide: () => toggleSide(),
   verify: openVerify, sealer: openSealer,
+  saveForm: () => openFormDialog(), makeMany: () => openMany(), // 1.3 stamps, forms, make many
 };
-const EDITOR_ONLY = new Set(["export", "undo", "redo", "zoomIn", "zoomOut", "actual", "fitWidth", "fitPage", "toggleRail", "duplicate", "delete"]);
+const EDITOR_ONLY = new Set(["saveForm", "makeMany", "export", "undo", "redo", "zoomIn", "zoomOut", "actual", "fitWidth", "fitPage", "toggleRail", "duplicate", "delete"]);
 function runCommand(cmd) { if (EDITOR_ONLY.has(cmd) && S.view !== "editor") return; COMMANDS[cmd](); }
 window.addEventListener("keydown", (e) => {
   if (document.querySelector("dialog[open]")) return;
@@ -5788,7 +6027,9 @@ function openDraw() { pad.strokes = []; pad.cur = null; pad.pen = false; $("#dlg
 /* ================================================================
    Text / date stamp
    ================================================================ */
-const txt = { font: "sans", color: "#111318" };
+const txt = { font: "sans", color: "#111318", look: "plain", who: false, lastSub: false }; // look, who, lastSub: 1.3 stamps
+// 1.3 stamps: a pattern (반복 무늬) is light grey or red
+const WM_COLORS = [{ key: "#4d4d4d", name: "st.wm.grey", color: "#4d4d4d" }, { key: "#c62a22", name: "ink.red", color: "#c62a22" }];
 const FONTS = { sans: '600 120px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif', pen: '120px "Nanum Pen Script", cursive', serif: '800 120px "Nanum Myeongjo", serif' };
 async function renderText(text, font = txt.font, color = txt.color) {
   if (MARK_OF[text]) return drawMark(MARK_OF[text], color);
@@ -5818,7 +6059,8 @@ async function syncTextPreview() {
   for (const b of $$("#txt-marks button")) b.setAttribute("aria-pressed", String(MARK_OF[v] === b.dataset.mark));
   const pv = $("#txt-preview");
   if (!v) { pv.width = pv.height = 1; return; }
-  const c = await renderText(v); pv.width = c.width; pv.height = c.height; pv.getContext("2d").drawImage(c, 0, 0);
+  const c = txtIsTpl() ? await tplPreview(txtTpl()) : await renderText(v); // 1.3 stamps: fields as chips, a boxed stamp, a pattern
+  pv.width = c.width; pv.height = c.height; pv.getContext("2d").drawImage(c, 0, 0);
 }
 $("#txt-input").addEventListener("input", syncTextPreview);
 $("#txt-input").addEventListener("keydown", (e) => { if (e.key === "Enter" && !e.isComposing && $("#txt-input").value.trim()) { e.preventDefault(); $("#txt-save").click(); } });
@@ -5826,10 +6068,11 @@ $("#txt-font").addEventListener("click", (e) => {
   const b = e.target.closest("button"); if (!b) return; txt.font = b.dataset.f;
   for (const x of $("#txt-font").children) x.setAttribute("aria-pressed", String(x === b)); syncTextPreview();
 });
-const txtSwatches = () => swatchRow($("#txt-colors"), INKS.slice(1), () => txt.color, (c) => { txt.color = c; syncTextPreview(); });
+const txtSwatches = () => swatchRow($("#txt-colors"), txt.look === "wm" ? WM_COLORS : INKS.slice(1), () => txt.color, (c) => { txt.color = c; syncTextPreview(); }); // 1.3 stamps: a pattern's two colours
 txtSwatches();
 $("#txt-save").onclick = async () => {
   const v = $("#txt-input").value.trim(); if (!v) return;
+  if (txtIsTpl()) { await saveTplStamp(); return; } // 1.3 stamps: a stamp that keeps its {fields}, a boxed stamp, a pattern
   const c = await renderText(v), mark = MARK_OF[v];
   const a = await makeAssetFromSource(c.toDataURL("image/png"), mark ? { kind: "mark", name: `${t("mark." + mark)} ${v}` } : { kind: "text", name: v });
   $("#dlg-text").close(); await addToLibrary(a); if (S.view === "editor") placeAsset(a.id); else toast(t("text.added"));
@@ -5837,7 +6080,8 @@ $("#txt-save").onclick = async () => {
 function textPresets() {
   const presets = $("#txt-presets"); presets.textContent = "";
   for (const [label, val] of [[t("text.today"), today()], ...["text.p1", "text.p2", "text.p3"].map((k) => [t(k), t(k)])])
-    presets.append(el("button", { type: "button", class: "sw", onclick: () => { $("#txt-input").value = val; syncTextPreview(); $("#txt-input").focus(); } }, label));
+    presets.append(el("button", { type: "button", class: "sw", onclick: () => { setLook("plain"); $("#txt-input").value = val; syncTextPreview(); $("#txt-input").focus(); } }, label));
+  stampPresets(); // 1.3 stamps: page numbers, 원본대조필, the patterns and the fields to insert
   const marks = $("#txt-marks"); marks.textContent = "";
   const v = $("#txt-input").value.trim();
   for (const [kind, glyph] of MARKS)
@@ -5845,6 +6089,7 @@ function textPresets() {
       onclick: () => { $("#txt-input").value = glyph; syncTextPreview(); $("#txt-save").focus(); } }, svgIcon(`<path d="${MARK_PATHS[kind]}" stroke-width="1.8"/>`)));
 }
 function openText() {
+  $("#txt-sub").value = ""; $("#txt-who").value = ""; setLook("plain"); // 1.3 stamps
   textPresets();
   $("#txt-input").value = ""; syncTextPreview(); $("#dlg-text").showModal(); $("#txt-input").focus();
 }
@@ -6909,6 +7154,9 @@ function sendMenu() {
       { label: t("menu.addImage"), accelerator: "CmdOrCtrl+Shift+I", click: () => runCommand("addImage") },
       { type: "separator" },
       { label: t("menu.export"), accelerator: "CmdOrCtrl+S", click: () => runCommand("export") },
+      { type: "separator" }, // 1.3 stamps, forms, make many
+      { label: t("form.saveAs"), click: () => runCommand("saveForm") },
+      { label: t("form.many"), click: () => runCommand("makeMany") },
       ...(S.seal ? [{ type: "separator" },
         { label: t("menu.verify"), click: () => runCommand("verify") },
         { label: t("menu.sealer"), click: () => runCommand("sealer") }] : []),
@@ -7035,10 +7283,992 @@ function rerenderAll() {
   if ($("#dlg-verify").open) renderVerify();
   if ($("#dlg-sealer").open) renderSealer();
   if ($("#dlg-hidden").open) renderHiddenDialog(); // 1.3 seal
+  syncStampsText(); // 1.3 stamps, forms, make many
   if (S.view === "home" || !S.doc?.isSample) { if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {}); }
   // the example document is rebuilt in the new language (it is never kept, so nothing is lost)
   else if (S.doc.sampleLang !== LANG) loadExample(S.doc.exampleId || "freelance");
 }
+
+/* ================================================================
+   1.3 stamps, forms, make many (docs/design/workflows.md, blocks 2 and 4).
+   A text stamp may hold {fields}: {page} {pages} {date} {date:YYYY.MM.DD} (or {쪽} {전체쪽} {날짜}) fill themselves;
+   any other {name} is a field the person fills in. The Library item keeps the template (asset.tpl: { look, text, sub,
+   font, color }, look "plain" | "box" | "wm") and every placed item is drawn per page with the values filled in. The
+   editor shows a missing value as a dashed chip with the field's name; a saved file never contains a brace: a value
+   still missing at save time is asked for in the save dialog, and left blank if the person leaves it empty.
+   A form (서식) is the layout of placed items saved apart from the document; make many builds one PDF per row of a
+   list, or the same items on several PDFs, one file at a time into one picked folder, never replacing a file.
+   ================================================================ */
+const tplRe = () => /\{\s*([^{}:\n]+?)\s*(?::([^{}\n]*))?\}/g;
+const BUILTIN = { page: "page", "쪽": "page", pages: "pages", "전체쪽": "pages", date: "date", "날짜": "date" };
+const builtinOf = (name) => BUILTIN[String(name).toLowerCase()] || null;
+const WM_ALPHA = 0.2, WM_ANGLE = 30, CHIP_INK = "#2446c7";
+if (!S.fields) S.fields = {};
+const add = (node, ...kids) => node.append(...kids.filter((k) => k != null && k !== false)); // append without the nulls of optional parts
+
+const hasFields = (s) => tplRe().test(s || "");
+const tplStrings = (a) => (a?.tpl ? [a.tpl.text || "", a.tpl.sub || ""] : []);
+const isWm = (a) => a?.tpl?.look === "wm";
+const ovIsWm = (o) => !!o && !o.cover && isWm(S.assets.get(o.assetId));
+// the names of the fields a person fills in (page, pages and date fill themselves)
+function tplFields(a) {
+  const out = [];
+  for (const s of tplStrings(a)) for (const m of s.matchAll(tplRe())) if (!builtinOf(m[1]) && !out.includes(m[1])) out.push(m[1]);
+  return out;
+}
+function itemsFields(overlays) {
+  const out = [], seen = new Set();
+  for (const o of overlays) {
+    const a = S.assets.get(o.assetId); if (!a?.tpl || seen.has(a.id)) continue;
+    seen.add(a.id); for (const n of tplFields(a)) if (!out.includes(n)) out.push(n);
+  }
+  return out;
+}
+const tplUses = (a, kind) => tplStrings(a).some((s) => [...s.matchAll(tplRe())].some((m) => builtinOf(m[1]) === kind));
+function fmtDateTpl(fmt, d = new Date()) {
+  const v = { YYYY: d.getFullYear(), YY: String(d.getFullYear()).slice(-2), MM: pad2(d.getMonth() + 1), M: d.getMonth() + 1, DD: pad2(d.getDate()), D: d.getDate() };
+  return fmt.replace(/YYYY|YY|MM|M|DD|D/g, (k) => String(v[k]));
+}
+// vals: { page, pages, fields }. A value the fields give wins (a list's "date" column), then page, pages and today.
+// Missing: a chip with the field's name (editor) or nothing (files, file names)
+function tplParts(s, vals = {}, chips = false) {
+  const out = []; let last = 0;
+  for (const m of String(s || "").matchAll(tplRe())) {
+    if (m.index > last) out.push({ text: s.slice(last, m.index) });
+    const name = m[1], b = builtinOf(name), given = vals.fields?.[name];
+    let v = null;
+    if (given != null && String(given) !== "") v = String(given);
+    else if (b === "page" || b === "pages") v = vals[b] != null ? String(vals[b]) : null;
+    else if (b === "date") v = m[2] ? fmtDateTpl(m[2]) : today();
+    out.push(v != null ? { text: v } : chips ? { chip: name } : { text: "" });
+    last = m.index + m[0].length;
+  }
+  if (last < String(s || "").length) out.push({ text: s.slice(last) });
+  return out;
+}
+const tplText = (s, vals) => tplParts(s, vals, false).map((p) => p.text || "").join("");
+// a file name from a pattern: {field} from the row, {n}/{번호} the row number, {file}/{파일} the source file's name
+function fillName(pattern, vals = {}, { n = 1, file = "" } = {}) {
+  return String(pattern || "").replace(tplRe(), (m, name) => {
+    const k = String(name).toLowerCase();
+    if (vals[name] != null && String(vals[name]) !== "") return String(vals[name]);
+    if (k === "n" || name === "번호") return String(n);
+    if (k === "file" || name === "파일") return file;
+    if (builtinOf(name) === "date") return fmtDateTpl("YYYY-MM-DD");
+    return "";
+  });
+}
+
+/* ---------- drawing a template: one line, a boxed stamp (원본대조필), a repeated pattern (반복 무늬) ---------- */
+const TPL_PX = 120;
+const tplFont = (font, px) => (FONTS[font] || FONTS.sans).replace("120px", `${Math.max(1, Math.round(px))}px`);
+const chipFont = (px) => `500 ${Math.max(1, Math.round(px))}px "IBM Plex Sans KR", "Apple SD Gothic Neo", sans-serif`;
+const METRICS = new Map();
+async function fontMetrics(font, sample) {
+  try { await document.fonts.load(tplFont(font, TPL_PX), sample || "가Ag"); await document.fonts.load(chipFont(60), sample || "가Ag"); } catch {}
+  if (!METRICS.has(font)) {
+    const g = canvasOf(4, 4).getContext("2d"); g.font = tplFont(font, TPL_PX);
+    const mt = g.measureText("가Hgy");
+    METRICS.set(font, { asc: (mt.actualBoundingBoxAscent || 100) / TPL_PX, desc: (mt.actualBoundingBoxDescent || 30) / TPL_PX });
+  }
+  return METRICS.get(font);
+}
+function lineLayout(g, parts, font, px) {
+  const segs = []; let w = 0;
+  for (const p of parts) {
+    if (p.chip != null) {
+      const cpx = px * 0.5; g.font = chipFont(cpx);
+      const cw = g.measureText(p.chip).width + cpx * 1.3;
+      segs.push({ chip: p.chip, x: w + px * 0.04, w: cw, cpx }); w += cw + px * 0.08;
+    } else if (p.text) {
+      g.font = tplFont(font, px); const tw = g.measureText(p.text).width;
+      segs.push({ text: p.text, x: w, w: tw }); w += tw;
+    }
+  }
+  return { segs, w };
+}
+function drawLine(g, L, x0, base, font, px, color) {
+  for (const s of L.segs) {
+    if (s.text) { g.font = tplFont(font, px); g.fillStyle = color; g.textBaseline = "alphabetic"; g.fillText(s.text, x0 + s.x, base); continue; }
+    const h = px * 0.84, y = base - px * 0.7;
+    g.save();
+    g.beginPath(); g.roundRect(x0 + s.x, y, s.w, h, h * 0.24);
+    g.fillStyle = "rgba(36, 70, 199, .07)"; g.fill();
+    g.setLineDash([px * 0.08, px * 0.06]); g.lineWidth = Math.max(1, px * 0.03); g.strokeStyle = CHIP_INK; g.stroke();
+    g.setLineDash([]); g.font = chipFont(s.cpx); g.fillStyle = CHIP_INK; g.textBaseline = "middle"; g.fillText(s.chip, x0 + s.x + s.cpx * 0.65, y + h / 2);
+    g.restore();
+  }
+}
+// one line or a boxed stamp at its natural size (TPL_PX type); null when nothing is left to draw
+async function tplCanvas(tpl, vals, { chips = false, color = tpl.color } = {}) {
+  const font = tpl.font || "sans", lines = [tpl.text || "", ...(tpl.look === "box" ? String(tpl.sub || "").split("\n") : [])];
+  const M = await fontMetrics(font, lines.join(""));
+  const g0 = canvasOf(4, 4).getContext("2d");
+  const rows = lines.map((s, i) => { const px = i ? TPL_PX * 0.6 : TPL_PX; return { px, L: lineLayout(g0, tplParts(s, vals, chips), font, px) }; });
+  if (tpl.look !== "box") {
+    const { L } = rows[0]; if (!L.segs.length) return null;
+    const pad = 14, asc = Math.ceil(M.asc * TPL_PX), desc = Math.ceil(M.desc * TPL_PX);
+    const c = canvasOf(Math.ceil(L.w) + pad * 2, asc + desc + pad * 2);
+    drawLine(c.getContext("2d"), L, pad, pad + asc, font, TPL_PX, color);
+    return c;
+  }
+  // 원본대조필: a double-ruled box, the first line large, the lines below smaller, all centred
+  const padX = TPL_PX * 0.55, padY = TPL_PX * 0.4, gap = TPL_PX * 0.18;
+  const used = rows.filter((r, i) => i === 0 || r.L.segs.length);
+  const inner = Math.max(TPL_PX * 3, ...used.map((r) => r.L.w));
+  const hs = used.map((r) => (M.asc + M.desc) * r.px);
+  const c = canvasOf(Math.ceil(inner + padX * 2), Math.ceil(hs.reduce((n, h) => n + h, 0) + gap * (used.length - 1) + padY * 2));
+  const g = c.getContext("2d");
+  g.strokeStyle = color; g.lineWidth = TPL_PX * 0.055; const o1 = g.lineWidth / 2;
+  g.strokeRect(o1, o1, c.width - 2 * o1, c.height - 2 * o1);
+  g.lineWidth = TPL_PX * 0.022; const o2 = TPL_PX * 0.13;
+  g.strokeRect(o2, o2, c.width - 2 * o2, c.height - 2 * o2);
+  let y = padY;
+  used.forEach((r, i) => { drawLine(g, r.L, (c.width - r.L.w) / 2, y + M.asc * r.px, font, r.px, color); y += hs[i] + gap; });
+  return c;
+}
+// the box's shape at k pixels per point, the picture centred in it (never stretched)
+function fitInto(src, bw, bh, k) {
+  k = Math.min(k, 2400 / Math.max(bw, bh, 1));
+  const c = canvasOf(Math.max(1, Math.round(bw * k)), Math.max(1, Math.round(bh * k)));
+  if (src) { const s = Math.min(c.width / src.width, c.height / src.height), w = src.width * s, h = src.height * s; c.getContext("2d").drawImage(src, (c.width - w) / 2, (c.height - h) / 2, w, h); }
+  return c;
+}
+// 반복 무늬: one line repeated along rising diagonals, laid out in the page as shown (display space, points, y down).
+// The same layout is drawn on a canvas (editor, picture copies) and as text in the PDF.
+const wmSize = (W, H) => clamp(Math.min(W, H) * 0.045, 12, 40);
+function wmLayout(W, H, size, tw) {
+  const a = (WM_ANGLE * Math.PI) / 180, d = [Math.cos(a), -Math.sin(a)], n = [Math.sin(a), Math.cos(a)];
+  const step = tw + size * 3, lead = size * 4.2, R = Math.hypot(W, H) / 2 + step;
+  const rows = Math.ceil(R / lead), cols = Math.ceil(R / step) + 1, pts = [];
+  for (let k = -rows; k <= rows; k++) for (let j = -cols; j <= cols; j++) {
+    const off = j * step + (k & 1 ? step / 2 : 0);
+    const cx = W / 2 + n[0] * k * lead + d[0] * off, cy = H / 2 + n[1] * k * lead + d[1] * off;
+    const sx = cx - (d[0] * tw) / 2 + n[0] * size * 0.35, sy = cy - (d[1] * tw) / 2 + n[1] * size * 0.35;
+    const xs = [sx, sx + d[0] * tw, sx - n[0] * size, sx + d[0] * tw - n[0] * size], ys = [sy, sy + d[1] * tw, sy - n[1] * size, sy + d[1] * tw - n[1] * size];
+    // only lines that reach onto the page: text wholly outside it is what the hidden text check warns about
+    if (Math.max(...xs) < 1 || Math.min(...xs) > W - 1 || Math.max(...ys) < 1 || Math.min(...ys) > H - 1) continue;
+    pts.push([sx, sy]);
+  }
+  return pts;
+}
+async function wmCanvas(text, W, H, k, color) {
+  k = Math.min(k, 3000 / Math.max(W, H));
+  const c = canvasOf(Math.max(1, Math.round(W * k)), Math.max(1, Math.round(H * k)));
+  if (!text) return c;
+  const size = wmSize(W, H), g = c.getContext("2d");
+  try { await document.fonts.load(tplFont("sans", size * k), text); } catch {}
+  g.font = tplFont("sans", size * k); g.fillStyle = color; g.textBaseline = "alphabetic";
+  const tw = g.measureText(text).width / k;
+  for (const [x, y] of wmLayout(W, H, size, tw)) { g.save(); g.translate(x * k, y * k); g.rotate(-(WM_ANGLE * Math.PI) / 180); g.fillText(text, 0, 0); g.restore(); }
+  return c;
+}
+// the Library tile: fields as chips (today's date filled in); a pattern as a small page
+async function tplPreview(tpl) {
+  if (tpl.look === "wm") {
+    // a few diagonal lines, large enough to read in a Library tile
+    const text = tplParts(tpl.text, {}, true).map((x) => x.text ?? `[${x.chip}]`).join(""), out = canvasOf(600, 400), g = out.getContext("2d");
+    try { await document.fonts.load(tplFont("sans", 52), text); } catch {}
+    g.font = tplFont("sans", 52); g.fillStyle = tpl.color; g.globalAlpha = 0.75;
+    const tw = g.measureText(text).width + 80;
+    g.translate(300, 200); g.rotate(-(WM_ANGLE * Math.PI) / 180);
+    for (let k = -2; k <= 2; k++) for (let j = -2; j <= 2; j++) g.fillText(text, j * tw - tw / 2 + (k & 1 ? tw / 2 : 0), k * 120 + 18);
+    return out;
+  }
+  return (await tplCanvas(tpl, {}, { chips: true })) || canvasOf(40, 40);
+}
+const wmColorOf = (o, a) => o?.fx?.ink || a.tpl.color || WM_COLORS[0].color;
+
+/* ---------- placed items with fields in the editor: each one drawn for its page ---------- */
+const TPL_URLS = new Map();
+function tplUrl(key, make) {
+  if (!TPL_URLS.has(key)) {
+    TPL_URLS.set(key, make().then((c) => new Promise((r) => c.toBlob((b) => r(URL.createObjectURL(b)), "image/png"))));
+    if (TPL_URLS.size > 400) { const [k0, p0] = TPL_URLS.entries().next().value; TPL_URLS.delete(k0); p0.then((u) => setTimeout(() => URL.revokeObjectURL(u), 5000)); }
+  }
+  return TPL_URLS.get(key);
+}
+const editorVals = (o) => ({ page: o.page + 1, pages: S.pages.length, fields: S.fields });
+function tplSyncEl(o, a, n) {
+  const vals = editorVals(o), wm = isWm(a), p = S.pages[o.page];
+  const color = wm ? wmColorOf(o, a) : o.fx.ink || a.tpl.color;
+  const parts = [a.tpl.text, ...(a.tpl.look === "box" ? [a.tpl.sub] : [])].map((s) => tplParts(s, vals, true));
+  const key = JSON.stringify([a.id, parts, color, wm ? [Math.round(p?.w || o.w), Math.round(p?.h || o.h)] : Math.round((o.w / o.h) * 50)]);
+  if (n.dataset.fx === key) return;
+  n.dataset.fx = key; const img = n.firstChild;
+  const make = wm ? () => wmCanvas(parts[0].map((x) => x.text ?? `[${x.chip}]`).join(""), o.w, o.h, 1.5, color)
+    : async () => fitInto(await tplCanvas(a.tpl, vals, { chips: true, color }), o.w, o.h, 3);
+  tplUrl(key, make).then((url) => { if (n.dataset.fx === key) img.src = url; });
+}
+// placing: a pattern covers its page; page numbers start at the foot of the page
+function tplPlace(a, o, p, at) {
+  if (!a?.tpl) return;
+  if (isWm(a)) { Object.assign(o, { x: 0, y: 0, w: p.w, h: p.h, rot: 0, opacity: WM_ALPHA }); return; }
+  if (!at && tplUses(a, "page")) { o.x = (p.w - o.w) / 2; o.y = p.h - 12 * PT_PER_MM - o.h; }
+}
+function tplPlaced(a) {
+  if (!a?.tpl || S.pages.length < 2 || !(isWm(a) || tplUses(a, "page"))) return;
+  toast(t(isWm(a) ? "st.allPages.wm" : "st.allPages.ask"), { ms: 9000, actions: [{ label: t("st.allPages.go"), fn: applyToAllPages }] });
+}
+function setField(name, v) {
+  S.fields = { ...S.fields, [name]: v };
+  if (S.rec) { S.rec.fields = { ...S.fields }; persistDocs(); }
+  syncOverlays(true); for (const o of S.overlays) { const a = S.assets.get(o.assetId); if (a?.tpl) tplSyncEl(o, a, overlayEls.get(o.id)); }
+}
+// fields as labelled inputs: the same values everywhere the name is used in this document
+function fieldInputs(names, vals, onSet, idp) {
+  return names.map((n, i) => {
+    const id = `${idp}${i}`;
+    const inp = el("input", { class: "text-input", id, value: vals[n] ?? "", autocomplete: "off", spellcheck: "false", maxlength: "120", "aria-label": t("st.field.aria", { name: n }) });
+    inp.addEventListener("input", () => onSet(n, inp.value));
+    inp.addEventListener("keydown", (e) => { e.stopPropagation(); if (e.key === "Enter" && !e.isComposing) e.preventDefault(); });
+    return el("div", { class: "st-field" }, el("label", { for: id, text: n }), inp);
+  });
+}
+function tplInspector(box, o, a) {
+  const names = tplFields(a); if (!names.length) return;
+  const sec = el("div", { class: "st-fields", role: "group", "aria-labelledby": "st-fields-h" },
+    el("div", { class: "st-fields-h", id: "st-fields-h", text: t("st.fields") }), ...fieldInputs(names, S.fields, setField, "f-fld-"),
+    el("p", { class: "hint", style: "margin:0", text: t("st.fields.hint") }));
+  const at = box.querySelector(".fields") || box.querySelector(".actions"); // what to fill comes first
+  if (at) box.insertBefore(sec, at); else box.append(sec);
+}
+// a pattern covers the page: only how strong and which colour, its fields, every page, remove
+function wmInspector(box, o, a) {
+  const pct = Math.round(clamp(o.opacity, 0.15, 0.4) * 100);
+  const out = el("span", { class: "val", text: `${pct}%` });
+  const rng = el("input", { type: "range", id: "f-wm-op", min: "15", max: "40", value: String(pct), "aria-label": t("st.wm.strength") });
+  rng.addEventListener("pointerdown", beginGesture);
+  rng.addEventListener("input", () => { out.textContent = `${rng.value}%`; o.opacity = +rng.value / 100; styleOverlay(o, overlayEls.get(o.id)); });
+  rng.addEventListener("change", () => { if (!gestureBefore) beginGesture(); endGesture(); syncInspector(); });
+  const names = tplFields(a);
+  add(box, 
+    el("div", { class: "sec-head" }, el("span", { class: "sec-title", text: t("st.wm.title") }), el("span", { class: "hint", text: t("page.n", { n: o.page + 1 }) })),
+    el("div", { class: "sel-head" }, el("div", { class: "art" }, el("img", { src: a.src, alt: "" })), el("div", { class: "nm" }, el("strong", { text: a.name }))),
+    el("p", { class: "hint", style: "margin:0 0 10px", text: t("st.wm.hint") }),
+    el("div", { class: "row" }, el("span", { class: "lbl", text: t("st.wm.strength") }), rng, out),
+    el("div", { class: "row" }, el("span", { class: "lbl", id: "f-wm-col", text: t("text.color") }),
+      el("div", { class: "swatches", role: "group", "aria-labelledby": "f-wm-col" }, ...WM_COLORS.map((c) => el("button", {
+        class: "sw", type: "button", "aria-pressed": String(wmColorOf(o, a) === c.color), onclick: () => act(() => { o.fx.ink = c.color; }),
+      }, el("i", { style: `background:${c.color}` }), t(c.name))))),
+    names.length ? el("div", { class: "st-fields" }, el("div", { class: "st-fields-h", text: t("st.fields") }), ...fieldInputs(names, S.fields, setField, "f-fld-")) : null,
+    el("div", { class: "actions" },
+      el("button", { class: "btn wide", type: "button", onclick: applyToAllPages, disabled: S.pages.length < 2 }, icon("pages"), t("st.wm.all")),
+      el("button", { class: "btn wide danger", type: "button", onclick: deleteSel, title: kbd("⌫") }, icon("trash"), t("insp.delete"))));
+}
+
+/* ---------- in the saved PDF ---------- */
+const WM_FONTS = new WeakMap();
+// same fonts as the No AI line (drawAiLine): Korean through the standard Korean font (Adobe-Korea1, not embedded),
+// which every reader shows with a Korean font of its own; Latin in Helvetica, so its letters keep their own widths.
+// A line is cut into runs of each, drawn one after the other.
+async function wmPdfRuns(out, text) {
+  const L = window.PDFLib, ctx = out.context;
+  let f = WM_FONTS.get(out); if (!f) WM_FONTS.set(out, (f = {}));
+  const runs = [];
+  for (const part of text.match(/[\u0000-ÿ]+|[^\u0000-ÿ]+/g) || []) {
+    if (/^[\u0000-ÿ]/.test(part)) {
+      f.helv ??= await out.embedFont(L.StandardFonts.Helvetica);
+      const font = f.helv; runs.push({ ref: font.ref, enc: font.encodeText(part), w: (sz) => font.widthOfTextAtSize(part, sz) });
+      continue;
+    }
+    if (!f.cid) {
+      const fd = ctx.register(ctx.obj({ Type: "FontDescriptor", FontName: "HYGoThic-Medium", Flags: 6, FontBBox: [-6, -145, 1003, 880], ItalicAngle: 0, Ascent: 880, Descent: -120, CapHeight: 880, StemV: 93 }));
+      const cid = ctx.register(ctx.obj({ Type: "Font", Subtype: "CIDFontType0", BaseFont: "HYGoThic-Medium",
+        CIDSystemInfo: { Registry: L.PDFString.of("Adobe"), Ordering: L.PDFString.of("Korea1"), Supplement: 2 }, FontDescriptor: fd, DW: 1000, W: [1, [333], 2, 95, 500] }));
+      f.cid = ctx.register(ctx.obj({ Type: "Font", Subtype: "Type0", BaseFont: "HYGoThic-Medium-UniKS-UTF16-H", Encoding: "UniKS-UTF16-H", DescendantFonts: [cid] }));
+    }
+    const chars = [...part].filter((ch) => ch.codePointAt(0) <= 0xffff), em = chars.length; // full-width (DW 1000)
+    runs.push({ ref: f.cid, enc: L.PDFHexString.of(chars.map((ch) => ch.charCodeAt(0).toString(16).padStart(4, "0")).join("")), w: (sz) => em * sz });
+  }
+  return { runs, width: (sz) => runs.reduce((n, r) => n + r.w(sz), 0) };
+}
+const hexRgb = (hex) => { const n = parseInt(String(hex).slice(1), 16) || 0; return [(n >> 16) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
+// real text, light and see-through, marked as a watermark artifact; the page's own drawing goes inside q … Q first
+async function drawWmPdf(out, page, p, o, text, color, flat) {
+  const L = window.PDFLib, ctx = out.context, line = await wmPdfRuns(out, text);
+  const W = p.w, H = p.h, size = wmSize(W, H), pts = wmLayout(W, H, size, line.width(size));
+  if (!pts.length || !line.runs.length) return;
+  const phi = (((flat ? 0 : p.pg.rotate || 0) + WM_ANGLE) * Math.PI) / 180, c = Math.cos(phi), s = Math.sin(phi);
+  const alpha = clamp(o.opacity ?? WM_ALPHA, 0.15, 0.6), [r, g, b] = hexRgb(color);
+  page.node.normalize();
+  page.node.wrapContentStreams(ctx.register(ctx.contentStream([L.pushGraphicsState()])), ctx.register(ctx.contentStream([L.popGraphicsState()])));
+  const keys = new Map();
+  for (const run of line.runs) if (!keys.has(run.ref)) keys.set(run.ref, page.node.newFontDictionary("SwWm", run.ref));
+  const gkey = page.node.newExtGState("SwWmGS", ctx.obj({ Type: "ExtGState", ca: alpha, CA: alpha }));
+  const ops = [L.pushGraphicsState(), L.PDFOperator.of(L.PDFOperatorNames.BeginMarkedContentSequence, [L.PDFName.of("Artifact"), ctx.obj({ Type: "Pagination", Subtype: "Watermark" })]),
+    L.setGraphicsState(gkey), L.setFillingRgbColor(r, g, b), L.beginText()];
+  let cur = null;
+  const da = (WM_ANGLE * Math.PI) / 180, d = [Math.cos(da), -Math.sin(da)], n = [Math.sin(da), Math.cos(da)];
+  for (const [x, y] of pts) {
+    const [px, py] = flat ? [x, H - y] : p.vp.convertToPdfPoint(x, y);
+    let at = 0;
+    for (const run of line.runs) {
+      const w = run.w(size), sx = x + d[0] * at, sy = y + d[1] * at;
+      at += w;
+      // a run wholly outside the page is left out, like a whole line (wmLayout)
+      const xs = [sx, sx + d[0] * w, sx - n[0] * size, sx + d[0] * w - n[0] * size], ys = [sy, sy + d[1] * w, sy - n[1] * size, sy + d[1] * w - n[1] * size];
+      if (Math.max(...xs) < 1 || Math.min(...xs) > W - 1 || Math.max(...ys) < 1 || Math.min(...ys) > H - 1) continue;
+      if (cur !== run.ref) { ops.push(L.setFontAndSize(keys.get(run.ref), size)); cur = run.ref; }
+      ops.push(L.setTextMatrix(c, s, -s, c, px + c * (at - w), py + s * (at - w)), L.showText(run.enc));
+    }
+  }
+  ops.push(L.endText(), L.endMarkedContent(), L.popGraphicsState());
+  page.node.addContentStream(ctx.register(ctx.contentStream(ops)));
+}
+// the box of a placed item in the page (as shown, also on a rotated page), as buildPdf places images
+function drawInBox(page, img, o, p, flat, opacity = o.opacity) {
+  const { degrees } = window.PDFLib;
+  const [pcx, pcy] = flat ? [o.x + o.w / 2, p.h - (o.y + o.h / 2)] : p.vp.convertToPdfPoint(o.x + o.w / 2, o.y + o.h / 2);
+  const theta = (((flat ? 0 : p.pg.rotate || 0) - (o.rot || 0)) * Math.PI) / 180, c = Math.cos(theta), s = Math.sin(theta);
+  page.drawImage(img, { x: pcx + (-o.w / 2) * c - (-o.h / 2) * s, y: pcy + (-o.w / 2) * s + (-o.h / 2) * c, width: o.w, height: o.h, rotate: degrees((theta * 180) / Math.PI), opacity });
+}
+const canvasPng = async (c) => new Uint8Array(await (await new Promise((r) => c.toBlob(r, "image/png"))).arrayBuffer());
+// one placed item with fields, on output page `vals.page` of `vals.pages`: a picture of the filled text, or the
+// pattern as text (as a picture in a text-free copy, which must hold no text at all)
+// what was drawn in the last file built, per output page (for tests and the demo scripts)
+const TPL_DRAWN = { cache: null, list: [] };
+async function drawTplItem(out, page, o, a, p, { flat, textFree, vals, cache }) {
+  const color = isWm(a) ? wmColorOf(o, a) : o.fx.ink || a.tpl.color;
+  if (TPL_DRAWN.cache !== cache) Object.assign(TPL_DRAWN, { cache, list: [] });
+  if (isWm(a)) {
+    const text = tplText(a.tpl.text, vals).trim(); if (!text) return;
+    TPL_DRAWN.list.push({ page: vals.page, look: "wm", text, asText: !textFree });
+    if (!textFree) { await drawWmPdf(out, page, p, o, text, color, flat); return; }
+    const key = JSON.stringify(["wm", text, color, Math.round(p.w), Math.round(p.h)]);
+    if (!cache.has(key)) { const c = await wmCanvas(text, p.w, p.h, 3, color); cache.set(key, await out.embedPng(await canvasPng(c))); c.width = c.height = 0; }
+    drawInBox(page, cache.get(key), { ...o, x: 0, y: 0, w: p.w, h: p.h, rot: 0 }, p, flat, clamp(o.opacity ?? WM_ALPHA, 0.15, 0.6));
+    return;
+  }
+  const lines = [a.tpl.text, ...(a.tpl.look === "box" ? [a.tpl.sub] : [])].map((s) => tplText(s, vals));
+  if (a.tpl.look !== "box" && !lines[0].trim()) return;
+  TPL_DRAWN.list.push({ page: vals.page, look: a.tpl.look, text: lines.join("\n") });
+  const key = JSON.stringify(["tpl", a.id, lines, color, Math.round((o.w / o.h) * 50), Math.round(o.w)]);
+  if (!cache.has(key)) {
+    const src = await tplCanvas(a.tpl, vals, { chips: false, color });
+    if (!src) { cache.set(key, null); return; }
+    const c = fitInto(src, o.w, o.h, 4);
+    cache.set(key, await out.embedPng(await canvasPng(c))); c.width = c.height = 0;
+  }
+  if (cache.get(key)) drawInBox(page, cache.get(key), o, p, flat);
+}
+
+/* ---------- the text stamp dialog: look, presets, fields to insert, the "for whom" line ---------- */
+function txtTpl() {
+  const look = txt.look, text = $("#txt-input").value.trim();
+  return { look, text, sub: look === "box" ? $("#txt-sub").value.replace(/\r/g, "").split("\n").map((s) => s.trim()).filter(Boolean).join("\n") : "",
+    font: look === "wm" ? "sans" : txt.font, color: txt.color };
+}
+const txtIsTpl = () => txt.look !== "plain" || hasFields($("#txt-input").value);
+function setLook(look) {
+  txt.look = look;
+  for (const b of $$("#txt-look button")) b.setAttribute("aria-pressed", String(b.dataset.look === look));
+  $("#txt-sub").hidden = look !== "box";
+  $("#txt-font-row").hidden = look === "wm";
+  $("#txt-marks-row").hidden = look !== "plain";
+  if (look !== "wm") txt.who = false;
+  $("#txt-who-row").hidden = !txt.who;
+  if (look === "wm" && !WM_COLORS.some((c) => c.color === txt.color)) txt.color = WM_COLORS[0].color;
+  if (look !== "wm" && WM_COLORS[0].color === txt.color) txt.color = INKS[1].color;
+  txtSwatches();
+}
+function insertAtCursor(inp, s) {
+  const a = inp.selectionStart ?? inp.value.length, b = inp.selectionEnd ?? a;
+  inp.value = inp.value.slice(0, a) + s + inp.value.slice(b);
+  inp.focus(); inp.setSelectionRange(a + s.length, a + s.length);
+}
+function stampPresets() {
+  const one = (label, fn, extra = {}) => el("button", { type: "button", class: "sw", onclick: () => { fn(); syncTextPreview(); }, ...extra }, label);
+  const set = (look, text, { sub = "", color = null, who = false } = {}) => {
+    setLook(look); txt.who = who; $("#txt-who-row").hidden = !who;
+    if (color) { txt.color = color; txtSwatches(); }
+    $("#txt-input").value = text; $("#txt-sub").value = sub;
+  };
+  const forWhom = () => t("st.p.for.text", { who: $("#txt-who").value.trim() || `{${t("st.who.field")}}` });
+  $("#txt-presets").append(
+    one(t("st.p.pageno"), () => { set("plain", t("st.p.pageno.text")); $("#txt-input").focus(); }),
+    one(t("st.p.cert"), () => { set("box", t("st.p.cert.title"), { sub: t("st.p.cert.sub"), color: INK_RED }); $("#txt-save").focus(); }));
+  const wm = $("#txt-wm-presets"); wm.textContent = "";
+  wm.append(
+    one(t("st.p.for"), () => { $("#txt-who").value = ""; set("wm", "", { who: true }); $("#txt-input").value = forWhom(); $("#txt-who").focus(); }),
+    one(t("st.p.copy"), () => { set("wm", t("st.p.copy")); $("#txt-save").focus(); }),
+    one(t("st.p.conf"), () => { set("wm", t("st.p.conf"), { color: WM_COLORS[1].color }); $("#txt-save").focus(); }));
+  $("#txt-who").oninput = () => { $("#txt-input").value = forWhom(); syncTextPreview(); };
+  const vars = $("#txt-vars"); vars.textContent = "";
+  for (const [label, name] of [["st.var.page", "st.f.page"], ["st.var.pages", "st.f.pages"], ["st.var.date", "st.f.date"], ["st.var.name", "st.f.name"]]) {
+    vars.append(el("button", { type: "button", class: "sw", "aria-label": t("st.var.aria", { what: t(label) }), onmousedown: (e) => e.preventDefault(),
+      onclick: () => { const target = txt.look === "box" && txt.lastSub ? $("#txt-sub") : $("#txt-input"); insertAtCursor(target, `{${t(name)}}`); syncTextPreview(); } }, t(label)));
+  }
+}
+$("#txt-look").addEventListener("click", (e) => { const b = e.target.closest("button[data-look]"); if (!b) return; setLook(b.dataset.look); syncTextPreview(); });
+$("#txt-sub").addEventListener("input", syncTextPreview);
+$("#txt-sub").addEventListener("focus", () => { txt.lastSub = true; });
+$("#txt-input").addEventListener("focus", () => { txt.lastSub = false; });
+async function saveTplStamp() {
+  const tpl = txtTpl(); if (!tpl.text) return;
+  const c = await tplPreview(tpl);
+  const a = await makeAssetFromSource(c.toDataURL("image/png"), { kind: "text", name: tpl.text.slice(0, 40) });
+  a.tpl = tpl; a.autoRemoveBg = false;
+  if (tplUses(a, "page") && tpl.look === "plain") a.lastW = a.w * 0.11; // page numbers start small
+  $("#dlg-text").close(); await addToLibrary(a);
+  if (S.view === "editor") placeAsset(a.id); else toast(t(tpl.look === "wm" ? "st.added.wm" : "text.added"));
+}
+
+/* ---------- the save dialog: fields still to fill, and what's on under "More options" ---------- */
+function syncSaveFields() {
+  const box = $("#save-fields"), names = itemsFields(S.overlays);
+  box.textContent = ""; box.hidden = !names.length;
+  if (!names.length) return;
+  add(box, el("span", { class: "fld-label", id: "save-fields-h", text: t("st.save.fields") }),
+    el("div", { class: "st-save-grid", role: "group", "aria-labelledby": "save-fields-h" }, ...fieldInputs(names, S.fields, setField, "save-fld-")),
+    el("p", { class: "hint", style: "margin:0", text: t("st.save.fields.hint") }));
+}
+function syncSaveMoreOn() {
+  const on = [];
+  if ($("#save-range").value.trim()) on.push(t("save.range"));
+  if ($("#save-textfree").checked) on.push(t("st.save.on.tf"));
+  if ($("#save-ai").checked) on.push(t("st.save.on.ai"));
+  $("#save-more-on").textContent = on.length ? t("st.save.on", { list: on.join(", ") }) : "";
+}
+for (const id of ["#save-range", "#save-textfree", "#save-ai"]) $(id).addEventListener(id === "#save-range" ? "input" : "change", syncSaveMoreOn);
+
+/* ================================================================
+   Forms (서식): the layout of placed items, saved apart from the document.
+   form: { v: 1, id, name, created, updated, docId (the Library record holding the base PDF) | null, docName,
+           pages: [{ w, h }] (points, as shown), fp: { text: SHA-256 of the first page's text | null, sizes },
+           items: [{ assetId, page, x, y, w, h, rot, opacity, fx, cover?, gan? }], fields: [names], pattern? }
+   Stored like the seal log: forms.json in the app's store (IndexedDB "forms" without file access).
+   ================================================================ */
+const FORMS = { list: null, loading: null, disk: null, pending: null, offered: new Set() };
+function loadForms() {
+  if (FORMS.loading && FORMS.disk === Store.disk) return FORMS.loading;
+  FORMS.disk = Store.disk;
+  return (FORMS.loading = Store.loadForms().then((v) => (FORMS.list = v), () => (FORMS.list = [])));
+}
+async function saveForms() {
+  try { await Store.saveForms(FORMS.list); return true; } catch (e) { console.warn("forms", e); toast(t("form.saveFail"), true); return false; }
+}
+// what identifies a document: its first page's text (normalised and hashed), or for a scan without text its page sizes
+async function docPrint(pdf, pages) {
+  let text = "";
+  try { const pg = await pdf.getPage(1); text = (await pg.getTextContent()).items.map((x) => x.str || "").join(""); } catch {}
+  const norm = text.normalize("NFKC").replace(/\s+/g, "").toLowerCase();
+  return { text: norm.length >= 8 ? await sha256Hex(new TextEncoder().encode(norm)) : null, sizes: pages.map((p) => `${Math.round(p.w)}x${Math.round(p.h)}`).join(";") };
+}
+const printMatches = (f, fp) => (f.fp?.text ? f.fp.text === fp.text && f.fp.sizes.split(";")[0] === fp.sizes.split(";")[0] : !fp.text && f.fp?.sizes === fp.sizes);
+const formItem = (o) => { const { id, ...it } = o; return { ...it, fx: { ...o.fx } }; };
+// a form's items on other pages: same relative place on the page with the same number, same size; a pattern
+// covers its page; a 간인 is laid again against the page edge. Items whose page or Library item is missing are left out.
+function mapItems(form, pages) {
+  const out = [], groups = new Map(); let missing = 0, short = 0;
+  for (const it of form.items) {
+    if (!it.cover && !S.assets.has(it.assetId)) { missing++; continue; }
+    const p = pages[it.page], f = form.pages[it.page] || p;
+    if (!p) { short++; continue; }
+    const o = { ...it, id: uid(), fx: { ...(it.fx || {}) } };
+    if (ovIsWm(o)) Object.assign(o, { x: 0, y: 0, w: p.w, h: p.h, rot: 0 });
+    else if (o.gan) {
+      if (!groups.has(o.gan.g)) groups.set(o.gan.g, uid());
+      o.gan = { ...o.gan, g: groups.get(o.gan.g) };
+      o.x = o.gan.side === "l" ? p.w - o.w : 0; o.y = clamp(((it.y + it.h / 2) / f.h) * p.h - o.h / 2, 0, Math.max(0, p.h - o.h));
+    } else {
+      const cx = ((it.x + it.w / 2) / f.w) * p.w, cy = ((it.y + it.h / 2) / f.h) * p.h;
+      o.x = cx - o.w / 2; o.y = cy - o.h / 2;
+      o.x = clamp(o.x, -o.w / 2, p.w - o.w / 2); o.y = clamp(o.y, -o.h / 2, p.h - o.h / 2);
+    }
+    out.push(o);
+  }
+  return { items: out, missing, short };
+}
+const formSum = (f) => t("form.sum", { pages: f.pages.length, n: f.items.length });
+function applyForm(form, { replace = false, quiet = false } = {}) {
+  if (!S.doc || S.view !== "editor") return 0;
+  const { items, missing } = mapItems(form, S.pages);
+  act(() => { if (replace) S.overlays = []; S.overlays.push(...items); S.sel = null; });
+  if (!quiet) toast(t("form.applied", { name: form.name, n: items.length }) + (missing ? " " + t("form.missing", { n: missing }) : ""), { ms: 7000, actions: [{ label: t("undo"), fn: undo }] });
+  return items.length;
+}
+// opening a PDF: offer a form whose fingerprint matches (only for a document with nothing placed yet)
+async function scheduleFormMatch({ sample = false } = {}) {
+  const doc = S.doc;
+  try {
+    if (FORMS.pending) { const f = FORMS.pending; FORMS.pending = null; await new Promise((r) => setTimeout(r, 300)); if (S.doc === doc) applyForm(f); return; }
+    if (sample || S.overlays.length) return;
+    const list = await loadForms(); if (!list.length || S.doc !== doc) return;
+    const fp = await docPrint(doc.pdf, S.pages);
+    if (S.doc !== doc || S.overlays.length) return;
+    const f = list.find((x) => printMatches(x, fp) && x.docId !== S.rec?.id);
+    if (!f || FORMS.offered.has(`${f.id}|${S.rec?.id}`)) return;
+    FORMS.offered.add(`${f.id}|${S.rec?.id}`);
+    toast(t("form.match", { name: f.name }), { ms: 12000, actions: [{ label: t("form.match.go"), fn: () => { if (S.doc === doc) applyForm(f); } }] });
+  } catch (e) { console.warn("form match", e); }
+}
+
+/* ---------- 서식으로 저장 / Save as form ---------- */
+async function openFormDialog() {
+  if (!S.doc || S.view !== "editor") return;
+  if (!S.overlays.length) { toast(t("form.nothing")); return; }
+  await loadForms();
+  const dlg = $("#dlg-form"), typed = dlg.open ? $("#form-name")?.value : null; // a language switch redraws it as typed
+  const body = $("#form-body"); body.textContent = "";
+  const fields = itemsFields(S.overlays), fp = await docPrint(S.doc.pdf, S.pages);
+  FORMS.draft = { fp };
+  add(body, 
+    el("p", { class: "hint", style: "margin:0", text: t("form.what") }),
+    el("label", { class: "fld-label", for: "form-name", text: t("form.name") }),
+    el("input", { class: "text-input", id: "form-name", maxlength: "60", autocomplete: "off", spellcheck: "false", value: typed ?? stem(S.doc.name).slice(0, 60) }),
+    el("p", { class: "caveat", style: "margin:0", text: [formSum({ pages: S.pages, items: S.overlays }), fields.length ? t("form.sum.fields", { list: fields.join(", ") }) : null].filter(Boolean).join(". ") + "." }),
+    fp.text ? null : el("p", { class: "hint", style: "margin:0", text: t("form.scan") }),
+    el("p", { class: "save-msg", id: "form-msg" }));
+  if (typed != null) return;
+  dlg.showModal();
+  $("#form-name").focus(); $("#form-name").select();
+}
+async function saveFormFromDoc(name) {
+  name = String(name || "").trim().slice(0, 60);
+  if (!name || !S.doc) return null;
+  await loadForms();
+  // example items are rebuilt on every launch: a form keeps its own copies in the Library
+  const ids = new Map();
+  for (const o of S.overlays) {
+    const a = S.assets.get(o.assetId);
+    if (a?.sample && !ids.has(a.id)) { const copy = { ...a, id: uid(), sample: false, created: Date.now() }; await addToLibrary(copy); ids.set(a.id, copy.id); }
+  }
+  const items = S.overlays.map((o) => formItem(ids.has(o.assetId) ? { ...o, assetId: ids.get(o.assetId) } : o));
+  if (ids.size) act(() => { for (const o of S.overlays) if (ids.has(o.assetId)) o.assetId = ids.get(o.assetId); });
+  let unique = name;
+  for (let n = 2; FORMS.list.some((f) => f.name === unique); n++) unique = `${name} (${n})`;
+  const now = Date.now();
+  const form = { v: 1, id: uid(), name: unique, created: now, updated: now, docId: S.rec?.id || null, docName: S.doc.name,
+    pages: S.pages.map((p) => ({ w: p.w, h: p.h })), fp: FORMS.draft?.fp || (await docPrint(S.doc.pdf, S.pages)), items, fields: itemsFields(S.overlays) };
+  FORMS.list.push(form);
+  if (!(await saveForms())) { FORMS.list = FORMS.list.filter((f) => f !== form); return null; }
+  renderFormsSide();
+  return form;
+}
+$("#form-body").addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const name = $("#form-name").value.trim(); if (!name) { $("#form-name").focus(); return; }
+  const f = await saveFormFromDoc(name);
+  if (!f) return;
+  $("#dlg-form").close();
+  toast(t("form.saved", { name: f.name }), { actions: [{ label: t("form.many"), fn: () => openMany({ form: f }) }] });
+});
+
+/* ---------- the forms list (Library home side panel; the sheet on a phone) ---------- */
+function renderFormsSide() {
+  const box = $("#forms-side"); if (!box) return;
+  if (!FORMS.list) { loadForms().then(renderFormsSide); return; }
+  box.textContent = "";
+  const list = FORMS.list.slice().sort((a, b) => b.updated - a.updated);
+  add(box, el("div", { class: "sec-head" }, el("span", { class: "sec-title", id: "forms-h", text: t("form.list") }), list.length ? el("span", { class: "hint", text: t("lib.count", { n: list.length }) }) : null));
+  if (!list.length) { add(box, el("p", { class: "hint", style: "margin:0", text: t("form.empty") })); return; }
+  add(box, el("ul", { class: "s-list form-list", "aria-labelledby": "forms-h" }, ...list.map(formRow)));
+}
+function formRow(f) {
+  if (FORMS.edit === f.id) {
+    const done = async (ok) => {
+      const v = ($("#form-rename")?.value || "").trim().slice(0, 60);
+      FORMS.edit = null;
+      if (ok && v && v !== f.name) { f.name = v; f.updated = Date.now(); await saveForms(); }
+      renderFormsSide(); $(`#forms-side li[data-id="${f.id}"] .form-open`)?.focus();
+    };
+    return el("li", { "data-id": f.id }, el("div", { class: "s-top" },
+      el("input", { class: "text-input", id: "form-rename", maxlength: "60", value: f.name, autocomplete: "off", "aria-label": t("form.rename.aria", { name: f.name }),
+        onkeydown: (e) => { e.stopPropagation(); if (e.isComposing) return; if (e.key === "Enter") { e.preventDefault(); done(true); } else if (e.key === "Escape") { e.preventDefault(); done(false); } } }),
+      el("button", { class: "btn sm", type: "button", onclick: () => done(false) }, t("dlg.cancel")),
+      el("button", { class: "btn sm primary", type: "button", onclick: () => done(true) }, t("save.save"))));
+  }
+  return el("li", { "data-id": f.id },
+    el("div", { class: "s-top" }, el("strong", { text: f.name, title: f.docName || f.name }),
+      el("button", { class: "btn icon sm", type: "button", title: t("lib.rename"), "aria-label": t("form.rename.aria", { name: f.name }),
+        onclick: () => { FORMS.edit = f.id; renderFormsSide(); requestAnimationFrame(() => { $("#form-rename")?.focus(); $("#form-rename")?.select(); }); } }, svgIcon(ICONS.pen)),
+      el("button", { class: "btn icon sm", type: "button", title: t("form.remove"), "aria-label": t("form.remove.aria", { name: f.name }), onclick: () => removeForm(f) }, icon("x"))),
+    el("span", { class: "s-sub", text: [formSum(f), f.fields?.length ? t("form.sum.fields", { list: f.fields.join(", ") }) : null].filter(Boolean).join(" · ") }),
+    el("div", { class: "btn-row" },
+      el("button", { class: "btn outline sm form-open", type: "button", "aria-label": t("form.open.aria", { name: f.name }), onclick: () => openForm(f) }, t("open")),
+      el("button", { class: "btn outline sm", type: "button", "aria-label": t("form.many.aria", { name: f.name }), onclick: () => openMany({ form: f }) }, t("form.many"))));
+}
+async function removeForm(f) {
+  const i = FORMS.list.indexOf(f); if (i < 0) return;
+  FORMS.list.splice(i, 1); await saveForms(); renderFormsSide();
+  toast(t("form.removed", { name: f.name }), { actions: [{ label: t("undo"), fn: async () => { FORMS.list.splice(Math.min(i, FORMS.list.length), 0, f); await saveForms(); renderFormsSide(); } }] });
+}
+// the base document from the Library with the form's items in place of whatever was there (one undo step)
+async function formDocBytes(f) { const rec = f.docId && S.docs.find((d) => d.id === f.docId); return rec ? { rec, bytes: rec.copy ? await Store.getCopy(rec.id) : null } : { rec: null, bytes: null }; }
+async function openForm(f) {
+  const { rec, bytes } = await formDocBytes(f);
+  if (rec && bytes) {
+    await openRecord(rec);
+    if (S.rec?.id !== rec.id) return;
+    if (!same(S.overlays.map(formItem), f.items)) applyForm(f, { replace: true });
+    return;
+  }
+  toast(t("form.noDoc"), { ms: 9000, actions: [{ label: t("form.pickDoc"), fn: () => { FORMS.pending = f; choosePdf(); } }] });
+}
+// menus: the editor's forms button, the ⋮ menu, the app menu
+function formMenuItems() {
+  const items = [{ label: t("form.saveAs"), iconNode: svgIcon(FICONS.form), fn: openFormDialog, disabled: !S.overlays.length }];
+  for (const f of (FORMS.list || []).slice().sort((a, b) => b.updated - a.updated).slice(0, 6)) items.push({ label: t("form.useOne", { name: f.name }), iconNode: svgIcon(FICONS.use), fn: () => applyForm(f) });
+  items.push({ label: t("form.many"), iconNode: svgIcon(FICONS.many), fn: () => openMany() });
+  return items;
+}
+const FICONS = {
+  form: '<path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M9.5 1.75v3h3"/><rect x="5.75" y="7.5" width="5" height="2" rx=".4" stroke-dasharray="1.2 .9"/><path d="M5.75 11.75h3"/>',
+  use: '<path d="M4 1.75h5.5L12.5 4.75v9.5H4z"/><path d="M9.5 1.75v3h3M6 9.25l1.5 1.5 3-3"/>',
+  many: '<path d="M6 1.75h5L13.5 4.25v8H6z"/><path d="M4 3.75H2.5v10.5H10v-1.5"/><path d="M8 7h3.5M8 9.25h3.5"/>',
+};
+$("#btn-forms").addEventListener("click", async (e) => { const b = e.currentTarget; await loadForms(); openMenu(formMenuItems(), { anchor: b, label: t("form.btn") }); });
+
+/* ================================================================
+   여러 개 만들기 / Make many: one PDF per row of a list, or the same items on several PDFs.
+   Files are built and written one at a time (nothing kept in memory but the file at hand) into one folder picked
+   through browse({ kind: "folder" }) (the desktop write allowlist, or an Android tree), each under a new name.
+   ================================================================ */
+const MANY = { src: null, mode: "list", head: [], rows: [], pdfs: [], pattern: "", patternTouched: false, dir: null, seal: false, ai: false, line: false, tf: false,
+  vals: {}, step: "edit", running: false, cancel: false, done: 0, total: 0, result: null, msg: "" };
+const MANY_MAX_ROWS = 1000;
+const manyItems = () => (MANY.src?.form ? MANY.src.form.items : S.overlays);
+const manyFields = () => (MANY.src?.form ? MANY.src.form.fields || [] : itemsFields(S.overlays));
+const manyName = () => (MANY.src?.form ? MANY.src.form.name : S.doc?.name || "");
+const filledRows = () => MANY.rows.filter((r) => r.some((c) => String(c || "").trim()));
+const rowVals = (r) => { const v = {}; MANY.head.forEach((h, i) => { const k = String(h || "").trim(); if (k) v[k] = String(r[i] ?? "").trim(); }); return v; };
+function defaultPattern() {
+  const base = stem(MANY.src?.form?.docName || S.doc?.name || MANY.src?.form?.name || "document");
+  if (MANY.mode === "pdfs") return `{${t("st.f.file")}}${t("save.suffix")}`;
+  const first = MANY.head.find((h) => String(h || "").trim());
+  return first ? `{${first.trim()}}_${base}` : `${base}_{${t("st.f.n")}}`;
+}
+async function openMany({ form = null } = {}) {
+  if (MANY.running) { $("#dlg-many").showModal(); return; }
+  if (!form && (!S.doc || S.view !== "editor" || !S.overlays.length)) { toast(t("many.needItems")); return; }
+  const fields = form ? form.fields || [] : itemsFields(S.overlays);
+  Object.assign(MANY, { src: form ? { form } : { doc: true }, mode: "list", head: fields.length ? [...fields] : [t("st.f.name")], rows: [[], [], []], pdfs: [],
+    patternTouched: false, dir: S.fs ? S.prefs.lastDir.many || null : null, seal: false, ai: !!S.prefs.aiNotice, line: !!S.prefs.aiLine, tf: false,
+    vals: form ? {} : { ...S.fields }, step: "edit", cancel: false, done: 0, total: 0, result: null, msg: "" });
+  MANY.pattern = form?.pattern || defaultPattern();
+  if (S.seal && SEAL.id === undefined) await loadSealIdentity();
+  renderMany();
+  $("#dlg-many").showModal();
+  requestAnimationFrame(() => $("#many-body .many-table input")?.focus());
+}
+// a pasted block or a CSV file: rows of cells (tabs when there are any, else commas with "quotes")
+function parseTable(text) {
+  text = String(text || "").replace(/^﻿/, "").replace(/\r\n?/g, "\n").replace(/\n+$/, "");
+  if (!text) return [];
+  if (text.includes("\t")) return text.split("\n").map((l) => l.split("\t"));
+  const rows = []; let row = [], cell = "", q = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (q) { if (ch === '"') { if (text[i + 1] === '"') { cell += '"'; i++; } else q = false; } else cell += ch; continue; }
+    if (ch === '"' && cell === "") q = true;
+    else if (ch === ",") { row.push(cell); cell = ""; }
+    else if (ch === "\n") { row.push(cell); rows.push(row); row = []; cell = ""; }
+    else cell += ch;
+  }
+  row.push(cell); rows.push(row);
+  return rows;
+}
+// cells from (r, c) on: row -1 is the header (field names)
+function putCells(grid, r, c) {
+  for (let i = 0; i < grid.length; i++) {
+    const rr = r + i;
+    if (rr >= MANY_MAX_ROWS) break;
+    for (let j = 0; j < grid[i].length; j++) {
+      const v = String(grid[i][j] ?? "").trim(), cc = c + j;
+      if (rr < 0) MANY.head[cc] = v;
+      else { while (MANY.rows.length <= rr) MANY.rows.push([]); MANY.rows[rr][cc] = v; }
+    }
+  }
+  const width = Math.max(MANY.head.length, ...MANY.rows.map((x) => x.length));
+  while (MANY.head.length < width) MANY.head.push("");
+  if (!MANY.patternTouched) MANY.pattern = defaultPattern();
+}
+function loadTable(grid) {
+  grid = grid.filter((r) => r.some((c) => String(c || "").trim()));
+  if (!grid.length) return;
+  MANY.head = grid[0].map((c) => String(c || "").trim()); MANY.rows = grid.slice(1, MANY_MAX_ROWS + 1).map((r) => r.map((c) => String(c ?? "").trim()));
+  if (!MANY.rows.length) MANY.rows = [[]];
+  if (!MANY.patternTouched) MANY.pattern = defaultPattern();
+  renderMany();
+}
+$("#file-csv").addEventListener("change", async (e) => {
+  const f = e.target.files[0]; if (!f) return;
+  try {
+    const buf = new Uint8Array(await readFile(f, "buffer"));
+    let text = new TextDecoder("utf-8").decode(buf);
+    if (text.includes("�")) { try { text = new TextDecoder("euc-kr").decode(buf); } catch {} } // Korean Excel saves CSV in CP949
+    loadTable(parseTable(text));
+  } catch { toast(t("many.csvFail"), true); }
+});
+function manyTable() {
+  const cols = Math.max(1, MANY.head.length);
+  const cell = (r, c, value, label) => {
+    const inp = el("input", { class: "many-cell", value: value ?? "", autocomplete: "off", spellcheck: "false", "data-r": String(r), "data-c": String(c), "aria-label": label });
+    inp.addEventListener("input", () => {
+      if (r < 0) MANY.head[c] = inp.value; else { while (MANY.rows.length <= r) MANY.rows.push([]); MANY.rows[r][c] = inp.value; }
+      if (!MANY.patternTouched && r < 0) { MANY.pattern = defaultPattern(); const pi = $("#many-pattern"); if (pi) pi.value = MANY.pattern; }
+      syncManyFoot();
+    });
+    inp.addEventListener("paste", (e) => {
+      const text = e.clipboardData?.getData("text/plain") || "";
+      if (!/[\t\n]/.test(text.replace(/\n+$/, ""))) return; // one value: the field takes it as typed
+      e.preventDefault(); putCells(parseTable(text), r, c); renderMany();
+      $(`#many-body .many-cell[data-r="${r}"][data-c="${c}"]`)?.focus();
+    });
+    inp.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter" && !e.isComposing) {
+        e.preventDefault();
+        if (r + 1 >= MANY.rows.length && MANY.rows.length < MANY_MAX_ROWS) { MANY.rows.push([]); renderMany(); }
+        $(`#many-body .many-cell[data-r="${r + 1}"][data-c="${c}"]`)?.focus();
+      }
+    });
+    return inp;
+  };
+  const head = el("tr", {}, el("th", { class: "many-n", scope: "col" }, el("span", { class: "sr-only", text: t("many.rowNo") })),
+    ...Array.from({ length: cols }, (_, c) => el("th", { scope: "col" }, cell(-1, c, MANY.head[c], t("many.head", { n: c + 1 })))),
+    el("th", { class: "many-x" }, el("button", { type: "button", class: "btn icon sm", title: t("many.addCol"), "aria-label": t("many.addCol"),
+      onclick: () => { MANY.head.push(""); renderMany(); $(`#many-body .many-cell[data-r="-1"][data-c="${MANY.head.length - 1}"]`)?.focus(); } }, svgIcon('<path d="M8 3.5v9M3.5 8h9"/>'))));
+  const body = MANY.rows.map((row, r) => el("tr", {}, el("td", { class: "many-n", text: String(r + 1) }),
+    ...Array.from({ length: cols }, (_, c) => el("td", {}, cell(r, c, row[c], t("many.cell", { row: r + 1, col: String(MANY.head[c] || "").trim() || t("many.head", { n: c + 1 }) })))),
+    el("td", { class: "many-x" }, el("button", { type: "button", class: "btn icon sm", title: t("many.delRow", { n: r + 1 }), "aria-label": t("many.delRow", { n: r + 1 }),
+      onclick: () => { MANY.rows.splice(r, 1); if (!MANY.rows.length) MANY.rows.push([]); renderMany(); } }, icon("x")))));
+  return el("div", { class: "many-scroll" }, el("table", { class: "many-table" }, el("thead", {}, head), el("tbody", {}, ...body)));
+}
+async function pickManyPdfs() {
+  if (S.fs) {
+    const picked = await browse({ kind: "pdf", multiple: true, title: t("many.pdfs.title") });
+    if (!picked?.length) return;
+    for (const p of picked) if (!MANY.pdfs.some((x) => x.path === p)) MANY.pdfs.push({ name: basename(p), path: p });
+    renderMany(); return;
+  }
+  const inp = $("#file-many"); inp.value = ""; inp.click();
+}
+$("#file-many").addEventListener("change", (e) => { for (const f of e.target.files) MANY.pdfs.push({ name: f.name, file: f }); renderMany(); });
+async function pickManyDir() {
+  const picked = await browse({ kind: "folder", title: t("many.folder.title"), start: MANY.dir || S.prefs.lastDir.save || null });
+  if (!picked?.length) return;
+  MANY.dir = picked[0]; S.prefs.lastDir.many = MANY.dir; persistPrefs(); renderMany();
+}
+function manyCount() { return MANY.mode === "list" ? filledRows().length : MANY.pdfs.length; }
+function manyFirstName() {
+  const r = MANY.mode === "list" ? filledRows()[0] : null;
+  const name = cleanName(fillName(MANY.pattern, r ? rowVals(r) : {}, { n: 1, file: MANY.pdfs[0] ? stem(MANY.pdfs[0].name) : "" })) || stem(manyName()) + "_1";
+  return name + ".pdf";
+}
+function renderMany() {
+  const body = $("#many-body"), foot = $("#many-foot");
+  body.textContent = ""; foot.textContent = "";
+  const busy = MANY.running;
+  if (MANY.step === "run" || MANY.step === "done") { renderManyProgress(body, foot); return; }
+  const fields = manyFields();
+  const seg = el("div", { class: "seg", role: "group", "aria-labelledby": "many-mode-lbl" }, ...[["list", "many.mode.list"], ["pdfs", "many.mode.pdfs"]].map(([m, k]) =>
+    el("button", { type: "button", "aria-pressed": String(MANY.mode === m), onclick: () => { if (MANY.mode === m) return; MANY.mode = m; if (!MANY.patternTouched) MANY.pattern = defaultPattern(); renderMany(); } }, t(k))));
+  add(body, 
+    el("p", { class: "hint", style: "margin:0", text: t(MANY.src?.form ? "many.src.form" : "many.src.doc", { name: manyName(), n: manyItems().length }) }),
+    el("div", { class: "opt-row" }, el("span", { class: "lbl", id: "many-mode-lbl", text: t("many.mode") }), seg));
+  if (MANY.mode === "list") {
+    const missing = fields.filter((f) => !MANY.head.some((h) => String(h || "").trim() === f));
+    add(body, el("p", { class: "hint", style: "margin:0", text: t("many.list.hint") }), manyTable(),
+      el("div", { class: "btn-row" },
+        el("button", { class: "btn outline sm", type: "button", onclick: () => { if (MANY.rows.length >= MANY_MAX_ROWS) return; MANY.rows.push([]); renderMany(); $(`#many-body .many-cell[data-r="${MANY.rows.length - 1}"][data-c="0"]`)?.focus(); } }, t("many.addRow")),
+        el("button", { class: "btn outline sm", type: "button", onclick: () => { const i = $("#file-csv"); i.value = ""; i.click(); } }, t("many.csv")),
+        el("span", { class: "hint", id: "many-rows-n", text: t("many.rows", { n: filledRows().length }) })),
+      missing.length ? el("p", { class: "warn-box", text: t("many.missingCols", { list: missing.join(", ") }) }) : null);
+  } else {
+    add(body, el("p", { class: "hint", style: "margin:0", text: t("many.pdfs.hint") }),
+      MANY.pdfs.length ? el("ul", { class: "s-list many-pdfs", "aria-label": t("many.pdfs.n", { n: MANY.pdfs.length }) }, ...MANY.pdfs.map((p, i) => el("li", {},
+        el("div", { class: "s-top" }, el("strong", { text: p.name, title: p.path || p.name }),
+          el("button", { class: "btn icon sm", type: "button", title: t("many.pdfs.remove", { name: p.name }), "aria-label": t("many.pdfs.remove", { name: p.name }), onclick: () => { MANY.pdfs.splice(i, 1); renderMany(); } }, icon("x")))))) : null,
+      el("div", { class: "btn-row" }, el("button", { class: "btn outline", type: "button", id: "many-pick-pdfs", onclick: pickManyPdfs }, t("many.pdfs.pick")),
+        MANY.pdfs.length ? el("span", { class: "hint", text: t("many.pdfs.n", { n: MANY.pdfs.length }) }) : null));
+    if (fields.length) add(body, el("span", { class: "fld-label", text: t("many.pdfs.fields") }), el("div", { class: "st-save-grid" }, ...fieldInputs(fields, MANY.vals, (n, v) => { MANY.vals[n] = v; }, "many-fld-")));
+  }
+  const pat = el("input", { class: "text-input", id: "many-pattern", value: MANY.pattern, autocomplete: "off", spellcheck: "false", "aria-describedby": "many-pattern-hint many-first" });
+  pat.addEventListener("input", () => { MANY.pattern = pat.value; MANY.patternTouched = true; $("#many-first").textContent = t("many.first", { file: manyFirstName() }); });
+  pat.addEventListener("keydown", (e) => e.stopPropagation());
+  add(body, el("label", { class: "fld-label", for: "many-pattern", text: t("many.pattern") }),
+    el("div", { class: "name-row" }, pat, el("span", { class: "ext", text: ".pdf" })),
+    el("p", { class: "hint", id: "many-pattern-hint", style: "margin:0", text: t("many.pattern.hint") }),
+    el("p", { class: "hint", id: "many-first", style: "margin:0", "aria-live": "polite", text: t("many.first", { file: manyFirstName() }) }));
+  if (S.fs) {
+    add(body, el("span", { class: "fld-label", text: t("many.folder") }),
+      el("div", { class: "dir-row" }, el("div", { class: "dir-box" }, icon("folder"), el("span", { class: "mono", id: "many-dir", title: MANY.dir || "", text: MANY.dir ? prettyDir(MANY.dir) : t("many.folder.none") })),
+        el("button", { type: "button", class: "btn outline", id: "many-dir-btn", onclick: pickManyDir }, t("many.folder.pick"))));
+  } else add(body, el("p", { class: "hint", style: "margin:0", text: t("many.dl") }));
+  const toggle = (id, key, label, explain = null, onChange = null) => el("label", { class: "toggle tf-opt" },
+    el("input", { type: "checkbox", id, checked: !!MANY[key], onchange: (e) => { MANY[key] = e.target.checked; onChange?.(); syncManyFoot(); } }),
+    el("span", {}, el("b", { text: label }), explain ? el("small", { text: explain }) : null));
+  const opts = el("div", { class: "many-opts" });
+  if (S.seal) {
+    add(opts, toggle("many-seal", "seal", t("many.seal"), SEAL.id ? t("save.seal.as", { name: SEAL.id.org ? `${SEAL.id.name} · ${SEAL.id.org}` : SEAL.id.name }) : t("many.seal.need"), () => { if (MANY.seal && !SEAL.id) { MANY.seal = false; openSealer(); } }));
+  }
+  add(opts, toggle("many-ai", "ai", t("ai.opt"), null, renderMany));
+  if (MANY.ai) add(opts, el("label", { class: "toggle ai-line" }, el("input", { type: "checkbox", id: "many-ai-line", checked: MANY.line, onchange: (e) => { MANY.line = e.target.checked; } }), el("span", { text: t("ai.opt.line") })));
+  add(opts, toggle("many-tf", "tf", t("many.tf"), t("save.tf.explain")));
+  add(body, opts, el("p", { class: "save-msg warn", id: "many-msg", "aria-live": "polite", text: MANY.msg || "" }));
+  // the one confirmation before sealing a batch
+  if (MANY.step === "confirm") {
+    add(body, el("p", { class: "warn-box", id: "many-confirm", tabindex: "-1", text: t("many.confirm", { n: manyCount(), who: SEAL.id?.name || "" }) }));
+    add(foot, el("button", { class: "btn", type: "button", onclick: () => { MANY.step = "edit"; renderMany(); } }, t("sealer.back")), el("span", { class: "grow" }),
+      el("button", { class: "btn primary", type: "button", id: "many-go", onclick: runMany }, t("many.confirm.go")));
+    requestAnimationFrame(() => $("#many-confirm")?.focus());
+    return;
+  }
+  add(foot, el("span", { class: "grow" }), el("button", { class: "btn", type: "button", "data-close": "", onclick: () => $("#dlg-many").close() }, t("dlg.cancel")),
+    el("button", { class: "btn primary", type: "button", id: "many-go", disabled: busy || null, onclick: startMany }, ""));
+  syncManyFoot();
+}
+function syncManyFoot() {
+  const n = manyCount(), go = $("#many-go"); if (!go || MANY.step !== "edit") return;
+  go.textContent = t(MANY.seal && S.seal ? "many.go.seal" : "many.go", { n });
+  go.disabled = !n;
+  const rn = $("#many-rows-n"); if (rn) rn.textContent = t("many.rows", { n: filledRows().length });
+  const first = $("#many-first"); if (first) first.textContent = t("many.first", { file: manyFirstName() });
+}
+function startMany() {
+  MANY.msg = "";
+  const n = manyCount();
+  if (!n) { MANY.msg = t(MANY.mode === "list" ? "many.noRows" : "many.noPdfs"); renderMany(); return; }
+  if (S.fs && !MANY.dir) { MANY.msg = t("many.folder.need"); renderMany(); $("#many-dir-btn")?.focus(); return; }
+  if (MANY.seal && S.seal && !SEAL.id) { MANY.msg = t("many.seal.need"); renderMany(); return; }
+  if (MANY.seal && S.seal) { MANY.step = "confirm"; renderMany(); return; }
+  runMany();
+}
+function renderManyProgress(body, foot) {
+  const R = MANY.result;
+  if (MANY.step === "run") {
+    add(body, el("p", { class: "many-status", id: "many-status", "aria-live": "polite", text: MANY.cancel ? t("many.stopping") : t("many.progress", { k: Math.min(MANY.done + 1, MANY.total), n: MANY.total }) }),
+      el("progress", { id: "many-progress", max: String(MANY.total), value: String(MANY.done), "aria-label": t("many.title") }));
+    add(foot, el("span", { class: "grow" }), el("button", { class: "btn", type: "button", id: "many-stop", disabled: MANY.cancel || null, onclick: stopMany }, t("many.stop")));
+    return;
+  }
+  add(body, el("p", { class: "many-status", id: "many-status", tabindex: "-1", text: R.summary }),
+    ...R.notes.map((n) => el("p", { class: "hint", style: "margin:0", text: n })),
+    R.files.length ? el("ul", { class: "s-list many-out", "aria-label": t("many.made") }, ...R.files.slice(0, 50).map((f) => el("li", {}, el("div", { class: "s-top" }, el("strong", { text: f.name }), f.sealed ? el("span", { class: "badge ok", text: t("log.sealed") }) : null)))) : null,
+    R.files.length > 50 ? el("p", { class: "hint", style: "margin:0", text: t("many.more", { n: R.files.length - 50 }) }) : null);
+  add(foot, R.reveal && canReveal() ? el("button", { class: "btn outline", type: "button", onclick: () => revealPath(R.reveal) }, t("showIn")) : null,
+    el("span", { class: "grow" }), el("button", { class: "btn primary", type: "button", onclick: () => $("#dlg-many").close() }, t("dlg.close")));
+  requestAnimationFrame(() => $("#many-status")?.focus({ preventScroll: true }));
+}
+function stopMany() { if (!MANY.running) return; MANY.cancel = true; renderMany(); }
+// a new name in the folder: "name.pdf", then "name (2).pdf" … (nothing is ever replaced)
+async function freeName(dir, base) {
+  for (let n = 1; n < 1000; n++) {
+    const name = n === 1 ? `${base}.pdf` : `${base} (${n}).pdf`;
+    try { await S.fs.stat(joinPath(dir, name)); } catch (e) { if (errCode(e) === "ENOENT") return { name, renamed: n > 1 }; throw e; }
+  }
+  throw new Error("EEXIST: no free file name");
+}
+// a PDF from the list or the picked files, opened only for as long as its file is being made
+async function openPages(bytes) {
+  const pdf = await openScanDoc(bytes);
+  const pages = await Promise.all(Array.from({ length: pdf.numPages }, async (_, i) => { const pg = await pdf.getPage(i + 1), vp = pg.getViewport({ scale: 1 }); return { i, pg, vp, w: vp.width, h: vp.height }; }));
+  return { pdf, pages };
+}
+async function runMany() {
+  if (MANY.running) return;
+  const mode = MANY.mode, form = MANY.src?.form || null, seal = !!(MANY.seal && S.seal && SEAL.id);
+  const ai = MANY.ai ? { notice: true, line: !!MANY.line } : null, textFree = !!MANY.tf, dir = MANY.dir;
+  S.prefs.aiNotice = !!MANY.ai; S.prefs.aiLine = !!MANY.line; if (S.fs && dir) S.prefs.lastDir.many = dir; persistPrefs();
+  if (form && MANY.pattern !== form.pattern) { form.pattern = MANY.pattern; saveForms(); }
+  const jobs = mode === "list" ? filledRows().map((r, i) => ({ n: i + 1, vals: rowVals(r) })) : MANY.pdfs.map((p, i) => ({ n: i + 1, pdf: p }));
+  Object.assign(MANY, { running: true, cancel: false, done: 0, total: jobs.length, step: "run" });
+  renderMany();
+  const R = { files: [], notes: [], renamed: 0, skipped: [], short: 0, failed: null, stopped: false, reveal: null, summary: "" };
+  let base = null; // list: the one base document (the open one, or the form's from the Library)
+  const formLike = form || { items: S.overlays.map(formItem), pages: S.pages.map((p) => ({ w: p.w, h: p.h })) };
+  try {
+    if (mode === "list") {
+      if (form) {
+        const { bytes } = await formDocBytes(form);
+        if (!bytes) throw new Error(t("form.noDoc"));
+        const u8 = new Uint8Array(bytes), { pdf, pages } = await openPages(u8);
+        const m = mapItems(form, pages);
+        base = { bytes: u8, pdf, pages, overlays: m.items, own: true, name: form.docName || form.name };
+      } else base = { bytes: S.doc.bytes, pdf: S.doc.pdf, pages: S.pages, overlays: S.overlays.map((o) => ({ ...o, fx: { ...o.fx } })), own: false, name: S.doc.name };
+    }
+    for (const job of jobs) {
+      if (MANY.cancel) { R.stopped = true; break; }
+      let D = base, opened = null, srcName = base?.name || "";
+      try {
+        if (mode === "pdfs") {
+          const p = job.pdf;
+          let bytes;
+          try { bytes = p.path ? new Uint8Array(await S.fs.readFile(p.path)) : new Uint8Array(await readFile(p.file, "buffer")); opened = await openPages(bytes); }
+          catch { R.skipped.push(p.name); continue; }
+          const m = mapItems(formLike, opened.pages); if (m.short) R.short++;
+          D = { bytes, pdf: opened.pdf, pages: opened.pages, overlays: m.items, name: p.name };
+          srcName = p.name;
+        }
+        const fields = mode === "list" ? job.vals : { ...MANY.vals };
+        let bytes = await buildPdf({ textFree, ai, src: { bytes: D.bytes, pages: D.pages, overlays: D.overlays, pdf: D.pdf, fields } });
+        let sealed = null;
+        if (seal) {
+          try { bytes = new Uint8Array(await S.seal.sign(bytes, { lang: LANG, reason: t("seal.reason") })); }
+          catch (e) { throw new Error(t("seal.signFail", { msg: errMsg(e) })); }
+          sealed = { at: Date.now(), fingerprint: SEAL.id?.fingerprint || null, name: SEAL.id?.name || null };
+        }
+        const stemName = cleanName(fillName(MANY.pattern, fields, { n: job.n, file: stem(srcName) })) || `${stem(manyName())}_${job.n}`;
+        let fileName = stemName + ".pdf", path = null;
+        if (S.fs && dir) {
+          const free = await freeName(dir, stemName); fileName = free.name; if (free.renamed) R.renamed++;
+          path = joinPath(dir, fileName);
+          await S.fs.writeFile(path, bytes);
+          R.reveal = path;
+        } else {
+          const dl = await getDownloads(), blob = new Blob([bytes], { type: "application/pdf" });
+          if (dl) await dl.save({ filename: fileName, data: blob });
+          else { const a = el("a", { href: URL.createObjectURL(blob), download: fileName }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); await new Promise((r) => setTimeout(r, 250)); }
+        }
+        R.files.push({ name: fileName, path, sealed: !!sealed });
+        // the seal log, like a single save (sealed files, and items marked "log every use")
+        await logSave({ fileName, path, bytes, sealed, overlays: D.overlays, doc: srcName });
+        bytes = null;
+      } finally {
+        if (opened) { try { opened.pdf.destroy(); } catch {} }
+      }
+      MANY.done++;
+      const st = $("#many-status"), pr = $("#many-progress");
+      if (st && !MANY.cancel) st.textContent = t("many.progress", { k: Math.min(MANY.done + 1, MANY.total), n: MANY.total });
+      if (pr) pr.value = MANY.done;
+    }
+  } catch (e) {
+    console.warn("make many", e);
+    R.failed = errMsg(e) || t("save.fail");
+  } finally {
+    if (base?.own) { try { base.pdf.destroy(); } catch {} }
+    MANY.running = false;
+  }
+  const where = S.fs && dir ? prettyDir(dir) : t("folder.Downloads");
+  const n = R.files.length;
+  R.summary = R.failed ? t("many.fail", { n, msg: R.failed }) : R.stopped ? t("many.stopped", { n }) : t(seal ? "many.doneSealed" : "many.done", { n, dir: where });
+  if (R.renamed) R.notes.push(t("many.renamed", { n: R.renamed }));
+  if (R.skipped.length) R.notes.push(t("many.skipped", { list: R.skipped.join(", ") }));
+  if (R.short) R.notes.push(t("many.short"));
+  MANY.result = R; MANY.step = "done";
+  if ($("#dlg-many").open) renderMany();
+  toast(R.summary, { err: !!R.failed, ms: 9000, actions: R.reveal && canReveal() ? [{ label: t("showIn"), fn: () => revealPath(R.reveal) }] : [] });
+  return R;
+}
+{
+  const d = $("#dlg-many");
+  // running: Escape and the backdrop stop after the file at hand instead of hiding the progress
+  d.addEventListener("cancel", (e) => { if (MANY.running) { e.preventDefault(); stopMany(); } });
+  d.addEventListener("click", (e) => { if (MANY.running && (e.target === d || e.target.closest("[data-close]"))) { e.stopImmediatePropagation(); e.preventDefault(); stopMany(); } }, true);
+  d.addEventListener("close", () => { if (MANY.running) stopMany(); });
+}
+
+// what changes with the language (rerenderAll)
+function syncStampsText() {
+  renderFormsSide();
+  if ($("#dlg-save").open) { syncSaveFields(); syncSaveMoreOn(); }
+  if ($("#dlg-many").open) renderMany();
+  if ($("#dlg-form").open) openFormDialog();
+}
+window.__pdfeForms = { FORMS, MANY, loadForms, saveForms, saveFormFromDoc, openFormDialog, applyForm, mapItems, docPrint, printMatches, scheduleFormMatch, openForm, removeForm, renderFormsSide,
+  openMany, runMany, stopMany, parseTable, putCells, loadTable, fillName, freeName, tplParts, tplText, tplFields, itemsFields, setField, wmLayout, fmtDateTpl, renderMany, drawn: () => TPL_DRAWN.list.slice() };
 
 /* ================================================================
    Wiring & boot
