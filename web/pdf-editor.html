@@ -612,6 +612,48 @@ html:not(.has-seal) .seal-only { display: none !important; }
 .seal-side .who { display: grid; gap: 2px; }
 .seal-side .who strong { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+/* 1.3 seal: trust, log, AI notice, hidden text */
+.ai-opt .ai-line { font-size: 12.5px; padding-left: 23px; }
+.ai-opt .ai-line[hidden] { display: none; }
+.v-checks { display: grid; gap: 8px; }
+.v-check { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 2px 10px; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); align-items: start; }
+.v-check > svg { width: 18px; height: 18px; grid-row: span 3; margin-top: 1px; color: var(--muted); }
+.v-check.ok > svg { color: var(--ok); } .v-check.amber > svg { color: var(--amber); } .v-check.bad > svg { color: var(--seal); }
+.v-check h4 { margin: 0; font-size: 13px; font-weight: 600; }
+.v-check p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.v-check.bad h4 { color: var(--seal); } .v-check.amber h4 { color: var(--amber); }
+.hid-list { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+.hid-list li { display: grid; gap: 2px; padding: 7px 9px; border-radius: 8px; background: var(--seal-soft); font-size: 12px; min-width: 0; }
+.hid-list li.maybe { background: var(--panel); color: var(--muted); }
+.hid-list li b { font-weight: 600; }
+.hid-list q { font-family: var(--font-num); font-size: 11.5px; overflow-wrap: anywhere; color: var(--fg); quotes: "“" "”"; }
+.hid-list li.maybe q { color: var(--muted); }
+.v-sig-head .trusted-name { font-size: 15px; }
+.v-sig-head svg { width: 16px; height: 16px; color: var(--ok); flex: none; }
+.badge.ok { background: var(--ok-soft); color: var(--ok); }
+.trust-form { display: grid; gap: 8px; padding: 10px 12px; border-radius: 8px; background: var(--panel); }
+.trust-form p { margin: 0; font-size: 12px; line-height: 1.55; color: var(--muted); }
+.trust-form .text-input { height: 34px; font-size: 13px; }
+.trust-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.sealer-nav { display: grid; gap: 6px; }
+.sealer-nav button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; text-align: left; font: inherit; font-size: 13px; }
+.sealer-nav button:hover { background: var(--panel); }
+.sealer-nav svg { width: 16px; height: 16px; flex: none; color: var(--muted); }
+.sealer-nav .grow { flex: 1; }
+.sealer-nav .hint { font-size: 12px; }
+.s-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; min-width: 0; }
+.s-list li { display: grid; gap: 3px; padding: 9px 12px; border-radius: 10px; border: 1px solid var(--line); min-width: 0; font-size: 12px; }
+.s-list .s-top { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.s-list .s-top strong { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; flex: 1; }
+.s-list .s-sub { color: var(--muted); overflow-wrap: anywhere; line-height: 1.5; }
+.s-list code { font-family: var(--font-num); font-size: 11px; color: var(--muted); overflow-wrap: anywhere; }
+.s-list .s-top .text-input { height: 30px; font-size: 13px; flex: 1; min-width: 0; }
+.tile-acts button[aria-pressed="true"] { color: var(--accent); }
+.tile .log-mark { position: absolute; top: 6px; left: 6px; width: 18px; height: 18px; border-radius: 50%; display: grid; place-items: center; background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,.15); pointer-events: none; }
+.tile .log-mark svg { width: 11px; height: 11px; }
+.touch .sealer-nav button { min-height: 48px; }
+.touch .s-list .btn.sm { min-height: 36px; }
+
 /* ---------- narrow windows ---------- */
 @media (max-width: 1080px) {
   .main, .main.no-rail { grid-template-columns: 0 minmax(0, 1fr) var(--side-w); } .rail { visibility: hidden; } #btn-rail { display: none; }
@@ -1055,6 +1097,11 @@ html:not(.has-seal) .seal-only { display: none !important; }
       <label class="toggle"><input type="checkbox" id="save-seal"><span><b data-i18n="seal.action"></b> · <span data-i18n="seal.subtitle"></span><small data-i18n="save.seal.explain"></small></span></label>
       <div id="save-sealer"></div>
     </div>
+    <!-- 1.3 seal: No AI notice (AI 사용 거부 표시) -->
+    <div class="seal-opt ai-opt" id="save-ai-wrap">
+      <label class="toggle"><input type="checkbox" id="save-ai"><span><b data-i18n="ai.opt"></b><small data-i18n="ai.opt.explain"></small></span></label>
+      <label class="toggle ai-line" id="save-ai-line-row"><input type="checkbox" id="save-ai-line"><span data-i18n="ai.opt.line"></span></label>
+    </div>
     <p class="save-msg" id="save-msg"></p>
     <p class="hint" style="margin:0" data-i18n="save.hint"></p>
   </form>
@@ -1098,6 +1145,13 @@ html:not(.has-seal) .seal-only { display: none !important; }
   <div class="dlg-head"><h2 id="dlg-sealer-title" data-i18n="seal.sealer"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
   <form class="dlg-body" id="sealer-body"></form>
   <div class="dlg-foot" id="sealer-foot"></div>
+</dialog>
+
+<!-- 1.3 seal: hidden text found in a PDF opened in the editor -->
+<dialog id="dlg-hidden" aria-labelledby="dlg-hidden-title">
+  <div class="dlg-head"><h2 id="dlg-hidden-title" data-i18n="hid.title"></h2><button class="btn icon" data-close data-i18n-label="dlg.close"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="m4 4 8 8M12 4l-8 8"/></svg></button></div>
+  <div class="dlg-body" id="hidden-body"></div>
+  <div class="dlg-foot"><span class="grow"></span><button class="btn" data-close data-i18n="dlg.close"></button></div>
 </dialog>
 
 <dialog id="dlg-files" class="fb-dlg" aria-labelledby="fb-title">
@@ -1582,6 +1636,83 @@ const STR = {
   "verify.selfSigned": ["Acrobat 같은 다른 앱에서는 ‘서명자 신원을 확인할 수 없음’으로 나옵니다. 인증서를 공인 기관이 아니라 이 앱이 만들었기 때문입니다. 보낸 사람에게 지문을 물어 위 지문과 같은지 비교하세요.", "Acrobat and other apps will say the signer's identity can't be verified, because the certificate was made by this app rather than a certificate authority. Ask the sender for their fingerprint and compare it with the one above."],
   "sealer.noneShort": ["아직 없습니다. 처음 ‘봉인해서 저장’할 때 만듭니다.", "None yet. It's created the first time you use “Seal and save”."],
   "verify.selfSigned.mine": ["내 봉인입니다. 받는 사람에게 이 지문을 알려 주면 같은지 비교할 수 있습니다.", "This is your seal. Share this fingerprint so recipients can compare it."],
+
+  // 1.3 seal: trust, log, AI notice, hidden text
+  // AI 사용 거부 표시: the save option, the line printed on the pages, the rights sentence kept in the file, and what Verify says
+  "ai.opt": ["AI 사용 거부 표시 넣기", "Add a No AI notice"],
+  "ai.opt.explain": ["이 파일을 AI 학습이나 분석에 쓰지 말라는 뜻을 기계가 읽는 형태로 파일 안에 적어 둡니다. 이를 존중하는 도구와 유럽연합의 데이터 마이닝 규정이 인정하는 권리 표시일 뿐 잠금은 아니고, 봉인해서 저장하면 누가 지웠을 때 티가 납니다.", "Writes a machine-readable “don't use for AI training or analysis” reservation into the file. Respectful tools and EU text and data mining rules recognise it. It isn't a lock, but when the file is sealed, removing it shows."],
+  "ai.opt.line": ["모든 쪽 아래에 안내 문구도 한 줄 넣기", "Also print a short line at the foot of every page"],
+  "ai.line": ["권리자의 허락 없이 이 문서를 AI 학습이나 분석에 쓸 수 없습니다.", "This document may not be used for AI training or analysis without the rights holder's permission."],
+  "ai.rights": ["권리자는 이 문서를 AI 학습과 분석을 포함한 텍스트와 데이터 마이닝에 쓰는 것을 허락하지 않습니다.", "The rights holder reserves this document from text and data mining, including AI training and analysis."],
+  "ai.v.title": ["AI 사용 거부 표시가 있습니다", "No AI notice: present"],
+  "ai.v.covered": ["봉인이 이 표시까지 지키고 있어서, 누가 지우면 봉인이 깨집니다.", "It's covered by the seal, so removing it would break the seal."],
+  "ai.v.unsealed": ["봉인이 없는 파일이라 누가 이 표시를 지워도 알 수 없습니다.", "The file isn't sealed, so nobody could tell if it were removed."],
+  "ai.v.changed": ["봉인한 뒤에 파일이 바뀌어서, 봉인이 이 표시를 지켜 준다고 말할 수 없습니다.", "The file changed after sealing, so the seal can't vouch for it."],
+  "ai.v.what": ["AI 학습이나 분석에 쓰지 말라는 권리 표시입니다. 기술적인 잠금은 아닙니다.", "It reserves the file from AI training and analysis. It's a statement of rights, not a technical lock."],
+  // 숨은 글자 검사: text a person can't see but a machine reads
+  "hid.title": ["숨은 글자 검사", "Hidden text check"],
+  "hid.checking": ["숨은 글자를 찾는 중…", "Looking for hidden text…"],
+  "hid.none": ["숨은 글자가 없습니다. 사람 눈에 보이지 않으면서 기계만 읽는 글자를 찾지 못했습니다.", "No hidden text found. Nothing here is readable by a machine but invisible to people."],
+  "hid.found": ["사람 눈에는 보이지 않지만 기계는 읽는 글자가 있습니다. AI 도구에 몰래 지시를 넣는 데 쓰이기도 하니 무슨 내용인지 확인하세요.", "Some text here is invisible to people but readable by machines. It's sometimes used to slip instructions to AI tools, so check what it says."],
+  "hid.k.invisible": ["보이지 않게 설정된 글자", "invisible text"],
+  "hid.k.white": ["흰색 글자", "white text"],
+  "hid.k.background": ["바탕과 같은 색 글자", "text in the background colour"],
+  "hid.k.tiny": ["아주 작은 글자", "tiny text"],
+  "hid.k.offpage": ["쪽 밖에 놓인 글자", "text outside the page"],
+  "hid.k.transparent": ["투명한 글자", "transparent text"],
+  "hid.k.scan": ["스캔 아래 깔린 보이지 않는 글자", "invisible text behind a scan"],
+  "hid.scan.note": ["스캔한 문서는 검색할 수 있도록 보이지 않는 글자를 깔아 두는 경우가 많습니다. 보이는 내용과 같은지만 확인하세요.", "Scanned documents often carry an invisible text layer for searching. Just check that it matches what you see."],
+  "hid.item": ["{n}쪽, {kind}", "Page {n}: {kind}"],
+  "hid.chars": ["{n}자", pl("1 character", "{n} characters")],
+  "hid.capped": ["쪽이 많아 앞의 {n}쪽만 검사했습니다.", "Only the first {n} pages were checked."],
+  "hid.more": ["그 밖에 {n}곳이 더 있습니다.", pl("1 more place.", "{n} more places.")],
+  "hid.fail": ["숨은 글자를 검사하지 못했습니다.", "Couldn't check for hidden text."],
+  "hid.toast": ["이 PDF에 사람 눈에 보이지 않는 글자가 있습니다.", "This PDF has text that people can't see."],
+  "hid.see": ["목록 보기", "See list"],
+  // 믿는 사람: a seal's fingerprint saved under a name
+  "trust.btn": ["이 봉인 믿기…", "Trust this seal…"],
+  "trust.ask": ["누구의 봉인인지 이름을 적어 주세요. 그 사람과 전화나 직접 만나 지문을 맞춰 본 다음에만 믿으세요.", "Name the person this seal belongs to. Only trust it after checking the fingerprint with them, by phone or in person."],
+  "trust.name": ["이름", "Name"],
+  "trust.save": ["믿는 사람으로 저장", "Save as trusted"],
+  "trust.by": ["{name}의 봉인", "Sealed by {name}"],
+  "trust.badge": ["믿는 사람", "Trusted"],
+  "trust.certName": ["봉인 속 이름", "Name in the seal"],
+  "trust.note": ["이 지문을 믿는 사람으로 저장해 두었습니다.", "You saved this fingerprint as someone you trust."],
+  "trust.added": ["{name}{을} 믿는 사람에 넣었습니다.", "Added {name} to people you trust."],
+  "trust.removed": ["믿는 사람에서 {name}{을} 뺐습니다.", "Removed {name} from people you trust."],
+  "trust.title": ["믿는 사람", "People I trust"],
+  "trust.hint": ["여기 있는 지문으로 봉인한 파일은 ‘봉인 확인’에서 이름으로 바로 알려 드립니다. 자동으로 넣는 일은 없습니다.", "Files sealed with these fingerprints show the name right away in “Verify seal”. Nobody is ever added automatically."],
+  "trust.empty": ["아직 없습니다. ‘봉인 확인’에서 받은 파일의 봉인을 확인한 뒤 ‘이 봉인 믿기’로 넣을 수 있습니다.", "No one yet. After checking a file in “Verify seal”, use “Trust this seal” to add its sealer."],
+  "trust.n": ["{n}명", pl("1 person", "{n} people")],
+  "trust.added.on": ["{date}에 넣음", "Added {date}"],
+  "trust.rename.aria": ["{name} 이름 바꾸기", "Rename {name}"],
+  "trust.remove": ["빼기", "Remove"],
+  "trust.remove.aria": ["{name}{을} 믿는 사람에서 빼기", "Remove {name} from people you trust"],
+  "trust.needName": ["이름을 적어 주세요.", "Enter a name."],
+  // 사용 기록: sealed saves, and saves using an item marked "log every use"
+  "log.title": ["사용 기록", "Seal log"],
+  "log.n": ["{n}건", pl("1 entry", "{n} entries")],
+  "log.hint": ["봉인해서 저장한 파일과 ‘쓸 때마다 기록’을 켠 서명이나 도장을 넣은 파일이 이 기기에만 기록됩니다. 최근 1,000건까지 남습니다.", "Sealed saves, and saves using a signature or stamp marked “Log every use”, are recorded on this device only. The last 1,000 are kept."],
+  "log.empty": ["아직 기록이 없습니다. 봉인해서 저장할 때마다 여기에 남습니다.", "Nothing yet. Every sealed save is recorded here."],
+  "log.export": ["CSV로 내보내기…", "Export CSV…"],
+  "log.pickFolder": ["사용 기록 CSV를 저장할 폴더 고르기", "Choose a folder for the seal log CSV"],
+  "log.file": ["Sealworks 사용 기록 {date}", "Sealworks seal log {date}"],
+  "log.exported": ["내보냈습니다: {file}", "Exported: {file}"],
+  "log.exportFail": ["내보내지 못했습니다. {msg}", "Couldn't export. {msg}"],
+  "log.sealed": ["봉인", "Sealed"], "log.unsealed": ["봉인 안 함", "Not sealed"],
+  "log.by": ["봉인한 사람 {name}", "Sealed by {name}"],
+  "log.items": ["넣은 것: {list}", "Placed: {list}"],
+  "log.checksum": ["확인값 {hash}", "Checksum {hash}"],
+  "log.more": ["더 오래된 {n}건은 CSV에 들어 있습니다.", pl("1 older entry is in the CSV.", "{n} older entries are in the CSV.")],
+  "log.writeFail": ["사용 기록을 남기지 못했습니다.", "Couldn't write to the seal log."],
+  "log.use": ["쓸 때마다 기록", "Log every use"],
+  "log.use.aria": ["{name}, 쓸 때마다 기록", "{name}: log every use"],
+  "log.use.on": ["이제 {name}{을} 넣은 파일은 봉인하지 않아도 사용 기록에 남습니다.", "Saves that use {name} are now logged, sealed or not."],
+  "log.use.off": ["이제 {name}{은} 봉인할 때만 기록됩니다.", "{name} is now logged only when sealing."],
+  "log.csv.at": ["일시", "Time"], "log.csv.file": ["파일 이름", "File name"], "log.csv.path": ["저장 위치", "Saved to"],
+  "log.csv.doc": ["원본 문서", "Source document"], "log.csv.sealed": ["봉인", "Sealed"], "log.csv.sealer": ["봉인한 사람", "Sealer"],
+  "log.csv.fp": ["봉인 지문", "Seal fingerprint"], "log.csv.items": ["서명과 도장", "Signatures and stamps"], "log.csv.hash": ["SHA-256", "SHA-256"],
+  "log.yes": ["예", "Yes"], "log.no": ["아니요", "No"],
 
   // Mac App Store build (desktop.sandboxed): files the app may no longer read (docs/design/appstore-build.md)
   "src.noaccess": ["권한이 필요해 확인하지 못함", "Needs permission to check"],
@@ -2090,6 +2221,9 @@ const Store = (() => {
     },
     async savePrefs(v) { fs ? await writeJSON("prefs.json", v) : await B.set("prefs", v); },
     async saveDocs(v) { fs ? await writeJSON("documents.json", v) : await B.set("docs", v); },
+    // 1.3 seal: the seal and stamp log (사용 기록), a file of its own so documents.json stays small
+    async loadLog() { const v = fs ? await readJSON("seal-log.json", []) : await B.get("sealLog"); return Array.isArray(v) ? v : []; },
+    async saveLog(v) { fs ? await writeJSON("seal-log.json", v) : await B.set("sealLog", v); },
     async saveAssets(list) {
       if (fs) return writeJSON("library.json", list.map(metaOf));
       await tx("assets", "readwrite", (s) => { s.clear(); for (const a of list) s.put(a); });
@@ -2853,7 +2987,7 @@ function handleBack() {
   if (COVER.drawing) { stopCoverDraw(); return true; }
   const dlg = $$("dialog[open]").pop();
   if (dlg) {
-    if (dlg.id === "dlg-sealer" && SEAL.id && SEALER.mode !== "main" && !SEALER.busy) { sealerMode("main"); return true; }
+    if (dlg.id === "dlg-sealer" && (SEAL.id || SEALER.mode === "trusted" || SEALER.mode === "log") && SEALER.mode !== "main" && !SEALER.busy) { sealerMode("main"); return true; } // 1.3 seal: trusted, log
     dlg.close(); return true;
   }
   if (SHEET.side) { closeSheet(); return true; }
@@ -2962,6 +3096,7 @@ async function openPdfBytes(bytes, name, { sample = false, sampleLang = null, ex
   if (!keep) { S.fit = "width"; stage.scrollTop = 0; stage.scrollLeft = 0; }
   showEditor();
   layoutPages(); syncOverlays(); syncInspector(); syncUndo();
+  scheduleHiddenScan(bytes, { sample }); // 1.3 seal: hidden text check, a gentle notice only when something is found
   return true;
 }
 async function openRecord(rec) {
@@ -3547,9 +3682,11 @@ function syncLibrary() {
           ondragstart: (e) => { e.dataTransfer.setData("text/x-pdfe-asset", id); e.dataTransfer.effectAllowed = "copy"; } }, art, meta);
       const tile = el("div", { class: "tile", "data-id": id, title: onHome ? a.name : null }, main,
         a.sample ? null : el("div", { class: "tile-acts" },
+          logUseButton(a), // 1.3 seal: "log every use" (사용 기록)
           el("button", { type: "button", title: t("lib.rename"), "aria-label": t("lib.rename.aria", { name: a.name }), onclick: (e) => { e.stopPropagation(); startRename(nameSpan, id); } }, svgIcon(ICONS.pen)),
           el("button", { class: "x", type: "button", title: t("lib.remove"), "aria-label": t("lib.remove.aria", { name: a.name }), onclick: (e) => { e.stopPropagation(); hideFromLibrary(id); } }, icon("x"))));
       if (onHome && !a.sample) nameSpan.addEventListener("click", () => startRename(nameSpan, id));
+      if (a.logUse && S.seal) tile.append(el("span", { class: "log-mark", title: t("log.use"), "aria-hidden": "true" }, icon("clock"))); // 1.3 seal
       lib.append(tile);
     }
   }
@@ -3754,7 +3891,8 @@ async function getDownloads() {
 }
 // 1.3: pages (page indices to save, in order; all when null) and textFree (every page as a picture). Pages with a
 // cover box, and every page of a text-free copy, are rebuilt as pictures (rebuildForSave); then items go on top.
-async function buildPdf({ pages: only = null, textFree = false } = {}) {
+// ai (1.3 seal): the No AI notice, added last so it lands on whatever pages the file ends up with.
+async function buildPdf({ pages: only = null, textFree = false, ai = null } = {}) {
   const { PDFDocument, degrees } = window.PDFLib;
   const keep = only || S.pages.map((p) => p.i), asPicture = picturePages(textFree);
   const fresh = !!only || keep.some((i) => asPicture.has(i));
@@ -3792,6 +3930,8 @@ async function buildPdf({ pages: only = null, textFree = false } = {}) {
       width: o.w, height: o.h, rotate: degrees((theta * 180) / Math.PI), opacity: o.opacity,
     });
   }
+  // 1.3 seal: No AI notice hook (XMP reservation in /Metadata, optional visible line on every page), last step before writing
+  if (ai?.notice) await addAiNotice(out, ai);
   return out.save({ useObjectStreams: true });
 }
 // the left or right half of an item's image (as drawn, after background removal and ink) as PNG bytes
@@ -3858,6 +3998,7 @@ async function openSaveDialog(opts = {}) {
   $("#save-open").checked = !!S.prefs.openAfterSave;
   if (S.seal && SEAL.id === undefined) await loadSealIdentity();
   $("#save-seal").checked = !!S.prefs.sealOnSave; renderSaveSeal();
+  syncSaveAi(); // 1.3 seal: No AI notice option
   $("#dlg-save").showModal();
   const inp = range != null ? $("#save-range") : $("#save-name"); inp.focus(); inp.select();
   checkSaveTarget();
@@ -3892,16 +4033,16 @@ $("#save-form").addEventListener("submit", async (e) => {
   const fileName = name + ".pdf";
   if (S.fs) { S.prefs.openAfterSave = $("#save-open").checked; persistPrefs(); }
   $("#dlg-save").close();
-  await performSave(fileName, saveState.dir, S.fs && $("#save-open").checked, { seal, pages, textFree });
+  await performSave(fileName, saveState.dir, S.fs && $("#save-open").checked, { seal, pages, textFree, ai: saveAiChoice() }); // 1.3 seal: ai
 });
 let saving = false;
-async function performSave(fileName, dir, openAfter, { seal = false, pages = null, textFree = false } = {}) {
+async function performSave(fileName, dir, openAfter, { seal = false, pages = null, textFree = false, ai = null } = {}) {
   if (saving) return; saving = true;
   const btn = $("#btn-export"); const label = [...btn.childNodes];
   btn.disabled = true; btn.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
   const bb = $("#bb-save"), bbLabel = [...bb.childNodes]; bb.disabled = true; bb.replaceChildren(el("span", { class: "spinner" }), el("span", { text: t(seal ? "save.sealing" : "save.saving") }));
   try {
-    let bytes = await buildPdf({ pages, textFree }), sealed = null;
+    let bytes = await buildPdf({ pages, textFree, ai }), sealed = null;
     // seal the finished bytes; if that fails nothing is written
     if (seal) {
       try { bytes = new Uint8Array(await S.seal.sign(bytes, { lang: LANG, reason: t("seal.reason") })); }
@@ -3935,6 +4076,8 @@ async function performSave(fileName, dir, openAfter, { seal = false, pages = nul
       }
       toast(t(sealed ? "save.doneSealed" : "save.done", { file: fileName }));
     }
+    // 1.3 seal: log hook (사용 기록): sealed saves, and saves using an item marked "log every use"; never blocks the save
+    logSave({ fileName, path: savedPath, bytes, sealed });
     if (S.rec && (pages || textFree)) { // some pages, or a text-free copy (1.3): listed among the saved files, not "the" saved file of this work
       S.rec.exportLog = [...(S.rec.exportLog || []), { name: fileName, path: savedPath, at: Date.now(), ...(pages ? { part: true } : {}), ...(textFree ? { textFree: true } : {}), ...(sealed ? { sealed: true } : {}) }].slice(-20);
       persistDocs();
@@ -4005,7 +4148,10 @@ async function verifyFile(f) {
   verifyBytes(new Uint8Array(await readFile(f, "buffer")), f.name || "PDF");
 }
 async function verifyBytes(bytes, name) {
-  VER.busy = true; VER.last = { name, size: bytes.byteLength }; renderVerify();
+  VER.busy = true; VER.last = { name, size: bytes.byteLength }; VER.trustEdit = null; renderVerify();
+  // 1.3 seal: the No AI notice and the hidden text check read the same bytes, next to the seal check
+  const L = VER.last; L.scan = null;
+  inspectPdf(bytes).then((r) => { L.scan = r; }, () => { L.scan = { error: true }; }).then(() => { if (VER.last === L && !VER.busy) renderVerify(); });
   try { VER.last.v = await S.seal.verify(bytes); } catch (e) { VER.last.error = errMsg(e); }
   VER.busy = false; renderVerify();
 }
@@ -4028,23 +4174,31 @@ function renderVerify() {
   box.append(el("div", { class: "v-status " + cls, role: "status" }, icon(ic), el("div", {}, el("h3", { text: t(title) }), el("p", { text: t(body) }))));
   if (sigs.length > 1) box.append(el("span", { class: "fld-label", text: t("verify.n", { n: sigs.length }) }));
   for (const sg of sigs) box.append(sigCard(sg));
+  box.append(verifyChecks(L)); // 1.3 seal: No AI notice and hidden text check
 }
 function sigCard(sg) {
   const ok = sg.digestOk && sg.signatureOk;
   const note = !ok ? ["bad", "verify.sig.bad"] : !sg.coversWholeFile ? ["amber", "verify.sig.after"] : ["ok", "verify.sig.ok"];
+  // 1.3 seal: a seal whose fingerprint was saved as trusted reads with that name first (only when the signature itself checks out)
+  const tr = ok && !sg.mine ? trustedOf(sg.fingerprint) : null;
   const rows = el("div", { class: "v-rows" },
     el("span", { text: t("verify.signedAt") }), el("span", { text: sg.signedAt ? fmtDateTime(sg.signedAt) : t("verify.unknown") }),
     el("span", { text: t("sealer.fp") }), fpLine(sg.fingerprint));
+  if (tr) rows.prepend(el("span", { text: t("trust.certName") }), el("span", { text: [sg.name || t("verify.unknown"), sg.org].filter(Boolean).join(" · ") }));
   if (sg.reason) rows.append(el("span", { text: t("verify.reason") }), el("span", { text: sg.reason }));
   if (sg.location) rows.append(el("span", { text: t("verify.location") }), el("span", { text: sg.location }));
+  const head = tr ? el("div", { class: "v-sig-head" }, icon("shieldOk"), el("strong", { class: "trusted-name", text: t("trust.by", { name: tr.label }) }), el("span", { class: "badge ok", text: t("trust.badge") }),
+      sg.certify ? el("span", { class: "badge plain", text: t("verify.certified") }) : null)
+    : el("div", { class: "v-sig-head" }, el("strong", { text: sg.name || t("verify.unknown") }), sg.org ? el("span", { text: sg.org }) : null,
+      sg.mine ? el("span", { class: "badge", text: t("verify.mine") }) : null, sg.certify ? el("span", { class: "badge plain", text: t("verify.certified") }) : null);
   return el("div", { class: "v-sig" },
-    el("div", { class: "v-sig-head" }, el("strong", { text: sg.name || t("verify.unknown") }), sg.org ? el("span", { text: sg.org }) : null,
-      sg.mine ? el("span", { class: "badge", text: t("verify.mine") }) : null, sg.certify ? el("span", { class: "badge plain", text: t("verify.certified") }) : null),
+    head,
     rows,
     el("p", { class: "v-note " + note[0], text: t(note[1]) }),
     sg.certify ? el("p", { class: "v-note", text: t("verify.certify.note") }) : null,
     sg.mine ? el("p", { class: "v-note", text: t("verify.selfSigned.mine") }) : null,
-    sg.selfSigned ? el("p", { class: "caveat", text: t("verify.selfSigned") }) : null);
+    sg.selfSigned && !tr ? el("p", { class: "caveat", text: t("verify.selfSigned") }) : null,
+    trustBox(sg, ok, tr)); // 1.3 seal
 }
 $("#v-pick").addEventListener("click", verifyPick);
 $("#v-sealer").addEventListener("click", () => openSealer());
@@ -4052,10 +4206,12 @@ $("#file-verify").addEventListener("change", (e) => verifyFile(e.target.files[0]
 
 /* ---------- 봉인하는 사람 / Sealer: identity, backup, import, replace ---------- */
 const SEALER = { mode: "main", form: {}, p12: null, p12Name: "", msg: "", busy: false };
-async function openSealer() {
+async function openSealer(mode = "main") {
   if (!S.seal) return;
   if (SEAL.id === undefined) await loadSealIdentity();
-  Object.assign(SEALER, { mode: "main", form: {}, p12: null, p12Name: "", msg: "", busy: false });
+  if (typeof mode !== "string") mode = "main"; // also a click handler
+  Object.assign(SEALER, { mode, form: {}, p12: null, p12Name: "", msg: "", busy: false, trustEdit: null }); // 1.3 seal: "trusted", "log"
+  await loadLog(); // 1.3 seal: the log's size shows in the dialog
   renderSealer();
   if (!$("#dlg-sealer").open) $("#dlg-sealer").showModal();
 }
@@ -4079,13 +4235,13 @@ function renderSealer() {
           el("span", { text: t("sealer.created") }), el("span", { text: fmtDate(id.createdAt) }),
           el("span", { text: t("sealer.expires") }), el("span", { text: fmtDate(id.notAfter) }))),
       el("p", { class: "hint", style: "margin:0", text: t("sealer.fp.hint") }),
-      el("p", { class: "warn-box", text: t("sealer.warn") }), msg);
+      el("p", { class: "warn-box", text: t("sealer.warn") }), msg, sealerNav()); // 1.3 seal: people I trust, seal log
     foot.append(btn(t("sealer.backup"), () => sealerMode("backup")), btn(t("sealer.import"), pickP12), btn(t("sealer.replace"), () => sealerMode("create")), grow, close);
   } else if (m === "create") {
     body.append(el("p", { class: id ? "warn-box" : "hint", style: "margin:0", text: t(id ? "sealer.replace.warn" : "sealer.noneYet") }),
       el("div", { class: "form-grid" },
         field("name", t("sealer.nameLbl"), { id: "sealer-name", maxlength: "80", placeholder: t("sealer.namePh") }, sealerCreate),
-        field("org", t("sealer.orgLbl"), { maxlength: "120", placeholder: t("sealer.orgPh") }, sealerCreate)), msg);
+        field("org", t("sealer.orgLbl"), { maxlength: "120", placeholder: t("sealer.orgPh") }, sealerCreate)), msg, id ? null : sealerNav()); // 1.3 seal
     foot.append(id ? btn(t("sealer.back"), () => sealerMode("main"), "btn") : btn(t("sealer.import"), pickP12), grow, id ? null : close, btn(t("sealer.create"), sealerCreate, "btn primary"));
   } else if (m === "backup") {
     body.append(el("p", { class: "hint", style: "margin:0", text: t("sealer.pw.hint") }),
@@ -4099,6 +4255,8 @@ function renderSealer() {
       el("p", { class: "hint", style: "margin:0", text: t("sealer.import.pw") }),
       el("div", { class: "form-grid" }, field("pw", t("sealer.pw"), { type: "password", id: "sealer-pw", autocomplete: "current-password" }, sealerImport)), msg);
     foot.append(btn(t("sealer.back"), () => sealerMode("main"), "btn"), grow, btn(t("sealer.import.go"), sealerImport, "btn primary"));
+  } else if (m === "trusted" || m === "log") { // 1.3 seal
+    renderSealerList(m, body, foot, { btn, grow, close });
   }
   requestAnimationFrame(() => (m !== "main" ? $("#sealer-name, #sealer-pw1, #sealer-pw", box) : null)?.focus());
 }
@@ -4168,6 +4326,523 @@ function renderSealInfo() {
       el("button", { class: "btn outline sm", type: "button", onclick: openVerify }, icon("shield"), t("seal.verifyDots")),
       el("button", { class: "btn outline sm", type: "button", onclick: openSealer }, t("sealer.manage"))));
 }
+
+/* ================================================================
+   1.3 seal: trust, log, AI notice, hidden text (docs/design/workflows.md, block 6 and "AI reading").
+   Everything here is local: the trusted fingerprints live in prefs, the log in its own store file,
+   and both checks read the PDF with pdf.js on this device. Nothing here ever adds instructions for AI to a file.
+   ================================================================ */
+const XNS = {
+  x: "adobe:ns:meta/", rdf: "http://www.w3.org/1999/02/22-rdf-syntax-ns#", dc: "http://purl.org/dc/elements/1.1/",
+  tdm: "http://www.w3.org/ns/tdmrep/", plus: "http://ns.useplus.org/ldf/xmp/1.0/",
+  xml: "http://www.w3.org/XML/1998/namespace", xmlns: "http://www.w3.org/2000/xmlns/",
+};
+const PLUS_NO_AI = "http://ns.useplus.org/ldf/vocab/DMI-PROHIBITED-AIMLTRAINING";
+const wordIn = (lang, key) => STR[key][lang === "en" ? 1 : 0]; // document text in the document's language, whatever the UI's
+
+/* ---------- AI 사용 거부 표시 / No AI notice: the save option ---------- */
+function syncSaveAi() {
+  $("#save-ai").checked = !!S.prefs.aiNotice; $("#save-ai-line").checked = !!S.prefs.aiLine;
+  $("#save-ai-line-row").hidden = !$("#save-ai").checked;
+}
+$("#save-ai").addEventListener("change", () => { $("#save-ai-line-row").hidden = !$("#save-ai").checked; });
+function saveAiChoice() {
+  const notice = $("#save-ai").checked;
+  S.prefs.aiNotice = notice; S.prefs.aiLine = $("#save-ai-line").checked; persistPrefs();
+  return notice ? { notice: true, line: $("#save-ai-line").checked } : null;
+}
+// the document's language: Korean when its first pages have Hangul, English when they have Latin text, else the UI's
+async function docLang() {
+  try {
+    if (S.doc?.isSample && LANGS.includes(S.doc.sampleLang)) return S.doc.sampleLang; // an example knows its language
+    const pdf = S.doc?.pdf; if (!pdf) return LANG;
+    let text = "";
+    for (let i = 1; i <= Math.min(3, pdf.numPages) && text.length < 4000; i++) text += (await (await pdf.getPage(i)).getTextContent()).items.map((x) => x.str || "").join(" ");
+    return /[가-힣]/.test(text) ? "ko" : /[A-Za-z]{3}/.test(text) ? "en" : LANG;
+  } catch { return LANG; }
+}
+// XMP packet: W3C TDMRep reservation, IPTC PLUS data mining "prohibited for AI/ML training", and a rights sentence.
+// An existing packet keeps everything else it says; only these three properties are replaced.
+function aiXmp(existing, lang) {
+  let d = null, rdf = null;
+  if (existing) {
+    try {
+      d = new DOMParser().parseFromString(existing, "application/xml");
+      rdf = d.getElementsByTagName("parsererror").length ? null : d.getElementsByTagNameNS(XNS.rdf, "RDF")[0] || null;
+    } catch { rdf = null; }
+  }
+  if (!rdf) {
+    d = new DOMParser().parseFromString(`<x:xmpmeta xmlns:x="${XNS.x}"><rdf:RDF xmlns:rdf="${XNS.rdf}"/></x:xmpmeta>`, "application/xml");
+    rdf = d.getElementsByTagNameNS(XNS.rdf, "RDF")[0];
+  }
+  const ours = (ns, ln) => ns === XNS.tdm || (ns === XNS.plus && ln === "DataMining") || (ns === XNS.dc && ln === "rights");
+  for (const desc of [...rdf.getElementsByTagNameNS(XNS.rdf, "Description")]) {
+    for (const c of [...desc.children]) if (ours(c.namespaceURI, c.localName)) c.remove();
+    for (const at of [...desc.attributes]) if (ours(at.namespaceURI, at.localName)) desc.removeAttributeNode(at);
+  }
+  const desc = d.createElementNS(XNS.rdf, "rdf:Description");
+  desc.setAttributeNS(XNS.rdf, "rdf:about", "");
+  for (const p of ["dc", "tdm", "plus"]) desc.setAttributeNS(XNS.xmlns, "xmlns:" + p, XNS[p]);
+  const prop = (ns, qn, text) => { const e = d.createElementNS(ns, qn); if (text != null) e.textContent = text; desc.append(e); return e; };
+  prop(XNS.tdm, "tdm:reservation", "1");
+  prop(XNS.plus, "plus:DataMining", PLUS_NO_AI);
+  const alt = d.createElementNS(XNS.rdf, "rdf:Alt"); prop(XNS.dc, "dc:rights").append(alt);
+  const other = lang === "en" ? "ko" : "en";
+  for (const [tag, l] of [["x-default", lang], [lang, lang], [other, other]]) {
+    const li = d.createElementNS(XNS.rdf, "rdf:li"); li.setAttributeNS(XNS.xml, "xml:lang", tag); li.textContent = wordIn(l, "ai.rights"); alt.append(li);
+  }
+  rdf.append(desc);
+  const body = new XMLSerializer().serializeToString(d.documentElement);
+  return `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>\n${body}\n${(" ".repeat(99) + "\n").repeat(20)}<?xpacket end="w"?>`;
+}
+async function addAiNotice(out, { line = false } = {}) {
+  const { PDFName, PDFRawStream, PDFStream, decodePDFRawStream } = window.PDFLib;
+  const lang = await docLang();
+  let existing = null;
+  try {
+    const s = out.context.lookup(out.catalog.get(PDFName.of("Metadata")));
+    if (s instanceof PDFRawStream) existing = new TextDecoder().decode(decodePDFRawStream(s).decode());
+    else if (s instanceof PDFStream) existing = new TextDecoder().decode(s.getContents());
+  } catch { existing = null; }
+  const xmp = out.context.stream(new TextEncoder().encode(aiXmp(existing, lang)), { Type: "Metadata", Subtype: "XML" });
+  out.catalog.set(PDFName.of("Metadata"), out.context.register(xmp));
+  if (line) await drawAiLine(out, lang);
+}
+// the visible line: real text in dark grey at the foot of every page (as the page is shown, also when it's rotated)
+async function drawAiLine(out, lang) {
+  const L = window.PDFLib, ctx = out.context, text = wordIn(lang, "ai.line"), SIZE = 7, GAP = 14;
+  let fontRef, encoded, widthAt;
+  if (/[^\u0000-ÿ]/.test(text)) {
+    // Korean: the standard Korean font (Adobe-Korea1, not embedded), which every PDF reader shows with a Korean font of its own
+    const fd = ctx.register(ctx.obj({ Type: "FontDescriptor", FontName: "HYGoThic-Medium", Flags: 6, FontBBox: [-6, -145, 1003, 880], ItalicAngle: 0, Ascent: 880, Descent: -120, CapHeight: 880, StemV: 93 }));
+    const cid = ctx.register(ctx.obj({ Type: "Font", Subtype: "CIDFontType0", BaseFont: "HYGoThic-Medium",
+      CIDSystemInfo: { Registry: L.PDFString.of("Adobe"), Ordering: L.PDFString.of("Korea1"), Supplement: 2 }, FontDescriptor: fd, DW: 1000, W: [1, [333], 2, 95, 500] }));
+    fontRef = ctx.register(ctx.obj({ Type: "Font", Subtype: "Type0", BaseFont: "HYGoThic-Medium-UniKS-UTF16-H", Encoding: "UniKS-UTF16-H", DescendantFonts: [cid] }));
+    let hex = ""; for (let i = 0; i < text.length; i++) hex += text.charCodeAt(i).toString(16).padStart(4, "0");
+    encoded = L.PDFHexString.of(hex);
+    const em = [...text].reduce((n, ch) => n + (ch === " " ? 0.333 : ch.charCodeAt(0) < 0x80 ? 0.5 : 1), 0);
+    widthAt = (size) => em * size;
+  } else {
+    const f = await out.embedFont(L.StandardFonts.Helvetica);
+    fontRef = f.ref; encoded = f.encodeText(text); widthAt = (size) => f.widthOfTextAtSize(text, size);
+  }
+  // the page's own drawing goes inside q … Q, so a transform it leaves behind can't move the line
+  const q = ctx.register(ctx.contentStream([L.pushGraphicsState()])), Q = ctx.register(ctx.contentStream([L.popGraphicsState()]));
+  for (const page of out.getPages()) {
+    const box = page.getCropBox(), rot = ((Math.round((page.getRotation().angle || 0) / 90) * 90) % 360 + 360) % 360;
+    const across = rot % 180 ? box.height : box.width;
+    const size = Math.max(4, Math.min(SIZE, (SIZE * (across - 36)) / widthAt(SIZE)));
+    const w = widthAt(size), c = Math.round(Math.cos((rot * Math.PI) / 180)), s = Math.round(Math.sin((rot * Math.PI) / 180));
+    const [x, y] = rot === 90 ? [box.x + box.width - GAP, box.y + box.height / 2 - w / 2]
+      : rot === 180 ? [box.x + box.width / 2 + w / 2, box.y + box.height - GAP]
+      : rot === 270 ? [box.x + GAP, box.y + box.height / 2 + w / 2]
+      : [box.x + box.width / 2 - w / 2, box.y + GAP];
+    page.node.normalize();
+    page.node.wrapContentStreams(q, Q);
+    const key = page.node.newFontDictionary("SwNoAI", fontRef);
+    page.node.addContentStream(ctx.register(ctx.contentStream([
+      L.pushGraphicsState(), L.setFillingGrayscaleColor(0.35), L.beginText(), L.setFontAndSize(key, size),
+      L.setTextMatrix(c, s, -s, c, x, y), L.showText(encoded), L.endText(), L.popGraphicsState(),
+    ])));
+  }
+}
+// does an XMP packet carry a "no AI" reservation (TDMRep reservation 1, or a PLUS data mining prohibition)?
+function aiNoticeIn(xml) {
+  if (!xml) return false;
+  try {
+    const d = new DOMParser().parseFromString(xml, "application/xml");
+    if (!d.getElementsByTagName("parsererror").length) {
+      const hit = (ns, ln, v) => (ns === XNS.tdm && ln === "reservation" && v.trim() === "1") || (ns === XNS.plus && ln === "DataMining" && /DMI-PROHIBITED/i.test(v));
+      for (const e of d.getElementsByTagName("*")) {
+        if (hit(e.namespaceURI, e.localName, e.textContent)) return true;
+        for (const at of e.attributes) if (hit(at.namespaceURI, at.localName, at.value) || (e.namespaceURI === XNS.plus && e.localName === "DataMining" && /DMI-PROHIBITED/i.test(at.value))) return true;
+      }
+      return false;
+    }
+  } catch {}
+  return /tdm:reservation\s*(=\s*["']\s*1|>\s*1\s*<)/.test(xml) || /DMI-PROHIBITED/i.test(xml);
+}
+
+/* ---------- 숨은 글자 검사 / Hidden text check ----------
+   Walks each page's drawing operations (pdf.js getOperatorList) and keeps track of what a reader would
+   see: render mode, fill and stroke colour, opacity, size, position, and the shapes and images drawn
+   before the text. Text a person can't see but a machine reads is reported per page and kind.
+   White text on a dark box is normal: the colour is compared with what lies under the text, and
+   where that's an image (unknown colour) the colour check is skipped. Invisible text on a page that is
+   mostly one image is how searchable scans work, so it's reported as "possibly hidden". */
+const HID_MAX_PAGES = 200, HID_EXCERPT = 120, HID_CONTRAST = 24;
+const mmul = (m, n) => [m[0] * n[0] + m[1] * n[2], m[0] * n[1] + m[1] * n[3], m[2] * n[0] + m[3] * n[2], m[2] * n[1] + m[3] * n[3], m[4] * n[0] + m[5] * n[2] + n[4], m[4] * n[1] + m[5] * n[3] + n[5]];
+const mapply = (m, x, y) => [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]];
+const boxOf = (pts) => { const xs = pts.map((p) => p[0]), ys = pts.map((p) => p[1]); return [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)]; };
+function openScanDoc(bytes) {
+  return pdfjsLib.getDocument({
+    data: bytes.slice(), isEvalSupported: false, stopAtErrors: false,
+    CMapReaderFactory: PackedCMapFactory, cMapUrl: "packed:", cMapPacked: true,
+    StandardFontDataFactory: PackedFontFactory, standardFontDataUrl: "packed:", useWorkerFetch: false,
+  }).promise;
+}
+async function scanPage(pg, pageNo) {
+  const O = pdfjsLib.OPS, ol = await pg.getOperatorList({ annotationMode: pdfjsLib.AnnotationMode.DISABLE });
+  const [vx0, vy0, vx1, vy1] = pg.view, pageArea = Math.max(1, (vx1 - vx0) * (vy1 - vy0));
+  const I = [1, 0, 0, 1, 0, 0];
+  let st = { ctm: I, fill: [0, 0, 0], stroke: [0, 0, 0], fa: 1, sa: 1, size: 0, fm: 0.001, mode: 0, cs: 0, ws: 0, hs: 1, lead: 0, rise: 0 };
+  let tm = I, tlm = I, pathBox = null, bigImage = false;
+  const stack = [], covers = [], runs = [];
+  const fontMatrix = (name) => { try { const f = pg.commonObjs.has(name) ? pg.commonObjs.get(name) : pg.objs.has(name) ? pg.objs.get(name) : null; return Math.abs(f?.fontMatrix?.[0]) || 0.001; } catch { return 0.001; } };
+  const cover = (b, color, alpha) => {
+    if (!b || !b.every(Number.isFinite)) return;
+    covers.push({ b, color, alpha });
+    if (!color && (b[2] - b[0]) * (b[3] - b[1]) >= pageArea * 0.5) bigImage = true;
+  };
+  const imageBox = () => boxOf([[0, 0], [1, 0], [0, 1], [1, 1]].map(([x, y]) => mapply(st.ctm, x, y)));
+  const moveText = (x, y) => { tlm = mmul([1, 0, 0, 1, x, y], tlm); tm = tlm; };
+  const { fnArray: fns, argsArray: args } = ol;
+  for (let i = 0; i < fns.length; i++) {
+    const fn = fns[i], a = args[i];
+    switch (fn) {
+      case O.save: stack.push({ ...st }); break;
+      case O.restore: if (stack.length) st = stack.pop(); break;
+      case O.transform: st.ctm = mmul(a, st.ctm); break;
+      case O.paintFormXObjectBegin: stack.push({ ...st }); if (Array.isArray(a?.[0]) && a[0].length === 6) st.ctm = mmul(a[0], st.ctm); break;
+      case O.paintFormXObjectEnd: if (stack.length) st = stack.pop(); break;
+      case O.setFillRGBColor: st.fill = [a[0], a[1], a[2]]; break;
+      case O.setStrokeRGBColor: st.stroke = [a[0], a[1], a[2]]; break;
+      case O.setFillColorN: st.fill = null; break; // a pattern: colour unknown
+      case O.setStrokeColorN: st.stroke = null; break;
+      case O.setGState:
+        for (const [k, v] of a?.[0] || []) {
+          if (k === "ca") st.fa = +v; else if (k === "CA") st.sa = +v;
+          else if (k === "Font" && Array.isArray(v)) st.size = +v[1] || st.size;
+        }
+        break;
+      case O.setFont: st.size = +a[1] || 0; st.fm = fontMatrix(a[0]); break;
+      case O.setTextRenderingMode: st.mode = a[0] | 0; break;
+      case O.setCharSpacing: st.cs = +a[0] || 0; break;
+      case O.setWordSpacing: st.ws = +a[0] || 0; break;
+      case O.setHScale: st.hs = (+a[0] || 0) / 100; break;
+      case O.setLeading: st.lead = +a[0] || 0; break;
+      case O.setTextRise: st.rise = +a[0] || 0; break;
+      case O.beginText: tm = I; tlm = I; break;
+      case O.setTextMatrix: tm = tlm = (a.length === 6 ? a : a[0]).map(Number); break;
+      case O.moveText: moveText(+a[0], +a[1]); break;
+      case O.setLeadingMoveText: st.lead = -a[1]; moveText(+a[0], +a[1]); break;
+      case O.nextLine: moveText(0, -st.lead); break;
+      case O.showText: {
+        const fs = st.size, M0 = mmul(tm, st.ctm);
+        let text = "";
+        for (const g of a[0] || []) {
+          if (typeof g === "number") { tm = mmul([1, 0, 0, 1, (-g / 1000) * fs * st.hs, 0], tm); if (g < -250) text += " "; continue; }
+          if (!g) continue;
+          const w = (g.width || 0) * st.fm * fs;
+          tm = mmul([1, 0, 0, 1, (w + st.cs + (g.isSpace ? st.ws : 0)) * st.hs, 0], tm);
+          text += g.unicode || "";
+        }
+        if (!/[\p{L}\p{N}]/u.test(text)) break;
+        const M1 = mmul(tm, st.ctm), up = [M0[2] * fs, M0[3] * fs];
+        const p0 = mapply(M0, 0, st.rise), p1 = mapply(M1, 0, st.rise);
+        const bb = boxOf([p0, p1, [p0[0] + up[0], p0[1] + up[1]], [p1[0] + up[0], p1[1] + up[1]]]);
+        runs.push({ text, bb, ys: Math.abs(fs) * Math.hypot(M0[2], M0[3]), xs: Math.abs(fs * st.hs) * Math.hypot(M0[0], M0[1]),
+          mode: st.mode & 7, fill: st.fill, stroke: st.stroke, fa: st.fa, sa: st.sa, under: covers.length });
+        break;
+      }
+      case O.constructPath: {
+        const mm = a?.[2];
+        pathBox = mm && mm.every(Number.isFinite) ? boxOf([[mm[0], mm[2]], [mm[1], mm[2]], [mm[0], mm[3]], [mm[1], mm[3]]].map(([x, y]) => mapply(st.ctm, x, y))) : null;
+        break;
+      }
+      case O.fill: case O.eoFill: case O.fillStroke: case O.eoFillStroke: case O.closeFillStroke: case O.closeEOFillStroke:
+        cover(pathBox, st.fill, st.fa); pathBox = null; break;
+      case O.endPath: case O.stroke: case O.closeStroke: pathBox = null; break;
+      case O.shadingFill: cover([vx0, vy0, vx1, vy1], null, 1); break;
+      case O.paintImageMaskXObject: case O.paintImageMaskXObjectGroup: case O.paintSolidColorImageMask: case O.paintImageMaskXObjectRepeat:
+        cover(imageBox(), st.fill, st.fa); break;
+      case O.paintImageXObject: case O.paintInlineImageXObject: case O.paintInlineImageXObjectGroup: case O.paintImageXObjectRepeat: case O.paintJpegXObject:
+        cover(imageBox(), null, st.fa); break;
+    }
+  }
+  // what each run looks like on paper
+  const groups = new Map();
+  const near = (c, bg) => Math.max(Math.abs(c[0] - bg[0]), Math.abs(c[1] - bg[1]), Math.abs(c[2] - bg[2]));
+  for (const r of runs) {
+    let kind = null;
+    const fillPaint = [0, 2, 4, 6].includes(r.mode), strokePaint = [1, 2, 5, 6].includes(r.mode);
+    if (!fillPaint && !strokePaint) kind = bigImage ? "scan" : "invisible";
+    else if (r.bb[2] < vx0 - 0.5 || r.bb[0] > vx1 + 0.5 || r.bb[3] < vy0 - 0.5 || r.bb[1] > vy1 + 0.5) kind = "offpage";
+    else if (r.ys < 1 || r.xs < 0.4) kind = "tiny";
+    else {
+      const paints = [fillPaint && { c: r.fill, a: r.fa }, strokePaint && { c: r.stroke, a: r.sa }].filter(Boolean);
+      const cx = (r.bb[0] + r.bb[2]) / 2, cy = (r.bb[1] + r.bb[3]) / 2;
+      let bg = [255, 255, 255], known = true;
+      for (let k = r.under - 1; k >= 0; k--) {
+        const cv = covers[k];
+        if (cv.alpha < 0.5 || cx < cv.b[0] || cx > cv.b[2] || cy < cv.b[1] || cy > cv.b[3]) continue;
+        if (cv.color) bg = cv.color; else known = false;
+        break;
+      }
+      const seen = (p) => p.a >= 0.05 && (!known || !p.c || near(p.c, bg) * Math.min(1, p.a) > HID_CONTRAST);
+      if (!paints.some(seen)) {
+        const p = paints[0];
+        kind = p.a < 0.1 ? "transparent" : p.c && Math.min(...p.c) >= 230 ? "white" : "background";
+      }
+    }
+    if (!kind) continue;
+    const g = groups.get(kind) || { page: pageNo, kind, sev: kind === "scan" ? "maybe" : "hidden", text: "", chars: 0 };
+    const clean = r.text.replace(/\s+/g, " ").trim();
+    g.chars += clean.replace(/\s/g, "").length;
+    if (g.text.length <= HID_EXCERPT) g.text = (g.text ? g.text + " " : "") + clean;
+    groups.set(kind, g);
+  }
+  return [...groups.values()].map((g) => ({ ...g, text: g.text.length > HID_EXCERPT ? g.text.slice(0, HID_EXCERPT).trimEnd() + "…" : g.text }));
+}
+// bytes or an open pdf.js document -> { findings: [{ page, kind, sev, text, chars }], pages, scanned, capped, failed }
+async function scanHiddenText(src, { maxPages = HID_MAX_PAGES } = {}) {
+  const own = !src?.numPages, pdf = own ? await openScanDoc(src) : src;
+  try {
+    const scanned = Math.min(pdf.numPages, maxPages), findings = [];
+    let failed = 0;
+    for (let i = 1; i <= scanned; i++) {
+      try { const pg = await pdf.getPage(i); findings.push(...(await scanPage(pg, i))); if (own) pg.cleanup(); }
+      catch (e) { failed++; console.warn("hidden text check, page", i, e); }
+    }
+    findings.sort((a, b) => a.page - b.page || (a.sev === b.sev ? 0 : a.sev === "maybe" ? 1 : -1));
+    return { findings, pages: pdf.numPages, scanned, capped: pdf.numPages > scanned, failed };
+  } finally { if (own) pdf.destroy(); }
+}
+// Verify: the No AI notice and the hidden text check, from one read of the file
+async function inspectPdf(bytes) {
+  if (!pdfjsLib) throw new Error("no pdf engine");
+  const pdf = await openScanDoc(bytes);
+  try {
+    let notice = false;
+    try { const md = await pdf.getMetadata(); notice = aiNoticeIn(md?.metadata?.getRaw?.() || ""); } catch {}
+    return { notice, hidden: await scanHiddenText(pdf) };
+  } finally { pdf.destroy(); }
+}
+// what was found, as nodes (Verify's section and the editor's list)
+function hiddenNodes(h) {
+  if (!h.findings.length) return [el("p", { text: t("hid.none") }), h.capped ? el("p", { text: t("hid.capped", { n: h.scanned }) }) : null];
+  const sure = h.findings.some((f) => f.sev !== "maybe"), shown = h.findings.slice(0, 30);
+  return [
+    el("p", { text: t(sure ? "hid.found" : "hid.scan.note") }),
+    el("ul", { class: "hid-list" }, ...shown.map((f) => el("li", { class: f.sev === "maybe" ? "maybe" : null },
+      el("div", {}, el("b", { text: t("hid.item", { n: f.page, kind: t("hid.k." + f.kind) }) }), " ", el("span", { class: "hint", text: t("hid.chars", { n: f.chars }) })),
+      f.text ? el("q", { text: f.text }) : null))),
+    h.findings.length > shown.length ? el("p", { text: t("hid.more", { n: h.findings.length - shown.length }) }) : null,
+    sure && h.findings.some((f) => f.sev === "maybe") ? el("p", { text: t("hid.scan.note") }) : null,
+    h.capped ? el("p", { text: t("hid.capped", { n: h.scanned }) }) : null,
+  ];
+}
+function verifyChecks(L) {
+  const box = el("div", { class: "v-checks" }), sc = L.scan, status = L.v?.status;
+  if (sc?.notice) {
+    const covered = status === "intact";
+    box.append(el("div", { class: "v-check " + (covered ? "ok" : "amber"), role: "group", "aria-label": t("ai.v.title") }, icon(covered ? "shieldOk" : "shieldWarn"),
+      el("h4", { text: t("ai.v.title") }), el("p", { text: t(covered ? "ai.v.covered" : status && status !== "none" ? "ai.v.changed" : "ai.v.unsealed") }), el("p", { text: t("ai.v.what") })));
+  }
+  const h = sc?.hidden, sure = h?.findings.some((f) => f.sev !== "maybe");
+  const cls = !sc ? "" : sc.error ? "amber" : sure ? "bad" : h.findings.length ? "" : "ok";
+  box.append(el("div", { class: "v-check " + cls, role: "group", "aria-label": t("hid.title") },
+    !sc ? el("span", { class: "spinner" }) : icon(sc.error ? "info" : sure ? "shieldWarn" : h.findings.length ? "info" : "shieldOk"),
+    el("h4", { text: t("hid.title") }),
+    ...(!sc ? [el("p", { text: t("hid.checking") })] : sc.error ? [el("p", { text: t("hid.fail") })] : hiddenNodes(h)).filter(Boolean)));
+  return box;
+}
+// editor: look for hidden text in the PDF just opened, after it's on screen; say something only when there is some
+const HID = { token: 0, last: null };
+function scheduleHiddenScan(bytes, { sample = false } = {}) {
+  const token = ++HID.token; HID.last = null;
+  if (sample || !pdfjsLib || !bytes) return;
+  const name = S.doc?.name || "";
+  setTimeout(async () => {
+    if (token !== HID.token) return;
+    let r; try { r = await scanHiddenText(bytes); } catch (e) { console.warn("hidden text check", e); return; }
+    if (token !== HID.token || S.doc?.bytes !== bytes) return;
+    HID.last = { ...r, name };
+    if (r.findings.some((f) => f.sev !== "maybe")) toast(t("hid.toast"), { ms: 12000, actions: [{ label: t("hid.see"), fn: openHiddenDialog }] });
+  }, 900);
+}
+function renderHiddenDialog() {
+  const box = $("#hidden-body"); box.textContent = "";
+  if (HID.last) box.append(el("div", { class: "v-file" }, el("strong", { text: HID.last.name })), ...hiddenNodes(HID.last).filter(Boolean));
+}
+function openHiddenDialog() { renderHiddenDialog(); if (!$("#dlg-hidden").open) $("#dlg-hidden").showModal(); }
+
+/* ---------- 믿는 사람 / People I trust: { fingerprint, label, addedAt } in prefs, only ever added by the person ---------- */
+const trustedList = () => (Array.isArray(S.prefs.trusted) ? S.prefs.trusted : (S.prefs.trusted = []));
+const fpKey = (fp) => String(fp || "").replace(/[^0-9a-f]/gi, "").toUpperCase();
+const trustedOf = (fp) => (fpKey(fp) ? trustedList().find((x) => fpKey(x.fingerprint) === fpKey(fp)) || null : null);
+function trustSet(fp, label) {
+  const had = trustedOf(fp);
+  if (had) had.label = label; else trustedList().push({ fingerprint: fp, label, addedAt: Date.now() });
+  persistPrefs();
+}
+function trustRemove(fp) {
+  const list = trustedList(), i = list.findIndex((x) => fpKey(x.fingerprint) === fpKey(fp)); if (i < 0) return;
+  const [gone] = list.splice(i, 1); persistPrefs();
+  const redraw = () => { if ($("#dlg-sealer").open) renderSealer(); if ($("#dlg-verify").open) renderVerify(); };
+  redraw();
+  toast(t("trust.removed", { name: gone.label }), { actions: [{ label: t("undo"), fn: () => { if (!trustedOf(gone.fingerprint)) { trustedList().splice(Math.min(i, trustedList().length), 0, gone); persistPrefs(); } redraw(); } }] });
+}
+// in a seal's card in Verify: "Trust this seal…" asks for a name; a trusted seal says so and links to the list
+function trustBox(sg, ok, tr) {
+  if (sg.mine || !ok || !fpKey(sg.fingerprint)) return null;
+  if (tr) return el("div", { class: "trust-row" }, el("p", { class: "v-note", text: t("trust.note") }), el("span", { class: "grow" }),
+    el("button", { class: "btn sm outline", type: "button", onclick: () => openSealer("trusted") }, t("sealer.manage")));
+  if (VER.trustEdit !== sg.fingerprint) return el("div", { class: "trust-row" }, el("button", { class: "btn sm outline", type: "button",
+    onclick: () => { VER.trustEdit = sg.fingerprint; VER.trustName = sg.name || ""; renderVerify(); requestAnimationFrame(() => $("#trust-name")?.select()); } }, icon("shieldOk"), t("trust.btn")));
+  const cancel = () => { VER.trustEdit = null; renderVerify(); };
+  const save = () => {
+    const label = (VER.trustName || "").trim().slice(0, 80);
+    if (!label) { toast(t("trust.needName")); $("#trust-name")?.focus(); return; }
+    trustSet(sg.fingerprint, label); VER.trustEdit = null; renderVerify(); toast(t("trust.added", { name: label }));
+  };
+  return el("div", { class: "trust-form", role: "group", "aria-labelledby": "trust-name-lbl" },
+    el("p", { id: "trust-ask", text: t("trust.ask") }),
+    el("label", { class: "fld-label", id: "trust-name-lbl", for: "trust-name", text: t("trust.name") }),
+    el("input", { class: "text-input", id: "trust-name", maxlength: "80", autocomplete: "off", value: VER.trustName || "", "aria-describedby": "trust-ask",
+      oninput: (e) => { VER.trustName = e.target.value; },
+      onkeydown: (e) => { if (e.isComposing) return; if (e.key === "Enter") { e.preventDefault(); save(); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); cancel(); } } }),
+    el("div", { class: "btn-row" }, el("button", { class: "btn", type: "button", onclick: cancel }, t("dlg.cancel")), el("button", { class: "btn primary", type: "button", onclick: save }, t("trust.save"))));
+}
+
+/* ---------- 사용 기록 / Seal log: the last 1,000 sealed saves (and saves using an item marked "log every use") ---------- */
+const LOG = { list: null, loading: null, disk: null }, LOG_MAX = 1000;
+function loadLog() {
+  if (LOG.loading && LOG.disk === Store.disk) return LOG.loading;
+  LOG.disk = Store.disk;
+  return (LOG.loading = Store.loadLog().then((v) => (LOG.list = v), () => (LOG.list = [])));
+}
+async function sha256Hex(bytes) {
+  try { return [...new Uint8Array(await crypto.subtle.digest("SHA-256", bytes))].map((b) => b.toString(16).padStart(2, "0")).join(""); } catch { return null; }
+}
+async function logSave({ fileName, path, bytes, sealed }) {
+  try {
+    const items = [], seen = new Set(); let always = false;
+    for (const o of S.overlays) {
+      const a = S.assets.get(o.assetId); if (!a || seen.has(a.id)) continue;
+      seen.add(a.id); items.push({ name: a.name, kind: a.kind }); if (a.logUse) always = true;
+    }
+    if (!sealed && !always) return;
+    const rec = { at: Date.now(), file: fileName, path: path || null, size: bytes.byteLength, sha256: await sha256Hex(bytes), sealed: !!sealed,
+      sealer: sealed ? { name: SEAL.id?.name || sealed.name || null, org: SEAL.id?.org || null, fingerprint: sealed.fingerprint || null } : null,
+      doc: S.doc?.name || null, items };
+    await loadLog();
+    LOG.list.push(rec);
+    if (LOG.list.length > LOG_MAX) LOG.list.splice(0, LOG.list.length - LOG_MAX);
+    await Store.saveLog(LOG.list);
+    if ($("#dlg-sealer").open) renderSealer();
+  } catch (e) { console.warn("seal log", e); toast(t("log.writeFail"), true); }
+}
+// a library item's "log every use" toggle (for a company stamp: a 직인 사용 대장)
+function logUseButton(a) {
+  if (!S.seal) return null;
+  return el("button", { type: "button", title: t("log.use"), "aria-label": t("log.use.aria", { name: a.name }), "aria-pressed": String(!!a.logUse),
+    onclick: (e) => {
+      e.stopPropagation();
+      const lib = e.currentTarget.closest("#lib, #home-lib")?.id, on = !a.logUse;
+      touchAsset(a.id, { logUse: on }); syncLibrary();
+      if (lib) $(`#${lib} .tile[data-id="${a.id}"] .tile-acts button[aria-pressed]`)?.focus();
+      toast(t(on ? "log.use.on" : "log.use.off", { name: a.name }));
+    } }, icon("clock"));
+}
+const pad2 = (n) => String(n).padStart(2, "0");
+const localStamp = (ms) => {
+  const d = new Date(ms), off = -d.getTimezoneOffset(), sign = off < 0 ? "-" : "+";
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())} ${pad2(d.getHours())}:${pad2(d.getMinutes())}:${pad2(d.getSeconds())} ${sign}${pad2(Math.floor(Math.abs(off) / 60))}:${pad2(Math.abs(off) % 60)}`;
+};
+// a cell a spreadsheet won't run as a formula
+const csvCell = (v) => { let s = v == null ? "" : String(v); if (/^[=+\-@\t\r]/.test(s)) s = "'" + s; return /[",\r\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
+function logCsv(list) {
+  const head = ["log.csv.at", "log.csv.file", "log.csv.path", "log.csv.doc", "log.csv.sealed", "log.csv.sealer", "log.csv.fp", "log.csv.items", "log.csv.hash"].map((k) => t(k));
+  const rows = list.map((r) => [localStamp(r.at), r.file, r.path ? prettyDir(r.path) : "", r.doc || "", t(r.sealed ? "log.yes" : "log.no"),
+    r.sealer ? [r.sealer.name, r.sealer.org].filter(Boolean).join(" · ") : "", r.sealer?.fingerprint || "", (r.items || []).map((i) => i.name).join(", "), r.sha256 || ""]);
+  return "﻿" + [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
+}
+// into a folder the person picks, as a new file (never replacing one); a download where there's no file access
+async function exportLogCsv() {
+  await loadLog();
+  const list = LOG.list || []; if (!list.length) return;
+  const bytes = new TextEncoder().encode(logCsv(list)), d = new Date();
+  const base = cleanName(t("log.file", { date: `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}` }));
+  try {
+    if (S.fs) {
+      const picked = await browse({ kind: "folder", title: t("log.pickFolder"), start: S.prefs.lastDir.log || S.prefs.lastDir.save || "~/Documents" });
+      if (!picked?.length) return;
+      const dir = picked[0];
+      let name = null;
+      for (let n = 1; n < 100 && !name; n++) {
+        const c = n === 1 ? `${base}.csv` : `${base} (${n}).csv`;
+        try { await S.fs.stat(joinPath(dir, c)); } catch (e) { if (errCode(e) === "ENOENT") name = c; }
+      }
+      if (!name) throw new Error("EEXIST: no free file name");
+      const target = joinPath(dir, name);
+      await S.fs.writeFile(target, bytes);
+      S.prefs.lastDir.log = dir; persistPrefs();
+      toast(t("log.exported", { file: name }), { actions: canReveal() ? [{ label: t("showIn"), fn: () => revealPath(target) }] : [] });
+    } else {
+      const fileName = base + ".csv", blob = new Blob([bytes], { type: "text/csv" }), dl = await getDownloads();
+      if (dl) await dl.save({ filename: fileName, data: blob });
+      else { const a = el("a", { href: URL.createObjectURL(blob), download: fileName }); document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000); }
+      toast(t("log.exported", { file: fileName }));
+    }
+  } catch (e) { toast(t("log.exportFail", { msg: errMsg(e) }), true); }
+}
+
+/* ---------- the Sealer dialog's two extra views: people I trust, and the seal log ---------- */
+function sealerNav() {
+  const n = trustedList().length, k = LOG.list?.length || 0;
+  const row = (ic, label, count, mode) => el("button", { type: "button", onclick: async () => { if (mode === "log") await loadLog(); sealerMode(mode); } },
+    icon(ic), el("span", { class: "grow", text: label }), count ? el("span", { class: "hint", text: count }) : null, icon("next"));
+  return el("div", { class: "sealer-nav" }, row("shieldOk", t("trust.title"), n ? t("trust.n", { n }) : "", "trusted"), row("clock", t("log.title"), k ? t("log.n", { n: k }) : "", "log"));
+}
+function renderSealerList(m, body, foot, { btn, grow, close }) {
+  if (m === "trusted") {
+    const list = trustedList();
+    body.append(el("h3", { class: "fld-label", id: "sealer-view-h", style: "margin:0", tabindex: "-1", text: t("trust.title") }), el("p", { class: "hint", style: "margin:0", text: t("trust.hint") }),
+      list.length ? el("ul", { class: "s-list", "aria-label": t("trust.title") }, ...list.map(trustItem)) : el("p", { class: "caveat", text: t("trust.empty") }));
+    foot.append(btn(t("sealer.back"), () => sealerMode("main"), "btn"), grow, close);
+    requestAnimationFrame(() => { if (SEALER.trustEdit) $("#trust-rename")?.select(); else if (!$("#sealer-body").contains(document.activeElement)) $("#sealer-view-h")?.focus({ preventScroll: true }); });
+    return;
+  }
+  const list = LOG.list || [], shown = list.slice(-200).reverse();
+  body.append(el("h3", { class: "fld-label", id: "sealer-view-h", style: "margin:0", tabindex: "-1", text: t("log.title") }), el("p", { class: "hint", style: "margin:0", text: t("log.hint") }),
+    list.length ? el("ul", { class: "s-list", "aria-label": t("log.title") }, ...shown.map(logItem)) : el("p", { class: "caveat", text: t("log.empty") }),
+    list.length > shown.length ? el("p", { class: "hint", style: "margin:0", text: t("log.more", { n: list.length - shown.length }) }) : null);
+  foot.append(btn(t("sealer.back"), () => sealerMode("main"), "btn"), grow,
+    el("button", { class: "btn primary", type: "button", id: "log-export", disabled: SEALER.busy || !list.length || null, onclick: exportLogCsv }, t("log.export")));
+  requestAnimationFrame(() => { if (!$("#dlg-sealer").contains(document.activeElement) || document.activeElement === document.body) $("#sealer-view-h")?.focus({ preventScroll: true }); });
+}
+function trustItem(x) {
+  const fp = x.fingerprint;
+  if (SEALER.trustEdit === fp) {
+    const done = (ok) => {
+      const v = ($("#trust-rename")?.value || "").trim().slice(0, 80);
+      if (ok && v) trustSet(fp, v);
+      SEALER.trustEdit = null; renderSealer();
+    };
+    return el("li", {}, el("div", { class: "s-top" },
+      el("input", { class: "text-input", id: "trust-rename", maxlength: "80", value: x.label, autocomplete: "off", "aria-label": t("trust.rename.aria", { name: x.label }),
+        onkeydown: (e) => { if (e.isComposing) return; if (e.key === "Enter") { e.preventDefault(); done(true); } else if (e.key === "Escape") { e.preventDefault(); e.stopPropagation(); done(false); } } }),
+      el("button", { class: "btn sm", type: "button", onclick: () => done(false) }, t("dlg.cancel")),
+      el("button", { class: "btn sm primary", type: "button", onclick: () => done(true) }, t("trust.save"))),
+      el("code", { text: fp }));
+  }
+  return el("li", {},
+    el("div", { class: "s-top" }, el("strong", { text: x.label }),
+      el("button", { class: "btn icon sm", type: "button", title: t("lib.rename"), "aria-label": t("trust.rename.aria", { name: x.label }), onclick: () => { SEALER.trustEdit = fp; renderSealer(); } }, svgIcon(ICONS.pen)),
+      el("button", { class: "btn sm outline", type: "button", "aria-label": t("trust.remove.aria", { name: x.label }), onclick: () => trustRemove(fp) }, t("trust.remove"))),
+    el("code", { text: fp }),
+    el("span", { class: "s-sub", text: t("trust.added.on", { date: fmtDate(x.addedAt) }) }));
+}
+function logItem(r) {
+  return el("li", {},
+    el("div", { class: "s-top" }, el("strong", { text: r.file, title: r.path || r.file }), el("span", { class: "badge " + (r.sealed ? "ok" : "plain"), text: t(r.sealed ? "log.sealed" : "log.unsealed") })),
+    el("span", { class: "s-sub", text: [fmtDateTime(r.at), r.path ? prettyDir(dirname(r.path)) : null, r.sealer?.name ? t("log.by", { name: r.sealer.name }) : null].filter(Boolean).join(" · ") }),
+    r.items?.length ? el("span", { class: "s-sub", text: t("log.items", { list: r.items.map((i) => i.name).join(", ") }) }) : null,
+    r.sha256 ? el("code", { title: r.sha256, text: t("log.checksum", { hash: r.sha256.slice(0, 16) + "…" }) }) : null);
+}
+// for tests and the demo scripts
+window.__pdfeSeal = { scanHiddenText, inspectPdf, openScanDoc, aiNoticeIn, aiXmp, LOG, loadLog, exportLogCsv, logCsv, trustedList, trustedOf, HID, openHiddenDialog };
 
 /* ================================================================
    In-app file browser (installed app with file access): remembers folders per kind
@@ -6359,6 +7034,7 @@ function rerenderAll() {
   if ($("#dlg-files").open) { fbRenderChrome(); fbRenderList(); const [ttl, ok] = fbText(FB.kind); $("#fb-ok").textContent = ok; if (!FB.title) $("#fb-title").textContent = ttl; }
   if ($("#dlg-verify").open) renderVerify();
   if ($("#dlg-sealer").open) renderSealer();
+  if ($("#dlg-hidden").open) renderHiddenDialog(); // 1.3 seal
   if (S.view === "home" || !S.doc?.isSample) { if (!userAssets().some((a) => !a.hidden)) makeSampleAssets().then(syncLibrary).catch(() => {}); }
   // the example document is rebuilt in the new language (it is never kept, so nothing is lost)
   else if (S.doc.sampleLang !== LANG) loadExample(S.doc.exampleId || "freelance");
