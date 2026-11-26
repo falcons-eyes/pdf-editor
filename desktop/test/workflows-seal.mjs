@@ -209,15 +209,19 @@ async function runMode(browser, mode) {
         await page.waitForFunction(() => window.__pdfe.S.doc?.isSample && window.__pdfe.S.overlays.length > 0, null, { timeout: 15000 }).catch(() => {});
         const bytes = await fromPage(page, "async () => window.__pdfe.buildPdf({ ai: { notice: true, line: true } })");
         const r = await scan(page, bytes);
+        // 1.3 examples: aiguard is a received file whose sender hid white text in it (and idcopy carries a scan app's
+        // search layer); only what the app itself adds counts here, so findings already in the example's own PDF are left out
+        const src = await scan(page, await fromPage(page, "async () => window.__pdfe.S.doc.bytes.slice()"));
+        const key = (f) => `${f.page}|${f.kind}|${f.text}`, had = new Set(src.findings.map(key)), added = r.findings.filter((f) => !had.has(key(f)));
         total++;
-        if (!r.findings.length) clean++; else bad.push(`${id}/${l}: ${JSON.stringify(r.findings)}`);
+        if (!added.length) clean++; else bad.push(`${id}/${l}: ${JSON.stringify(added)}`);
         if (!hasNotice(await xmpOf(bytes))) noticeAll = false;
         const text = await pageText(page, bytes);
         const want = l === "ko" ? "권리자의 허락 없이 이 문서를 AI 학습이나 분석에 쓸 수 없습니다." : "This document may not be used for AI training or analysis without the rights holder's permission.";
         if (!text.every((p) => p.replace(/\s+/g, "").includes(want.replace(/\s+/g, "")))) { lineAll = false; bad.push(`${id}/${l}: line missing in ${JSON.stringify(text.map((p) => p.slice(-120)))}`); }
       }
     }
-    check(`app outputs (${total} example documents with items and the AI line): no hidden text`, clean === total, bad.slice(0, 3).join(" || "));
+    check(`app outputs (${total} example documents with items and the AI line): no hidden text added`, clean === total, bad.slice(0, 3).join(" || "));
     check("app outputs: No AI notice metadata in every one", noticeAll);
     check("app outputs: the visible line is real text on every page, in the document's language", lineAll, bad.filter((b) => b.includes("line missing")).slice(0, 2).join(" || ").slice(0, 600));
     if (!android) {
