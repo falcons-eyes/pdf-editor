@@ -2888,7 +2888,7 @@ function renderHome() {
         el("small", { class: f.cls === "warn" ? "warn" : "", text: f.sub, "data-tip": exportsN > 1 ? t("home.exports", { n: exportsN, list: d.exportLog.slice(-3).reverse().map((x) => x.name).join(", ") }) : null })),
       acts));
   }
-  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderFormsSide(); renderAboutSide(); syncSandboxUi(); // renderFormsSide: 1.3 forms syncLibrary(); syncDocTitle(); syncStatus(); renderExamples();
+  renderPermBanner(); renderStoreInfo(); renderSealInfo(); renderFormsSide(); renderAboutSide(); syncSandboxUi(); syncLibrary(); syncDocTitle(); syncStatus(); renderExamples(); // renderFormsSide: 1.3 forms
 }
 function removeRecord(id) {
   const i = S.docs.findIndex((d) => d.id === id); if (i < 0) return;
