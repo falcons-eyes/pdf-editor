@@ -3,8 +3,8 @@
 // Android mode (phone viewport, touch), driven through web/pdf-editor.html with the dev server's stand-ins.
 //
 // Checks:
-//   - the gallery: five groups, every card with its tool line, the kiosk example (consent) kept out until sign here
-//     mode lands, a real click on a card opens it; screenshots of the gallery per mode and language
+//   - the gallery: five groups, every card with its tool line, a real click on a card opens it; screenshots of the
+//     gallery per mode and language
 //   - every new example opens with its pages and items, and builds (with the No AI notice) without errors
 //   - idcopy: an ID picture page with the scan app's search text under it; saved through the save dialog, the cover
 //     box takes the second half of the number out of the file (pdf.js text), the 제출용 pattern is there as text
@@ -16,6 +16,8 @@
 //   - noai: the save dialog starts with the No AI notice, its line and the seal on; the saved file verifies with the
 //     notice covered by the seal
 //   - inspection: the photos page (two pictures), check marks and both signatures
+//   - consent: slots for the two check boxes and the signature; the hint opens sign here mode's start screen, which
+//     asks each person for name and phone; one client goes through it and gets a file of their own
 // Screenshots go to test/out/workflows-examples/.
 //
 //   node test/workflows-examples.mjs                    both modes
@@ -43,7 +45,7 @@ const argv = process.argv.slice(2);
 const flag = (n) => { const i = argv.indexOf(n); return i >= 0 ? argv[i + 1] : undefined; };
 const MODES = flag("--mode") ? [flag("--mode")] : ["desktop", "android"];
 const LANGS = ["ko", "en"];
-const NEW = ["idcopy", "receipts", "certificates", "bundle", "aiguard", "noai", "inspection"];
+const NEW = ["idcopy", "receipts", "certificates", "bundle", "aiguard", "noai", "inspection", "consent"];
 
 const results = [];
 let prefix = "";
@@ -175,9 +177,9 @@ async function runMode(browser, mode) {
       }));
       const wantGroups = await Promise.all(["sign", "pages", "protect", "many", "seal"].map((g) => T(`ex.g.${g}`)));
       check("gallery: five groups, in order", gal.groups.join("|") === wantGroups.join("|"), gal.groups.join(" | "));
-      check("gallery: 17 cards, every example the gallery lists", gal.cards.length === 17 && gal.cards.every((c) => gal.ids.includes(c.id)) && NEW.every((id) => gal.cards.some((c) => c.id === id)), `${gal.cards.length} cards`);
+      check("gallery: 18 cards, every example the gallery lists", gal.cards.length === 18 && gal.cards.every((c) => gal.ids.includes(c.id)) && NEW.every((id) => gal.cards.some((c) => c.id === id)), `${gal.cards.length} cards`);
       check("gallery: every card has its tool line and its headline", gal.cards.every((c) => c.use && c.h), JSON.stringify(gal.cards.filter((c) => !c.use).map((c) => c.id)));
-      check("gallery: the kiosk example (consent) waits for sign here mode", !gal.cards.some((c) => c.id === "consent") && !gal.ids.includes("consent"));
+      check("gallery: the sign here example is in the first group", await page.evaluate(() => !!document.querySelector('#ex-g-sign + .ex-list .ex-card[data-ex="consent"]')));
       const copy = await page.evaluate(() => [...document.querySelectorAll("#examples .ex-card")].map((b) => b.textContent));
       check("gallery: no slashes or hyphen lists in the cards' copy", copy.every((s) => !/[/]|\s-\s|^-|•/.test(s)), copy.find((s) => /[/]|\s-\s|•/.test(s)) || "");
       await page.evaluate(() => { const g = document.querySelector("#ex-g-pages"); g.scrollIntoView({ block: "start" }); });
@@ -191,8 +193,8 @@ async function runMode(browser, mode) {
       check("gallery: clicking a card opens that example", (await state(page)).id === "idcopy");
 
       // ---- each example opens with its block at work ----
-      const expect = { idcopy: [1, 2], receipts: [2, 2], certificates: [1, 2], bundle: [3, 5], aiguard: [1, 0], noai: [1, 2], inspection: [2, 9], consent: [1, 0] };
-      for (const id of [...NEW, "consent"]) {
+      const expect = { idcopy: [1, 2], receipts: [2, 2], certificates: [1, 2], bundle: [3, 5], aiguard: [1, 0], noai: [1, 2], inspection: [2, 9], consent: [1, 5] };
+      for (const id of NEW) {
         const ok = await open(page, id, lang);
         const st = await state(page);
         check(`${id}: opens as an example (${expect[id][0]} pages, ${expect[id][1]} items)`, ok && st.id === id && st.sample && st.lang === lang && st.pages === expect[id][0] && st.items.length === expect[id][1], JSON.stringify({ ok, id: st.id, pages: st.pages, items: st.items.length }));
@@ -213,11 +215,12 @@ async function runMode(browser, mode) {
         await page.waitForSelector("#dlg-save[open]");
         const dlg = await page.locator("#dlg-save").innerText();
         check("idcopy: the save dialog says the page becomes a picture because of the cover box", dlg.includes((await T("save.img.cover", { list: "1", n: 1 })).slice(0, 12)), dlg.slice(0, 200).replace(/\n/g, " "));
-        const before = await page.evaluate(() => window.__pdfeLastExport || null);
+        await page.evaluate(() => { window.__pdfeLastExport = null; });
         await page.click("#save-ok");
-        await page.waitForFunction((b) => window.__pdfeLastExport && window.__pdfeLastExport !== b, before, { timeout: 20000 }).catch(() => {});
+        const got = await page.waitForFunction(() => !!window.__pdfeLastExport, null, { timeout: 45000 }).then(() => true, () => false);
+        check("idcopy: saved through the dialog", got, got ? "" : await toastText(page));
         await sleep(600);
-        const saved = await fromPage(page, "async () => window.__pdfeLastExport");
+        const saved = got ? await fromPage(page, "async () => window.__pdfeLastExport") : Buffer.alloc(0);
         fs.mkdirSync(OUT, { recursive: true }); fs.writeFileSync(path.join(OUT, `idcopy-${mode}-${lang}.pdf`), saved);
         const text = (await pageText(page, saved)).join(" "), flat = text.replace(/\s/g, "");
         check("idcopy: the saved file has none of the covered digits (pdf.js text)", !flat.includes(back.replace(/\s/g, "")) && !/1234567|99305617/.test(flat), text.slice(0, 120));
@@ -310,9 +313,9 @@ async function runMode(browser, mode) {
         check("noai: the summary under “More options” says the notice is on", (await page.locator("#save-more-on").innerText()).includes(await T("st.save.on.ai")));
         await page.evaluate(() => { document.getElementById("save-more").open = true; });
         console.log("     screenshot", await shot(page, `noai-save-${mode}-${lang}`));
-        const before = await page.evaluate(() => window.__pdfeLastExport || null);
+        await page.evaluate(() => { window.__pdfeLastExport = null; });
         await page.click("#save-ok");
-        await page.waitForFunction((b) => window.__pdfeLastExport && window.__pdfeLastExport !== b, before, { timeout: 20000 }).catch(() => {});
+        await page.waitForFunction(() => !!window.__pdfeLastExport, null, { timeout: 45000 }).catch(() => {});
         await sleep(800);
         const saved = await fromPage(page, "async () => window.__pdfeLastExport");
         const md = await inPage(page, async (u8) => { const pdf = await window.__pdfeSeal.openScanDoc(u8); const m = await pdf.getMetadata(); pdf.destroy(); return window.__pdfeSeal.aiNoticeIn(m?.metadata?.getRaw?.() || ""); }, saved);
@@ -335,6 +338,63 @@ async function runMode(browser, mode) {
         const st = await state(page), imgs = await imagesPerPage(await docBytes(page));
         check("inspection: the photos page holds the two room photos", imgs[1] === 2, imgs.join("/"));
         check("inspection: six check marks and both signatures", st.items.filter((o) => o.kind === "mark").length === 6 && st.items.filter((o) => o.kind === "draw").length === 2);
+      }
+
+      // ---- consent: sign here mode, one client ----
+      {
+        await open(page, "consent", lang);
+        const slots = await page.evaluate(() => window.__pdfe.S.overlays.filter((o) => o.slot).map((o) => o.slot.kind).sort().join(","));
+        check("consent: slots for the two check boxes and the signature", slots === "check,check,sign", slots);
+        check("consent: a hint offers sign here mode", (await toastText(page)).includes(await T("ex.consent.toast")));
+        await page.locator(".toast button", { hasText: await T("ks.title") }).first().click();
+        await page.waitForSelector("#dlg-kiosk[open]");
+        const asked = await page.evaluate(() => [...window.__pdfeKiosk.KIOSK.setup.ask]);
+        const f = lang === "ko" ? ["이름", "연락처"] : ["name", "phone"];
+        check("consent: the start screen asks each person for name and phone", f.every((n) => asked.includes(n)), asked.join(","));
+        const dirName = `Consent_${lang}`, outDir = path.join(srv.home, "Documents", dirName); fs.mkdirSync(outDir, { recursive: true });
+        await page.evaluate((d) => { window.__shimDialogNext = [`~/Documents/${d}`]; }, dirName);
+        await page.click("#ks-dir-btn");
+        await page.waitForFunction(() => window.__pdfeKiosk.KIOSK.setup?.dir, null, { timeout: 10000 });
+        if (await page.isChecked("#ks-seal").catch(() => false)) await page.uncheck("#ks-seal");
+        console.log("     screenshot", await shot(page, `consent-start-${mode}-${lang}`));
+        await page.click("#ks-go");
+        await page.waitForSelector("#ks-begin", { timeout: 30000 });
+        await page.evaluate(() => { window.__pdfeKiosk.KIOSK.thanksMs = 900; });
+        await page.click("#ks-begin");
+        await page.waitForSelector("#ks-in-0");
+        await page.fill("#ks-in-0", lang === "ko" ? "이지은" : "Casey Park");
+        await page.fill("#ks-in-1", "010-0000-1111");
+        await page.click("#ks-next");
+        await page.waitForSelector("#ks-act");
+        let guard = 0;
+        while (guard++ < 8) {
+          await page.waitForFunction(() => document.querySelector("#ks-done") || document.querySelector(".ks-slot.cur"), null, { timeout: 60000 });
+          if (await page.locator("#ks-done").count()) break;
+          const kind = await page.evaluate(() => document.querySelector(".ks-slot.cur")?.dataset.kind);
+          if (kind === "check") { await page.click("#ks-act"); await page.waitForFunction(() => !!document.querySelector('.ks-slot.cur.done, .ks-slot.done[data-kind="check"]')); }
+          else if (kind === "sign") {
+            await page.click("#ks-act"); await page.waitForSelector("#dlg-draw.ks-pad[open]");
+            const box = await page.locator("#pad").boundingBox();
+            await page.mouse.move(box.x + box.width * 0.2, box.y + box.height * 0.6); await page.mouse.down();
+            for (const [x, y] of [[0.3, 0.3], [0.4, 0.7], [0.5, 0.35], [0.65, 0.6]]) await page.mouse.move(box.x + box.width * x, box.y + box.height * y, { steps: 6 });
+            await page.mouse.up(); await page.click("#pad-save");
+            await page.waitForFunction(() => !document.querySelector("#dlg-draw").open);
+          }
+          await page.waitForFunction(() => (document.querySelector("#ks-next") && !document.querySelector("#ks-next").disabled) || document.querySelector("#ks-done"), null, { timeout: 10000 });
+          if (!(await page.locator("#ks-done").count())) await page.locator("#ks-next").click({ timeout: 5000 }).catch(() => {});
+          await sleep(500);
+        }
+        await page.waitForSelector("#ks-done", { timeout: 60000 });
+        console.log("     screenshot", await shot(page, `consent-review-${mode}-${lang}`));
+        const txt = await page.evaluate(() => window.__pdfeForms.drawn().map((d) => d.text)); // the review is the file as it will be saved
+        await page.click("#ks-done");
+        await page.waitForFunction((l) => document.querySelector("#ks-h")?.textContent === l, await T("ks.thanks"), { timeout: 30000 });
+        const files = fs.readdirSync(outDir);
+        check("consent: one client went through and got a file of their own", files.length === 1 && /\.pdf$/.test(files[0]), files.join(", "));
+        check("consent: the file has the name and phone typed", txt.includes(lang === "ko" ? "이지은" : "Casey Park") && txt.includes("010-0000-1111"), JSON.stringify(txt));
+        await page.evaluate(() => window.__pdfeKiosk.exit());
+        await sleep(500);
+        check("consent: leaving sign here mode is back in the editor", await page.evaluate(() => !window.__pdfeKiosk.KIOSK.on && !document.querySelector("#kiosk")));
       }
       await clearToasts(page);
     }
