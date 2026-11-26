@@ -1,7 +1,7 @@
 # Sealworks for Android
 
 Capacitor 8 shell (Android only) for `web/pdf-editor.html`, the same offline page the desktop app ships.
-Package `com.falconoon.sealworks`, version 1.2.0 (versionCode 2), minSdk 26, target/compile SDK 36.
+Package `com.falconoon.sealworks`, version 1.3.0 (versionCode 3), minSdk 26, target/compile SDK 36.
 Design contract: `docs/design/android.md` (plus `seal-and-language.md`, `appstore-build.md`).
 
 ```sh
@@ -42,7 +42,7 @@ Everything in `docs/design/android.md`, with these values and additions:
 
 | member | Android |
 | --- | --- |
-| `standalone`, `platform`, `mobile`, `sandboxed`, `version` | `true`, `"android"`, `true`, `true`, `"1.2.0"` |
+| `standalone`, `platform`, `mobile`, `sandboxed`, `version` | `true`, `"android"`, `true`, `true`, `"1.3.0"` |
 | `links` | privacy `https://sealworks.falconoon.com/privacy/`, support `…/support/`, repo GitHub |
 | `fs.*` | store paths and document paths only (below); everything else rejects `EPERM`, `exists()` → `false`; `<store>/seal/…` → `EPERM`. Bytes cross the bridge as base64 in 3 MB chunks; a write reaches its target only when complete |
 | `dialog.open({kind})` | `ACTION_OPEN_DOCUMENT` (`pdf`, `image` = `image/*`, `cert` = PKCS#12 types), `kind: "folder"` = `ACTION_OPEN_DOCUMENT_TREE`; read+write persistable permission taken when the provider allows; `start` (a `/android/…` path) becomes `EXTRA_INITIAL_URI` |

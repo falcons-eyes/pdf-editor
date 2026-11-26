@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url";
 
 const require = createRequire(import.meta.url);
 const MOBILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+const APP_VERSION = JSON.parse(fs.readFileSync(path.join(MOBILE, "package.json"), "utf8")).version;
 const DESKTOP = path.resolve(MOBILE, "..", "desktop");
 const OUT = path.join(MOBILE, "test", "out");
 const SDK = process.env.ANDROID_HOME || process.env.ANDROID_SDK_ROOT || path.join(os.homedir(), "Library", "Android", "sdk");
@@ -172,7 +173,7 @@ async function main() {
     try { await fetch("https://example.com/"); remote = "fetched!"; } catch (e) { remote = "blocked"; }
     return { platform: d.platform, mobile: d.mobile, sandboxed: d.sandboxed, standalone: d.standalone, version: d.version, csp, remote, seal: !!d.seal, onBack: typeof d.onBack, links: d.links, ua: navigator.userAgent };
   });
-  check("desktop shim: android, mobile, sandboxed, standalone, version 1.2.0, seal, onBack", env.platform === "android" && env.mobile && env.sandboxed && env.standalone && env.version === "1.2.0" && env.seal && env.onBack === "function", JSON.stringify({ ...env, csp: undefined, ua: undefined }));
+  check(`desktop shim: android, mobile, sandboxed, standalone, version ${APP_VERSION}, seal, onBack`, env.platform === "android" && env.mobile && env.sandboxed && env.standalone && env.version === APP_VERSION && env.seal && env.onBack === "function", JSON.stringify({ ...env, csp: undefined, ua: undefined }));
   check("CSP meta present and remote fetch blocked", /default-src 'self'/.test(env.csp) && /connect-src 'self' data: blob:/.test(env.csp) && env.remote === "blocked", env.remote);
   const offsite = requests.filter((u) => !/^(https:\/\/localhost\/|data:|blob:)/.test(u));
   check("offline: every request stayed on https://localhost", requests.length > 5 && offsite.length === 0, `${requests.length} requests${offsite.length ? `; offsite: ${offsite.join(", ")}` : ""}`);

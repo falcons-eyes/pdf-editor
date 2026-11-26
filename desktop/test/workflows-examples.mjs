@@ -358,14 +358,24 @@ async function runMode(browser, mode) {
         if (await page.isChecked("#ks-seal").catch(() => false)) await page.uncheck("#ks-seal");
         console.log("     screenshot", await shot(page, `consent-start-${mode}-${lang}`));
         await page.click("#ks-go");
-        await page.waitForSelector("#ks-begin", { timeout: 30000 });
+        await page.waitForSelector("#ks-begin", { timeout: 30000 }).catch(async (e) => {
+          // say why the start screen didn't move on (a message on it, or kiosk mode stuck starting)
+          const why = await page.evaluate(() => ({ msg: document.querySelector("#ks-msg")?.textContent || "", on: window.__pdfeKiosk.KIOSK.on, dlg: !!document.querySelector("#dlg-kiosk[open]"), go: document.querySelector("#ks-go")?.disabled, step: window.__pdfeKiosk.KIOSK.step }));
+          console.log("     consent start stuck:", JSON.stringify(why), await shot(page, `consent-stuck-${mode}-${lang}`));
+          throw e;
+        });
         await page.evaluate(() => { window.__pdfeKiosk.KIOSK.thanksMs = 900; });
         await page.click("#ks-begin");
         await page.waitForSelector("#ks-in-0");
         await page.fill("#ks-in-0", lang === "ko" ? "이지은" : "Casey Park");
         await page.fill("#ks-in-1", "010-0000-1111");
         await page.click("#ks-next");
-        await page.waitForSelector("#ks-act");
+        await page.waitForSelector("#ks-act").catch(async (e) => {
+          const why = await page.evaluate(() => { const K = window.__pdfeKiosk.KIOSK; return { step: K.step, err: K.err, cur: !!K.cur, idx: K.cur?.idx, fields: K.cur?.fields, h: document.querySelector("#ks-h")?.textContent, main: document.querySelector("#ks-main")?.textContent?.slice(0, 160) }; });
+          console.log("     consent first slot stuck:", JSON.stringify(why), await shot(page, `consent-stuck-slot-${mode}-${lang}`));
+          console.log("     page errors so far:", errors.slice(-3).join(" | "));
+          throw e;
+        });
         let guard = 0;
         while (guard++ < 8) {
           await page.waitForFunction(() => document.querySelector("#ks-done") || document.querySelector(".ks-slot.cur"), null, { timeout: 60000 });

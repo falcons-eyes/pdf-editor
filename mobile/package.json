@@ -1,11 +1,13 @@
 {
   "name": "sealworks-mobile",
   "productName": "Sealworks",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Sealworks for Android: the Sealworks page in a Capacitor shell",
   "private": true,
   "license": "SEE LICENSE IN ../LICENSE",
-  "author": { "name": "Falcon Eyes Inc." },
+  "author": {
+    "name": "Falcon Eyes Inc."
+  },
   "type": "module",
   "scripts": {
     "build:www": "node scripts/build-www.mjs",

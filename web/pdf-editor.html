@@ -9499,7 +9499,13 @@ function ksScreen({ main = [], bar = null, progress = "", restart = false, focus
   b.replaceChildren(...(bar || []).filter(Boolean)); b.hidden = !bar;
   $("#ks-progress").textContent = progress;
   $("#ks-restart").hidden = !restart;
-  if (focus) requestAnimationFrame(() => $(focus)?.focus({ preventScroll: true }));
+  // focus lands a frame later; if the person has already tapped into a field of the new screen, it stays there
+  // (on a slow tablet a quick tap on the second field would otherwise be pulled back to the first)
+  if (focus) requestAnimationFrame(() => {
+    const a = document.activeElement;
+    if (a?.isConnected && a.matches?.("input, textarea") && $("#kiosk")?.contains(a)) return;
+    $(focus)?.focus({ preventScroll: true });
+  });
 }
 const ksProgress = () => (KIOSK.cur ? t("ks.progress", { n: KIOSK.steps.length, k: KIOSK.cur.idx + 1 }) : "");
 function ksWaitScreen(key = "ks.wait") {
