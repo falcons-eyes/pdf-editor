@@ -1,0 +1,59 @@
+{
+  "invisible.pdf": [
+    {
+      "page": 1,
+      "kind": "invisible",
+      "sev": "hidden"
+    }
+  ],
+  "white.pdf": [
+    {
+      "page": 1,
+      "kind": "white",
+      "sev": "hidden"
+    }
+  ],
+  "near-white-page2.pdf": [
+    {
+      "page": 2,
+      "kind": "white",
+      "sev": "hidden"
+    }
+  ],
+  "background.pdf": [
+    {
+      "page": 1,
+      "kind": "background",
+      "sev": "hidden"
+    }
+  ],
+  "tiny.pdf": [
+    {
+      "page": 1,
+      "kind": "tiny",
+      "sev": "hidden"
+    }
+  ],
+  "offpage.pdf": [
+    {
+      "page": 1,
+      "kind": "offpage",
+      "sev": "hidden"
+    }
+  ],
+  "transparent.pdf": [
+    {
+      "page": 1,
+      "kind": "transparent",
+      "sev": "hidden"
+    }
+  ],
+  "scan-text-layer.pdf": [
+    {
+      "page": 1,
+      "kind": "scan",
+      "sev": "maybe"
+    }
+  ],
+  "clean.pdf": []
+}
