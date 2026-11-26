@@ -7,7 +7,7 @@
 #                                     #   feature 1024x500; the page in its Android mode, framed with captions; play-shots.cjs)
 #   docs/tools/render.sh uses         # only the website's situation cards -> site/assets/uses/<id>-<l>.webp (uses-shots.cjs)
 #   docs/tools/render.sh workflows [id …]   # only the 1.3 example clips -> docs/media/workflows/<id>-<l>.mp4 + .webp poster
-#                                     #   (workflows-demo.cjs; ids: idcopy receipts certificates bundle aiguard noai inspection)
+#                                     #   (workflows-demo.cjs; ids: idcopy receipts certificates bundle aiguard noai inspection consent)
 #   LANGS=en docs/tools/render.sh     # one language
 # Output per language (<l> = en | ko): docs/images/ demo-<l>.gif, seal-<l>.gif, hero-<l>.png, steps-<l>.png, features-<l>.png,
 # before-after-<l>.png, social-<l>.png, seal-states-<l>.png; and for the website, site/assets/ app-<l>-{1600,960}.webp

@@ -1,7 +1,7 @@
 // Records a short clip (6 to 15 s) of each 1.3 example of the gallery (docs/design/workflows.md rule 6,
 // docs/samples/README.md), from the real UI: the Library home with the grouped gallery -> a click on the example's card
 // -> the block at work (cover and pattern, receipts on one page, make many, page numbers, the hidden text notice,
-// the No AI notice in Verify, photos as a page and the seal).
+// the No AI notice in Verify, photos as a page and the seal, and sign here mode: the start screen, one client, thanks).
 //   node workflows-demo.cjs en|ko [id …]        (through render.sh workflows, which runs the dev server)
 // Writes docs/media/workflows/<id>-<lang>.mp4 (1200x750 H.264, 25 fps) and <id>-<lang>.webp (poster).
 // Never writes to site/: the website doesn't announce 1.3 before it ships.
@@ -11,7 +11,7 @@ const { ROOT, LANG, fakeHome, wipeFakeHome, launch, newPage, openApp, makeSealer
 const { recorder, toMp4 } = require("./rec.cjs");
 
 const OUT = path.join(ROOT, "docs", "media", "workflows");
-const IDS = ["idcopy", "receipts", "certificates", "bundle", "aiguard", "noai", "inspection"];
+const IDS = ["idcopy", "receipts", "certificates", "bundle", "aiguard", "noai", "inspection", "consent"];
 const VW = 1280, VH = 800;
 const ko = LANG === "ko";
 const CAP = {
@@ -27,6 +27,8 @@ const CAP = {
     : ["Open an application you got, and hidden text is found", "White text nobody can see was giving AI orders"],
   noai: ko ? ["제안서를 저장할 때", "AI 사용 거부 표시를 넣고 봉인해요", "봉인 확인에서 표시가 그대로인지 보여요"]
     : ["When you save your proposal", "add the No AI notice and seal it", "Verify seal shows the notice is intact"],
+  consent: ko ? ["손님마다 받는 동의서를 열고", "서명 받기 모드를 시작하면", "손님이 이름을 적고 체크한 뒤 서명해요", "한 사람씩 파일로 저장되고 다음 손님을 기다려요"]
+    : ["Open the consent form you collect from each client", "start sign here mode", "the client types, ticks and signs", "each is saved as a file, and it waits for the next"],
   inspection: ko ? ["입주하는 날 체크하고 두 사람이 서명해요", "방 사진은 한 쪽에 붙이고", "봉인해서 저장하면 나중에 바뀐 곳이 드러나요"]
     : ["Tick the checklist on move-in day, both of you sign", "the room photos go on a page", "and a seal shows any later change"],
 };
@@ -155,6 +157,50 @@ async function record(browser, id) {
     await P(() => document.querySelector("#dlg-verify .v-checks")?.scrollIntoView({ block: "center", behavior: "smooth" })); await sleep(500);
     posterWall = Date.now() / 1000;
     await glide(VW * 0.86, VH * 0.84, 500); await sleep(2200);
+  } else if (id === "consent") {
+    await sleep(500);
+    await caption(c[1], { top: true });
+    const b = await toastBtn(await T("ks.title"));
+    if (b) await click(b.x, b.y, 600); else await P(() => window.__pdfeKiosk.open());
+    await page.waitForSelector("#dlg-kiosk[open]"); await sleep(700);
+    fs.mkdirSync(path.join(fakeHome(), "Documents", ko ? "동의서" : "Consents"), { recursive: true });
+    await P((d) => { window.__shimDialogNext = [d]; }, ko ? "~/Documents/동의서" : "~/Documents/Consents");
+    await clickSel("#ks-dir-btn", 500);
+    await page.waitForFunction(() => window.__pdfeKiosk.KIOSK.setup?.dir, null, { timeout: 10000 }); await sleep(400);
+    await P(() => document.querySelector("#ks-go").scrollIntoView({ block: "center" }));
+    await clickSel("#ks-go", 500);
+    await page.waitForSelector("#ks-begin", { timeout: 15000 });
+    await P(() => { const l = document.getElementById("rec-lights"); if (l) l.style.display = "none"; }); // full screen: no window buttons over the progress line
+    await sleep(600);
+    await caption(c[2]);
+    await clickSel("#ks-begin", 500);
+    await page.waitForSelector("#ks-in-0"); await sleep(300);
+    await clickSel("#ks-in-0", 350); await page.keyboard.type(ko ? "이지은" : "Casey Park", { delay: 45 });
+    await clickSel("#ks-in-1", 350); await page.keyboard.type("010-0000-1111", { delay: 25 });
+    await clickSel("#ks-next", 450);
+    for (let guard = 0; guard < 6; guard++) {
+      await page.waitForFunction(() => document.querySelector("#ks-done") || document.querySelector(".ks-slot.cur"), null, { timeout: 30000 });
+      if (await page.locator("#ks-done").count()) break;
+      const kind = await P(() => document.querySelector(".ks-slot.cur")?.dataset.kind);
+      if (kind === "sign") {
+        await clickSel("#ks-act", 450);
+        await page.waitForSelector("#dlg-draw.ks-pad[open]"); await sleep(200);
+        const pad = await page.locator("#pad").boundingBox(); // a quick signature: one looping stroke
+        await page.mouse.move(pad.x + pad.width * 0.22, pad.y + pad.height * 0.62); await page.mouse.down();
+        for (let i = 1; i <= 28; i++) { const t = i / 28; await page.mouse.move(pad.x + pad.width * (0.22 + 0.56 * t), pad.y + pad.height * (0.55 - 0.2 * Math.sin(t * Math.PI * 5) + 0.05 * t)); }
+        await page.mouse.up(); await sleep(150);
+        await clickSel("#pad-save", 450);
+        await page.waitForFunction(() => !document.querySelector("#dlg-draw").open);
+      } else await clickSel("#ks-act", 450);
+      await page.waitForFunction(() => (document.querySelector("#ks-next") && !document.querySelector("#ks-next").disabled) || document.querySelector("#ks-done"), null, { timeout: 10000 });
+      if (!(await page.locator("#ks-done").count())) await clickSel("#ks-next", 400);
+      await sleep(300);
+    }
+    await page.waitForSelector("#ks-done", { timeout: 30000 }); await sleep(500); posterWall = Date.now() / 1000; await sleep(300);
+    await caption(c[3], { top: true });
+    await clickSel("#ks-done", 500);
+    await page.waitForSelector("#ks-h", { timeout: 30000 }); await sleep(500);
+    await glide(VW * 0.8, VH * 0.8, 400); await sleep(1800);
   } else if (id === "inspection") {
     await zoomTo(0.9, 0, 0.55, 600); await sleep(1500);
     await caption(c[1]);
