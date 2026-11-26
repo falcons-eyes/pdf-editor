@@ -160,6 +160,7 @@ async function saveThroughDialog(page, { seal = false, ai = false, line = false,
   await page.waitForSelector("#dlg-save[open]");
   await page.fill("#save-name", name);
   if ((await page.isChecked("#save-seal")) !== seal) await page.click("#save-seal");
+  await page.evaluate(() => { document.getElementById("save-more").open = true; }); // the notice is under “More options” (1.3 save dialog)
   if ((await page.isChecked("#save-ai")) !== ai) await page.click("#save-ai");
   if (ai && (await page.isChecked("#save-ai-line")) !== line) await page.click("#save-ai-line");
   return page;
