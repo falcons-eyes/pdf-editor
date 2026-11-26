@@ -70,28 +70,25 @@
         </div>
         <div class="hero-meta">
           <div class="store-strip" aria-labelledby="stores-soon">
-            <p id="stores-soon" class="store-strip-title">앱 스토어에도 곧 나와요</p>
+            <p id="stores-soon" class="store-strip-title">앱 스토어에도 곧 출시 예정이에요</p>
             <ul class="badge-list">
               <li class="badge-item" data-store="mac">
-                <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/kr/app/idXXXXXXXXXX"> and remove the status label. -->
+                <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/kr/app/idXXXXXXXXXX">. -->
                 <picture class="store-badge">
                   <source srcset="/assets/badges/mas-white-ko-kr.svg" media="(prefers-color-scheme: dark)">
-                  <img src="/assets/badges/mas-black-ko-kr.svg" width="177" height="44" alt="Mac App Store에서 다운로드 (심사 중)">
+                  <img src="/assets/badges/mas-black-ko-kr.svg" width="177" height="44" alt="Mac App Store에서 다운로드">
                 </picture>
-                <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">심사 중</span></span>
               </li>
               <li class="badge-item" data-store="play">
-                <!-- Google Play link at launch: replace this text chip with the official Google Play badge inside <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks"> and remove the status label. -->
-                <span class="store-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg><span lang="en">Google Play</span></span>
-                <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">심사 중</span></span>
+                <!-- Google Play link at launch: wrap the badge below in <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks">. -->
+                <span class="store-badge"><img src="/assets/badges/google-play-ko.png" width="148" height="44" alt="Google Play에서 다운로드"></span>
               </li>
               <li class="badge-item" data-store="ms">
-                <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX?hl=ko-kr"> and remove the status label. -->
+                <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX?hl=ko-kr">. -->
                 <picture class="store-badge">
                   <source srcset="/assets/badges/ms-light-ko.svg" media="(prefers-color-scheme: dark)">
-                  <img src="/assets/badges/ms-dark-ko.svg" width="161" height="44" alt="Microsoft Store에서 다운로드 (출시 준비 중)">
+                  <img src="/assets/badges/ms-dark-ko.svg" width="161" height="44" alt="Microsoft Store에서 다운로드">
                 </picture>
-                <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">출시 준비 중</span></span>
               </li>
             </ul>
           </div>
@@ -138,32 +135,32 @@
     <h2 id="uses-title" class="section-title">이럴 때 써요</h2>
     <ul class="uses">
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M3.5 11 12 4l8.5 7"/><path d="M5.5 9.5V20h13V9.5"/><path d="M10 20v-5h4v5"/></svg></span>
+        <img class="use-shot" src="/assets/uses/lease-ko.webp" width="960" height="600" alt="월세 계약서 임대인과 임차인 칸에 서명과 도장을 넣고 왼쪽 가장자리에 간인을 찍은 모습" loading="lazy" decoding="async">
         <h3>집주인이 월세 계약서를 메일로 보냈을 때</h3>
         <p>출력하지 않고 서명과 도장을 넣어서 바로 돌려보내요.</p>
       </li>
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 17c1.2-1.6 2.2-2.4 3-2.4 1.3 0 .7 2.4 2 2.4.7 0 1.4-.6 2.2-1.6"/><path d="M8 8h8"/><path d="M8 11.5h5"/></svg></span>
+        <img class="use-shot" src="/assets/uses/parttime-ko.webp" width="960" height="600" alt="근로계약서 근로자 칸에 직접 그린 서명과 사업주 칸의 도장" loading="lazy" decoding="async">
         <h3>알바생 근로계약서를 받아야 할 때</h3>
         <p>매장 태블릿에서 바로 서명받고 사장님 도장까지 찍어요.</p>
       </li>
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M6 3h9l4 4v14H6z"/><path d="M15 3v4h4"/><circle cx="12.5" cy="14.5" r="3"/></svg></span>
+        <img class="use-shot" src="/assets/uses/quote-ko.webp" width="960" height="600" alt="견적서 공급자 표의 대표자 칸 위에 찍은 회사 직인" loading="lazy" decoding="async">
         <h3>견적서를 오늘 안에 보내야 할 때</h3>
         <p>회사 직인 사진의 흰 배경을 지우고 깔끔하게 찍어요.</p>
       </li>
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 6V4.5a4 4 0 0 1 8 0V6"/><rect x="4.5" y="6" width="15" height="15" rx="3"/><path d="M4.5 12h15"/><path d="M10 12v2.5h4V12"/></svg></span>
+        <img class="use-shot" src="/assets/uses/school-ko.webp" width="960" height="600" alt="현장체험학습 신청서의 동의 칸 체크 표시와 보호자 서명" loading="lazy" decoding="async">
         <h3>아이 현장체험학습 신청서를 낼 때</h3>
         <p>사진 찍어 보내지 말고 보호자 서명을 깔끔하게 넣어요.</p>
       </li>
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M8 7V4h12v13h-3"/><path d="M4 7h13v14H4z"/><circle cx="12.5" cy="15.5" r="2.2"/><path d="M7 11h6"/></svg></span>
+        <img class="use-shot" src="/assets/uses/expense-ko.webp" width="960" height="600" alt="연차 휴가 신청서 신청인 칸에 찍은 결재 도장" loading="lazy" decoding="async">
         <h3>지출결의서에 결재 도장을 찍을 때</h3>
         <p>여러 쪽의 같은 자리에 도장을 한 번에 찍어요.</p>
       </li>
       <li>
-        <span class="use-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><path d="M12 3 4.5 6v5.5c0 4.6 3.1 8.3 7.5 9.5 4.4-1.2 7.5-4.9 7.5-9.5V6L12 3Z"/><path d="m8.5 12 2.5 2.5 4.5-5"/></svg></span>
+        <img class="use-shot" src="/assets/uses/freelance-ko.webp" width="960" height="600" alt="용역 계약서 을 칸에 넣은 서명과 도장" loading="lazy" decoding="async">
         <h3>용역 계약서를 주고받을 때</h3>
         <p>서명하고 봉인해 두면 나중에 고쳐진 곳이 있는지 바로 알 수 있어요.</p>
       </li>
@@ -198,7 +195,6 @@
       <div class="panel dl-now">
         <div class="panel-head">
           <h3>지금 바로 받기</h3>
-          <span class="status status-live"><span class="dot" aria-hidden="true"></span><span class="status-label">지금 받을 수 있음</span></span>
         </div>
         <p>Mac과 Windows용 파일은 GitHub에서 받아요. macOS 13 이상, 64비트 Windows 10과 11에서 동작해요.</p>
         <ul class="files">
@@ -213,29 +209,26 @@
       </div>
       <div class="panel stores">
         <h3>앱 스토어</h3>
-        <p>스토어 버전은 다른 앱처럼 설치하고 업데이트해요. 출시되는 대로 여기에 링크를 걸어 둘게요.</p>
+        <p>곧 출시 예정이에요. 스토어 버전은 다른 앱처럼 설치하고 업데이트해요.</p>
         <ul class="store-list">
           <li class="badge-item" data-store="mac">
-            <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/kr/app/idXXXXXXXXXX"> and change the status to "출시됨". -->
+            <!-- Mac App Store link at launch: wrap the <picture> below in <a href="https://apps.apple.com/kr/app/idXXXXXXXXXX">. -->
             <picture class="store-badge">
               <source srcset="/assets/badges/mas-white-ko-kr.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/mas-black-ko-kr.svg" width="177" height="44" alt="Mac App Store에서 다운로드 (심사 중)" loading="lazy">
+              <img src="/assets/badges/mas-black-ko-kr.svg" width="177" height="44" alt="Mac App Store에서 다운로드" loading="lazy">
             </picture>
-            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">심사 중</span></span>
           </li>
           <li class="badge-item" data-store="play">
-            <!-- Google Play link at launch: replace this text chip with the official Google Play badge inside <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks"> and change the status to "출시됨". -->
-            <span class="store-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false"><rect x="6" y="2.5" width="12" height="19" rx="2.5"/><path d="M10.5 18.5h3"/></svg><span lang="en">Google Play</span></span>
-            <span class="status status-review"><span class="dot" aria-hidden="true"></span><span class="status-label">심사 중</span></span>
+            <!-- Google Play link at launch: wrap the badge below in <a href="https://play.google.com/store/apps/details?id=com.falconoon.sealworks">. -->
+            <span class="store-badge"><img src="/assets/badges/google-play-ko.png" width="148" height="44" alt="Google Play에서 다운로드" loading="lazy"></span>
             <p class="store-req">Android 8 이상의 휴대폰과 태블릿</p>
           </li>
           <li class="badge-item" data-store="ms">
-            <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX?hl=ko-kr"> and change the status to "출시됨". -->
+            <!-- Microsoft Store link at launch: wrap the <picture> below in <a href="https://apps.microsoft.com/detail/XXXXXXXXXXXX?hl=ko-kr">. -->
             <picture class="store-badge">
               <source srcset="/assets/badges/ms-light-ko.svg" media="(prefers-color-scheme: dark)">
-              <img src="/assets/badges/ms-dark-ko.svg" width="161" height="44" alt="Microsoft Store에서 다운로드 (출시 준비 중)" loading="lazy">
+              <img src="/assets/badges/ms-dark-ko.svg" width="161" height="44" alt="Microsoft Store에서 다운로드" loading="lazy">
             </picture>
-            <span class="status status-prep"><span class="dot" aria-hidden="true"></span><span class="status-label">출시 준비 중</span></span>
           </li>
         </ul>
       </div>

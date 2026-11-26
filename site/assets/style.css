@@ -155,40 +155,12 @@ main:focus { outline: none; }
 .text-link:hover { text-decoration: underline; text-decoration-thickness: 1px; }
 .text-link:hover svg { transform: translateX(3px); }
 
-/* ---------- status chips ---------- */
-.status {
-  display: inline-flex; align-items: center; gap: 8px;
-  font-size: .86rem; line-height: 1.2; font-weight: 600; color: var(--text); white-space: nowrap;
-}
-.status .dot { position: relative; width: 10px; height: 10px; border-radius: 50%; flex: none; }
-.status-live .dot { background: var(--ok); }
-.status-review .dot { background: var(--ink); }
-.status-prep .dot { border: 2px solid var(--ink); background: linear-gradient(90deg, var(--ink) 50%, transparent 50%); }
-.status-planned .dot { border: 2px dashed var(--muted); }
-.status-live .status-label { color: var(--ok); }
-.status-review .status-label, .status-prep .status-label { color: var(--ink); }
-.status-planned .status-label { color: var(--muted); }
-@media (prefers-reduced-motion: no-preference) {
-  .status-review .dot::after {
-    content: ""; position: absolute; inset: -4px; border-radius: 50%; border: 2px solid var(--ink);
-    opacity: 0; animation: pulse 2.6s var(--ease-out) infinite;
-  }
-}
-@keyframes pulse { 0% { transform: scale(.6); opacity: .7; } 70%, 100% { transform: scale(1.6); opacity: 0; } }
-
 /* Official store badges: shown unmodified, at least 40px tall, with clear space of a quarter of their height. */
 .badge-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
 .badge-item { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; }
 .store-badge { display: block; flex: none; }
-.hero .store-badge, .hero .store-chip { min-width: 177px; }
+.hero .store-badge { min-width: 177px; }
 .store-badge img { display: block; height: 44px; width: auto; }
-/* Plain text chip for a store without a published listing yet. Not an official badge. */
-.store-chip {
-  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 16px 0 12px; flex: none;
-  border: 1px solid var(--line-strong); border-radius: 9px; background: var(--surface);
-  color: var(--text); font-weight: 650; font-size: 1rem; letter-spacing: -0.01em; white-space: nowrap;
-}
-.store-chip svg { width: 20px; height: 20px; color: var(--muted); }
 
 /* ---------- header ---------- */
 .site-header {
@@ -299,21 +271,22 @@ html:lang(ko) .sig-stroke { bottom: -.1em; }
 /* use cases: six situation cards */
 .uses { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
 .uses li {
-  display: grid; grid-template-columns: 44px 1fr; gap: 4px 16px; align-content: start;
-  padding: 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 6px; overflow: hidden;
+  padding: 0 0 20px; border-radius: var(--radius); background: var(--surface); border: 1px solid var(--line);
 }
-.use-icon {
-  grid-row: span 2; display: grid; place-items: center; width: 44px; height: 44px; border-radius: 12px;
-  background: var(--ink-soft); color: var(--ink);
+/* a crop of the example document as it looks in the app; the page itself stays white in dark mode */
+.use-shot {
+  display: block; width: 100%; height: auto; aspect-ratio: 16 / 10; object-fit: cover;
+  background: #fff; border-bottom: 1px solid var(--line); margin-bottom: 12px;
 }
-.use-icon svg { width: 24px; height: 24px; }
+.uses h3, .uses p { padding-inline: 20px; }
 .uses h3 { font-size: 1.08rem; line-height: 1.4; }
 .uses p { margin: 0; color: var(--muted); font-size: .98rem; line-height: 1.55; }
 @media (min-width: 640px) { .uses { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; } }
 @media (min-width: 1024px) {
   .uses { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-  .uses li { grid-template-columns: 1fr; padding: 24px; gap: 8px; }
-  .use-icon { grid-row: auto; margin-bottom: 8px; }
+  .uses li { padding-bottom: 24px; }
+  .uses h3, .uses p { padding-inline: 24px; }
 }
 
 /* seal band */
