@@ -17,7 +17,7 @@ import { fileURLToPath } from "node:url";
 const require = createRequire(import.meta.url);
 const MOBILE = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const DESKTOP = path.resolve(MOBILE, "..", "desktop");
-const { PDFDocument, StandardFonts } = require("pdf-lib");
+const { PDFDocument, StandardFonts, PDFName, PDFRawStream, decodePDFRawStream } = require("pdf-lib");
 
 // load the bundle like the worker does (a global scope with `self` and WebCrypto)
 globalThis.self = globalThis;
@@ -51,6 +51,24 @@ async function samplePdf(pages = 2) {
   for (let i = 0; i < pages; i++) doc.addPage([400, 300]).drawText(`page ${i + 1}`, { x: 40, y: 150, size: 24, font });
   return Buffer.from(await doc.save());
 }
+// 1.3 seal: a PDF carrying the page's No AI notice (web/pdf-editor.html addAiNotice): an XMP /Metadata stream
+// on the catalog with the TDMRep reservation, the PLUS data mining value and a rights sentence
+const NO_AI_XMP = `<?xpacket begin="﻿" id="W5M0MpCehiHzreSzNTczkc9d"?>
+<x:xmpmeta xmlns:x="adobe:ns:meta/"><rdf:RDF xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"><rdf:Description rdf:about="" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:tdm="http://www.w3.org/ns/tdmrep/" xmlns:plus="http://ns.useplus.org/ldf/xmp/1.0/"><tdm:reservation>1</tdm:reservation><plus:DataMining>http://ns.useplus.org/ldf/vocab/DMI-PROHIBITED-AIMLTRAINING</plus:DataMining><dc:rights><rdf:Alt><rdf:li xml:lang="x-default">권리자는 이 문서를 AI 학습과 분석을 포함한 텍스트와 데이터 마이닝에 쓰는 것을 허락하지 않습니다.</rdf:li></rdf:Alt></dc:rights></rdf:Description></rdf:RDF></x:xmpmeta>
+<?xpacket end="w"?>`;
+async function noAiPdf() {
+  const doc = await PDFDocument.load(await samplePdf());
+  const xmp = doc.context.stream(new TextEncoder().encode(NO_AI_XMP), { Type: "Metadata", Subtype: "XML" });
+  doc.catalog.set(PDFName.of("Metadata"), doc.context.register(xmp));
+  return Buffer.from(await doc.save({ useObjectStreams: true })); // as the page saves it
+}
+async function metadataOf(bytes) {
+  const doc = await PDFDocument.load(bytes, { updateMetadata: false });
+  const s = doc.context.lookup(doc.catalog.get(PDFName.of("Metadata")));
+  if (!s) return null;
+  return Buffer.from(s instanceof PDFRawStream ? decodePDFRawStream(s).decode() : s.getContents()).toString("utf8");
+}
+
 function appendUpdate(pdf) {
   pdf = nb(pdf);
   const s = pdf.toString("latin1");
@@ -203,6 +221,18 @@ async function main() {
     const s0 = v.signatures[0] || {};
     check("sealed: intact, mine, certify", v.status === "intact" && v.signatures.length === 1 && s0.mine && s0.certify && s0.docMdp === 1 && s0.digestOk && s0.signatureOk && s0.coversWholeFile && s0.selfSigned, `sign ${signMs} ms`);
     check("sealed: signer, reason, location, time", s0.name === "홍길동" && s0.org === "테스트 주식회사" && s0.reason === "계약서 (최종)" && s0.location === "Seoul" && Math.abs(s0.signedAt - Date.now()) < 120e3 && s0.fingerprint === fp);
+
+    // ---- 1.3: the No AI notice (XMP /Metadata on the catalog) survives sealing, and the seal covers it ----
+    {
+      const noAi = await noAiPdf();
+      const sealedNoAi = await sig.signPdf(noAi, { certDer: id.certDer, key, name: "홍길동", reason: "Sealed with Sealworks" });
+      const vn = await sig.verifyPdf(sealedNoAi, { myFingerprint: fp });
+      check("No AI notice: /Metadata survives sealing, byte for byte", (await metadataOf(nb(sealedNoAi))) === NO_AI_XMP);
+      check("No AI notice: the sealed file verifies intact over the whole file", vn.status === "intact" && vn.signatures[0]?.coversWholeFile);
+      const stripped = await PDFDocument.load(nb(sealedNoAi), { updateMetadata: false });
+      stripped.catalog.delete(PDFName.of("Metadata"));
+      check("No AI notice: removing it and re-saving breaks the seal", (await status(Buffer.from(await stripped.save()))) !== "intact");
+    }
     const txt = nb(sealed).toString("latin1");
     check("sealed: PAdES subfilter, DocMDP P=1, /Perms, ESIC", /\/SubFilter\s*\/ETSI\.CAdES\.detached/.test(txt) && /\/TransformMethod\s*\/DocMDP/.test(txt) && /\/P\s+1\b/.test(txt) && /\/Perms\s*<<\s*\/DocMDP\s+\d+ 0 R/.test(txt) && /\/ESIC/.test(txt));
     check("sealed: still a PDF with the same pages", (await PDFDocument.load(nb(sealed))).getPageCount() === 2);
